@@ -1,1 +1,2 @@
 - [Owner access requirement](owner-access.md) — single-user project uses a manually saved random secret, not username/password.
+- [Temporary wallet destruction](temporary-wallet-destruction.md) — user wants temporary keys and local history destroyed, not indefinite retention.
