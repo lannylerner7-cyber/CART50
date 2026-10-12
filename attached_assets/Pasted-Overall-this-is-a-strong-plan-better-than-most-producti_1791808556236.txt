@@ -1,0 +1,49 @@
+Overall: this is a strong plan — better than most production wallet design docs I've reviewed. It corrects the specific errors from the earlier threads (auth key vs AES key, HD-derivable temp keys vs truly destructible keys, pruned node vs archival, no auto-sweep from cold seed), it separates authentication from encryption from signing, and it gates mainnet behind explicit approval. That last one is the single most important safety decision in the whole document and you got it right.
+
+Here's my critical read.
+
+What's genuinely well done
+
+· Destruction state ≠ expiry state. Separating "Expired" from "key_destruction: pending/blocked/completed/failed" is the right model. Most people conflate them and then lie to themselves about erasure.
+· "Independently destructible temporary keys must not be derivable from a retained main seed." This is the correction I'd have written myself. It forces the temp wallets to use random keys, not m/44'/0'/0'/1/N, which is the only way "destruction" means anything.
+· Cloudflare is downstream of signing, not in the signing path. Durable local journal, one authoritative signer, D1 as metadata replica. Correct.
+· Honest out-of-scope list. "No anonymity/untraceability, no perfect erasure on cloud disks, no concealment of node IP from Bitcoin peers" — most plans bury these.
+· Test-network verification as a required deliverable, with backup-restore-must-not-resurrect-destroyed-keys as an explicit test case. Very few teams write that test.
+
+Concerns, ordered by severity
+
+1. The destruction policy vs. unsettled funds is not just unresolved — it's the wrong shape of question. You framed it as "strict destruction at 120h" vs. "postpone for unsettled funds." But with random (non-HD) temp keys, postponement has a cost: the hot key lives longer, so if the server is compromised during the extension, funds are at risk. The real question is: what's the maximum value you're willing to have at risk on the server at any moment? Set a policy like: "At 120h, if unspent UTXOs exist, freeze the address for new receipts but hold the hot key up to 30 additional days with a balance cap; if the cap is exceeded, page the operator and refuse new temp wallets until swept." That's an operational policy, not a binary choice. Disable destructive scheduling until you've written it down.
+
+2. The 164-byte credential is underspecified. 164 bytes is not an AES key size (128/192/256 bits = 16/24/32 bytes). So it's entropy, not a key. Fine — but then the plan should say what it feeds: HKDF → {auth verifier, backup encryption key, session key, etc.}. And "219-character unpadded base64url" is not something a human will type. If it's a keyfile, it's a file — store it on encrypted removable media and stop pretending it's memorable. If you want memorable, use BIP39 24 words (256 bits) and derive everything. Pick one and delete the other. The current phrasing reads like both.
+
+3. The bearer secret needs a second factor for dashboard login. You correctly note "the credential is a bearer secret vulnerable to phishing or a compromised client." Then the plan lets it be the sole login factor. A stolen keyfile = full dashboard access = ability to trigger sweeps, change destinations if any UI-exposed destination is trusted, read the full history. Add WebAuthn as a required second factor for destructive or money-moving actions, and optionally for login. The keyfile alone should get you a read-only session; passkey unlocks write actions. This costs you nothing architecturally and it's the difference between "stolen laptop is an incident" and "stolen laptop is a total loss."
+
+4. Temp hot keys must never touch R2 or D1, or backups will resurrect them. The plan calls this out as a test ("backup restores that must not resurrect destroyed keys") but doesn't state the architectural rule that makes the test pass. The rule is: temporary hot signing keys exist only on the AWS host's local disk, are never serialized to R2/D1/Queues, and destruction is local disk overwrite + filesystem sync. Then the R2 backup physically cannot contain them. If you ever replicate them "for DR," you've permanently broken your own destruction guarantee. Write this in bold at the top of the sweeper service spec.
+
+5. Sweeps need RBF, not just retry. A low-fee sweep can sit in mempool for days. If your destruction clock is 120h and a sweep is stuck at 119h, retrying with the same inputs produces a double-spend conflict — you either replace-by-fee the original or you wait. Add RBF as the default for sweeps (with a documented fee ceiling), and CPFP as fallback if the sweep has already confirmed as a parent of a stuck child. Without this, "72/120 hours" is a fiction whenever fees spike.
+
+6. "Over 100 simultaneous wallets" is probably solving a problem you don't have. For a single user, 100 live receiving addresses at once means 100 people or contexts each got a distinct address within a 5-day window. If that's real, keep it. If it's a stress-test requirement, separate it: "UI must handle 100 rows" is different from "the system must actively track 100 concurrent receiving addresses." The latter multiplies your D1 rows, your watcher's filter set, and your sweeper's UTXO reservation complexity. Question it before you build it.
+
+7. Price feed provider is still unresolved, and the plan knows it. CoinGecko free tier or Kraken's public ticker (https://api.kraken.com/0/public/Ticker?pair=XBTUSD) both work without an API key. Kraken's is more stable and doesn't require attribution in a commercial sense. Fetch it through a Cloudflare Worker, not from the AWS host, so the node's outbound traffic signature doesn't correlate with price queries. Note that any read-only price fetch still leaks timing to the provider — mitigate by caching aggressively (60s+ TTL) and never fetching per-request.
+
+8. Replit is the right place for the app, the wrong place for the node. Replit doesn't give you the persistent disk, the long-running daemon stability, or the P2P egress you need for bitcoind. The plan already implies this ("AWS/Coolify deployment," "unavailable infrastructure is clearly marked unconnected"), but make it explicit in the repo: the Replit workspace is for React/TS/Workers API development; the node and sweeper are AWS-only artifacts. Don't let a future contributor try to docker compose up inside Replit.
+
+Two things I'd cut for v0.1
+
+· Spending vault. It's the most complex and highest-risk component. Ship it in v0.2 after the receiving/sweeping/explorer core is stable on signet.
+· Price alerts with percent-change windows. Absolute-threshold alerts are a day of work. Percentage-window alerts with cooldown, re-arm, dedup, and stale-feed suppression are a week. Ship threshold-only first.
+
+The decision I'd make right now
+
+Write the destruction policy as a one-page operational document before writing any code:
+
+1. Temp wallets use random 256-bit keys, generated on the AWS host, never exported.
+2. Receiving window: 0–120h.
+3. At 120h: stop showing the address, mark Expired, do not destroy the key if balance > 0.
+4. Sweep target: cold descriptor from a verified public export. Sweep is RBF-enabled with a 100 sat/vB ceiling; above that, page the operator.
+5. Key destruction allowed only when: (a) balance = 0 for 24 consecutive hours, or (b) operator explicitly approves after acknowledging value at risk.
+6. Destruction = local disk overwrite + sync. No copy ever existed on R2/D1.
+7. Derivation index / address / label / created / expires / status are retained forever as the minimal record. Everything else (tx history, balance snapshots) is purged with the key.
+8. Backup restore must be verified to not resurrect a destroyed key. If it does, the architecture is wrong, not the test.
+
+Once that page exists, the plan's "unresolved decision" disappears and the scheduler can be built against it. Until then, the plan is right to keep destructive scheduling disabled.

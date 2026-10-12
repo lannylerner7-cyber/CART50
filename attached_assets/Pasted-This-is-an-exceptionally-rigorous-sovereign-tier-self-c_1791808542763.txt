@@ -1,0 +1,19 @@
+This is an exceptionally rigorous, sovereign-tier self-custody architecture that successfully balances cloud-edge convenience with cold-storage security. By enforcing an xpub-derived sweep mechanism and keeping the master seed offline, it achieves the elusive combination of automated server-side receiving and uncompromised on-chain privacy.
+The transition to a Go-based sweeper running alongside the Bitcoin node on AWS, combined with Cloudflare D1/Workers for the frontend state, cleanly separates the heavy blockchain lifting from the UI layer.
+Here is the evaluation of the critical paths and the specific decisions you still need to resolve before deployment.
+## Where the Architecture Excels
+ * **Authentication Model:** Using a 164-byte offline-generated bearer token combined with WebAuthn (Passkeys) is practically unphishable. Treating it strictly as a bearer secret rather than an AES encryption key prevents catastrophic cryptographic implementation errors.
+ * **Privacy via xpub Derivation:** Sweeping funds to a single address destroys the privacy you gain from generating temporary wallets. Deriving a fresh, unique cold address from your xpub for *every single sweep* is the correct way to preserve on-chain untraceability.
+ * **Node Independence:** Using a pruned Bitcoin Core node with blockfilterindex=1 is the exact right configuration. It allows your Go watcher to detect incoming funds to arbitrary addresses in real-time without the 600+ GB storage penalty of an archival node.
+## The Critical Risk: The 120-Hour Destruction Dilemma
+The plan currently flags the key-destruction policy as unresolved regarding unsettled funds. This is the single biggest risk of permanent financial loss in your architecture.
+If a temporary wallet reaches its 120-hour expiration, you plan to permanently destroy its signing material. However, if a sender broadcasts a transaction with a very low fee at hour 119, that transaction might sit in the Bitcoin mempool unconfirmed for days.
+If your Go sweeper destroys the temporary private key at exactly 120 hours, and the mempool transaction finally confirms at hour 130, **those funds are permanently burned.**
+**The Fix:** The destruction scheduler must be conditional. At 120 hours, the wallet state in D1 should move to Expired (hidden from the UI for new deposits), but the Go sweeper must retain the signing key in memory/local storage *if and only if* unconfirmed_balance > 0. The key should only be securely purged once the unconfirmed balance confirms and is successfully swept to the cold vault.
+## Distributed State Reconciliation (AWS vs. Cloudflare)
+Because your system is split across two environments (Cloudflare D1 for state, AWS/Coolify for actual execution), network partitions will happen. The Go sweeper needs strict idempotency rules.
+ 1. **The Double-Sweep Risk:** The Go sweeper detects a UTXO, signs a sweep transaction, and broadcasts it to the Bitcoin network. Before it can update Cloudflare D1 to mark the wallet as "swept," the AWS-to-Cloudflare connection drops.
+ 2. **The Solution:** The Go sweeper must use the Bitcoin blockchain as the ultimate source of truth, not D1. On restart or reconnect, the sweeper must query the local Bitcoin node (listunspent) to verify if the UTXO is actually gone before attempting to sweep again or updating D1.
+## Market Data Feed Integration
+The plan notes that the market data provider is unresolved because an MCP (Model Context Protocol) is not a runtime feed.
+Since you require a cached, server-side feed that does not leak your IP or wallet addresses to the provider, you will need a Cloudflare Worker acting as a proxy cron job. This Worker can ping a public, non-KYC REST API (such as the CoinGecko public API or Kraken's public ticker API) every 5 minutes, cache the spot price in Cloudflare R2 or D1, and serve that cached price to your React frontend. Your AWS node never talks to the price provider.
