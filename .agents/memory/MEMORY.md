@@ -2,3 +2,4 @@
 - [Temporary wallet destruction](temporary-wallet-destruction.md) — user wants temporary keys and local history destroyed, not indefinite retention.
 - [Hosting scope](hosting-scope.md) — AWS is only the server hosting Coolify, not an application AWS-service integration.
 - [Health replication](health-replication.md) — bounded snapshot semantics, durable acknowledgement and connector upload limitation.
+- [Container verification](container-verification.md) — isolated run-based probes avoid workspace exec restrictions and hidden build-tree dependencies.

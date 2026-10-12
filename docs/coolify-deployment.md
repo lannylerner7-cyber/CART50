@@ -20,6 +20,8 @@ application on the existing host. Select **Dockerfile** as the build pack.
 | Container port / Ports Exposes | `3000` |
 | Host port mapping / Ports Mappings | **Leave empty**; use Coolify's proxy |
 | Health check | HTTP `GET /api/healthz`, port `3000` |
+| Health hostname / expected response | `127.0.0.1` / HTTP `200` |
+| Health timing | Interval `30s`, timeout `5s`, start period `30s`, retries `3` |
 | Build / install / start overrides | Leave empty; Dockerfile owns these |
 | Replicas | `1` |
 | App persistent storage | None; production metadata is in D1 |
@@ -64,11 +66,22 @@ to separate operator credentials, not this runtime token.
 ## 3. Runtime variables
 
 Enter these in Coolify's environment/secrets manager as **runtime-only** values.
-Use `deploy/coolify.env.example` as the consolidated variable inventory, not as a
+Use `deploy/coolify.env.example` for the **app**, and
+`deploy/coolify-signer.env.example` for the **private signer**, not as a
 place to save real secrets in Git. Variables configure services; they do not move
 D1 records, Core wallets or signer state into Coolify's environment manager.
 Do not expose secrets to builds or use Docker build arguments for credentials.
 Never paste a login key, seed, RPC cookie or backup key in chat or commit it.
+
+The app template includes this vault's non-secret D1 IDs and SMTP addresses.
+Its required blank fields are `VAULT_OWNER_VERIFIER`, `CF_API_TOKEN` and
+`SMTP_PASSWORD`; production startup rejects missing values. Set exact trusted
+proxy IPs only after verifying Coolify's proxy chain. Keep signer settings absent
+from the app until private networking is commissioned.
+
+The Docker health check measures **process liveness only**. Startup also checks
+D1 access/schema, but a later D1/Core/SMTP outage is not represented by
+`/api/healthz`. It is not a readiness or permission-to-fund signal.
 
 | Variable | Value / purpose |
 | --- | --- |

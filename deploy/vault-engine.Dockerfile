@@ -1,5 +1,7 @@
 # Separate private signer image; build context is the repository root.
 FROM golang:1.26.9-bookworm AS build
+ARG TARGETARCH=amd64
+RUN test "$TARGETARCH" = amd64 && test "$(uname -m)" = x86_64
 WORKDIR /src
 COPY services/vault-engine/go.mod ./
 COPY services/vault-engine/*.go ./

@@ -22,8 +22,20 @@ test("owner unlock, origin/CSRF defenses, alert persistence and revocation", asy
     body: data === undefined ? undefined : JSON.stringify(data),
   });
   try {
-    assert.equal((await call("/dashboard")).status, 401);
-    assert.equal((await call("/passkeys/options", "POST", {})).status, 401);
+    const protectedRoutes = [
+      ["GET", "/dashboard"], ["GET", "/wallets"], ["POST", "/wallets"],
+      ["GET", "/wallets/test"], ["PATCH", "/wallets/test"], ["DELETE", "/wallets/test"],
+      ["GET", "/transactions"], ["GET", "/settings"], ["PUT", "/settings"],
+      ["POST", "/node/reconnect"], ["GET", "/market"], ["GET", "/alerts"],
+      ["POST", "/alerts"], ["PUT", "/alerts/test"], ["DELETE", "/alerts/test"],
+      ["GET", "/notifications"], ["POST", "/notifications/test/read"], ["GET", "/explorer"],
+      ["POST", "/payments/review"], ["POST", "/payments/send"], ["POST", "/logout"],
+      ["POST", "/security/revoke"], ["POST", "/security/rotate"], ["GET", "/passkeys"],
+      ["POST", "/passkeys/options"], ["POST", "/passkeys/verify"], ["DELETE", "/passkeys/test"],
+    ];
+    for (const [method, path] of protectedRoutes) {
+      assert.equal((await call(path!, method!, method === "GET" ? undefined : {})).status, 401, `${method} ${path}`);
+    }
     assert.equal((await call("/login", "POST", {credential: randomBytes(164).toString("base64url")})).status, 401);
     const login = await call("/login", "POST", {credential: bytes.toString("base64url")});
     assert.equal(login.status, 200);

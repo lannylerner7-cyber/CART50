@@ -13,7 +13,8 @@ inspection timed out. No existing remote content has been overwritten.
 ## Verification actually performed
 
 - Workspace TypeScript and Worker typechecks passed.
-- 13 Node tests passed: API access, credential encoding, market alert windows,
+- 20 Node tests passed across the full verification script and the added template
+  test: API access (27 protected route/method combinations), credential encoding, market alert windows,
   configuration rejection, static routing, replication, backup integrity and
   isolated production bundle execution.
 - Go race tests and `go vet ./...` passed using workspace Go 1.26.5.
@@ -121,7 +122,8 @@ encoding, padding and noncanonical input. Access tests verify valid login,
 wrong-key rejection, secure cookie flags, origin/CSRF checks and revocation.
 These tests use disposable random test credentials, not the owner's real key.
 
-Use `deploy/coolify.env.example` as a consolidated inventory. Enter real values
+Use `deploy/coolify.env.example` for the app and
+`deploy/coolify-signer.env.example` for the separate private signer. Enter real values
 only into the correct service's runtime secret manager. Do not share all secrets
 with all containers. Coolify stores the verifier, not the owner login key; Core
 cookie files and signer data require private persistent mounts. Backup encryption
@@ -129,6 +131,26 @@ keys stay separate from encrypted backups. Worker secrets still belong in
 Cloudflare unless a separately approved architecture change removes the Worker.
 
 ## Outstanding commissioning gates
+
+### Deployment-variable and packaging recheck
+
+- App port is **3000**; HTTP health probe is **GET /api/healthz**, expected **200**.
+  Do not use Replit's 8080, the Coolify admin port, or the signer's private 9090.
+- App template includes the confirmed non-secret D1 IDs and SMTP addresses.
+  Required blank runtime fields: owner verifier, D1 API token, SMTP password.
+  Tests prove the example passes configuration validation once those three are
+  filled with valid-format fixtures. This is not proof that real tokens work.
+- Production now fails startup on missing/malformed SMTP configuration and invalid
+  trusted-proxy entries, rather than discovering them only when an alert fires.
+- Docker isolation checks exposed an absolute build-directory path in development
+  logging workers. Build output now uses relocatable worker paths from the runtime
+  working directory. Production uses JSON logging without that development worker.
+- Run `bash scripts/vault-verify.sh` for workspace checks; after building both
+  amd64 images, run `node scripts/vault-docker-verify.mjs` for offline container
+  checks. It publishes no ports and uses only disposable test credentials.
+- Live HTTPS was rechecked and still returns **503 / no available server**.
+  The owner confirmed only settings have been saved in Coolify; the app is not
+  yet deployed. No live SMTP test or GitHub push is claimed.
 
 - Verify access and private visibility of the selected repository and publish only reviewed content.
   GitHub integration is present, but `gh repo list` currently reports missing CLI
