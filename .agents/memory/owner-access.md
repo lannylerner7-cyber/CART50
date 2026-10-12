@@ -18,3 +18,12 @@ after the countdown, not a bypass credential.
 **How to apply:** Never include submitted credentials in alerts. Trusted proxy
 configuration can identify the observed client IP, not reveal an original IP behind
 a VPN. Do not promise VPN-proof attribution or create an authentication bypass.
+
+Use Cloudflare SMTP configured through Coolify runtime variables for security
+alerts, not the Resend integration.
+
+**Why:** The user explicitly chose their Cloudflare SMTP setup in Coolify.
+
+**How to apply:** Keep the email token separate from D1 credentials and out of
+source control; verify Email Sending enablement and sender onboarding before
+claiming live delivery. SMTP retries are not exactly-once delivery.

@@ -99,8 +99,10 @@ An empty setting trusts no forwarded headers and may group users under a proxy I
 Do not add Apache or trust arbitrary headers to try to discover a VPN user's
 original IP.
 
-Set `SECURITY_ALERT_TO`, a Resend-verified `SECURITY_ALERT_FROM`, and the
-runtime-only `RESEND_API_KEY` through Coolify. Email delivery is not commissioned
+Set `SECURITY_ALERT_TO`, `SECURITY_ALERT_FROM` on an onboarded Cloudflare sending
+domain, and runtime-only `SMTP_PASSWORD` (Email Sending: Edit token) through
+Coolify. Use `SMTP_HOST=smtp.mx.cloudflare.net`, `SMTP_PORT=465` and
+`SMTP_USER=api_token`; TLS is mandatory. Email delivery is not commissioned
 until a controlled invalid-key alert reaches the owner's inbox. Neither the
 Replit recipient variable nor a Replit provider connection is automatically
 copied to Coolify.

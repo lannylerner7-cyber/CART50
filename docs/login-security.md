@@ -39,18 +39,43 @@ behind a VPN. IPv6 address rotation is covered only by the overall budget.
 
 ## Security email
 
-Configure runtime-only `SECURITY_ALERT_TO`, `SECURITY_ALERT_FROM` (verified Resend
-sender), and `RESEND_API_KEY` (sending-only, domain-restricted where possible) in
-Coolify. The recipient selected in chat has been saved in the development
-environment rather than application source. Resend authorization and the sender
-still need setup. A Replit connection is not automatically exported to Coolify.
+Configure these runtime-only values in Coolify:
+
+| Variable | Value |
+|---|---|
+| `SMTP_HOST` | `smtp.mx.cloudflare.net` |
+| `SMTP_PORT` | `465` |
+| `SMTP_USER` | Literal `api_token` |
+| `SMTP_PASSWORD` | Separate Cloudflare token with **Email Sending: Edit** permission |
+| `SECURITY_ALERT_FROM` | A single sender address on your onboarded sending domain |
+| `SECURITY_ALERT_TO` | Your chosen alert recipient |
+
+Enable **Email Service > Email Sending** and onboard the sender domain in
+Cloudflare. Email Routing alone is insufficient. Do not reuse the application's
+D1 token. Save the SMTP token only as a runtime secret; no build arguments, logs
+or Git commits. The recipient selected in chat is set in the Replit development
+environment; enter it separately in Coolify.
+
+The transport uses Nodemailer with implicit TLS, certificate verification,
+TLS 1.2 minimum, bounded timeouts and transport logging disabled. It rejects
+other hosts, ports or usernames rather than sending credentials elsewhere.
+Port 587/STARTTLS and port 25 are not supported for Cloudflare submission.
+Resend is no longer used or required.
+
+Source: [Cloudflare SMTP documentation](https://developers.cloudflare.com/email-service/api/send-emails/smtp/),
+checked 2026-10-12. Account enablement, sender onboarding and real delivery have
+not been verified.
 
 Invalid-key events create a bounded durable alert slot. At most one event is
 queued every 15 minutes; intervening events are suppressed, not a full audit log.
-The worker polls every minute, uses a stable provider idempotency key, and retains
-failed deliveries for retry. At 23 hours an undelivered alert expires with an
-explicit warning, preventing indefinite IP retention/idempotency-window replay.
-An accepted email API response does not prove delivery to the recipient's inbox.
+The worker polls every minute, uses a stable Message-ID, and retains failed
+submissions for retry. SMTP has no guaranteed idempotency: an ambiguous connection
+failure or database failure after acceptance can cause duplicate delivery.
+The Message-ID helps correlation but does not guarantee deduplication. At 23 hours
+an undelivered alert expires with an explicit warning, limiting IP retention.
+A successful SMTP submission does not prove inbox delivery. Cloudflare can accept
+and drop suppressed recipients when that domain option is enabled; inspect Email
+Sending logs and verify a controlled test reaches the intended inbox.
 
 Only event time and the observed IP go in the email—not submitted keys, hashes,
 session cookies, wallet addresses or balances. The IP may identify a VPN exit, not

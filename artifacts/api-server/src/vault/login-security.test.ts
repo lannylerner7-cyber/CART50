@@ -67,16 +67,15 @@ test("HTTP cooldown, forged headers, trusted proxy chain and durable email retry
     await login("bad", "203.0.113.3, 198.51.100.8");
     await login("bad", "203.0.113.4, 198.51.100.8");
     assert.equal((await login("bad", "203.0.113.5, 198.51.100.8")).status, 429);
-    process.env.RESEND_API_KEY = "test-only-not-a-live-key";
     process.env.SECURITY_ALERT_FROM = "vault@example.test";
     process.env.SECURITY_ALERT_TO = "owner@example.test";
     const pending = (await readState()).loginSecurity!.pending!;
-    await deliverSecurityAlert(async () => new Response("unavailable", { status: 503 }));
+    await deliverSecurityAlert(async () => { throw new Error("SMTP unavailable"); });
     assert.equal((await readState()).loginSecurity!.pending!.id, pending.id);
-    await deliverSecurityAlert(async (_url, init) => {
-      assert.ok(!String(init?.body).includes(key));
-      assert.equal(new Headers(init?.headers).get("Idempotency-Key"), `vault-login-${pending.id}`);
-      return Response.json({ id: "test-email" });
+    await deliverSecurityAlert(async message => {
+      assert.ok(!JSON.stringify(message).includes(key));
+      assert.equal(message.messageId, `<vault-login-${pending.id}@example.test>`);
+      return { accepted: [message.to], rejected: [], response: "250 2.0.0 Accepted" };
     });
     assert.equal((await readState()).loginSecurity!.pending, undefined);
     await changeState(s => { s.loginSecurity!.global.expires = 0; for (const c of Object.values(s.loginSecurity!.clients)) { c.expires = 0; c.blockedUntil = 0; } });
