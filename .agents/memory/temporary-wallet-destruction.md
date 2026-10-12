@@ -6,7 +6,9 @@ The user explicitly selected five days for temporary-wallet self-destruction, in
 
 They want over 100 temporary wallet addresses active simultaneously, with individual creation timestamps, total received, confirmed/unconfirmed balances, live pending-transaction timing and an in-app explorer using their own node rather than public tracking services.
 
-On expiry, the user wants the wallet marked Expired in the vault history and wants to manually delete that history entry as well. They also requested a self-healing engine and complete table columns. They explicitly chose only their own node's live wallet activity in BTC/satoshis, not an external market-price feed.
+On expiry, the user wants the wallet marked Expired in the vault history and wants to manually delete that history entry as well. They also requested a self-healing engine and complete table columns.
+
+The user subsequently selected “Track real prices and market drops,” superseding their earlier no-price-feed choice. Permit external read-only market prices and market-drop alerts, while retaining their own node for wallet activity and confirmations; this does not authorize trading.
 
 **Why:** The user wants to limit exposure if their infrastructure or a payment service is compromised.
 
