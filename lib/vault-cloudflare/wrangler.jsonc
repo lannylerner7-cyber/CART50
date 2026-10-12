@@ -1,0 +1,19 @@
+{
+  "name": "personal-vault-metadata",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "vars": { "MARKET_ENABLED": "false" },
+  "triggers": { "crons": ["* * * * *"] },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "personal-vault",
+    "database_id": "SET-YOUR-D1-DATABASE-ID",
+    "migrations_dir": "migrations"
+  }],
+  "r2_buckets": [{ "binding": "BACKUPS", "bucket_name": "personal-vault-encrypted-backups" }],
+  "queues": {
+    "producers": [{ "binding": "REPLICA", "queue": "personal-vault-replica" }],
+    "consumers": [{ "queue": "personal-vault-replica", "max_batch_size": 10, "max_retries": 5, "dead_letter_queue": "personal-vault-replica-dlq" }]
+  }
+}

@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+**/.vault-data/
+/generated-artifacts/
+/services/vault-engine/vault-engine

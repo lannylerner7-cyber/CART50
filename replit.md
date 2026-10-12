@@ -1,6 +1,8 @@
-# [Project name]
+# Personal Bitcoin Vault
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Single-owner Bitcoin control room. **Test networks only; not ready for real funds.**
+See `docs/vault-operations.md` for setup, deployment boundaries, verification and
+the explicitly unfinished production safeguards.
 
 ## Run & Operate
 
@@ -8,25 +10,35 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- `cd services/vault-engine && VAULT_REGTEST=1 go test -v ./...` — isolated Bitcoin Core checks
+- Vault setup uses `VAULT_OWNER_VERIFIER` and `PUBLIC_ORIGIN`; see operating guide.
+- The unused Postgres starter is not the vault's data store. Do not run its schema push for this product.
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
 - API: Express 5
-- DB: PostgreSQL + Drizzle ORM
+- Metadata: local SQLite in development, Cloudflare D1 adapter in production.
+- Bitcoin: independent Go engine beside Core on AWS/Coolify; never a public RPC.
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/bitcoin-vault`: React UI; `public/offline-keygen.html`: offline credential generator.
+- `artifacts/api-server/src/vault`: access, sessions, metadata and alerts.
+- `services/vault-engine`: Core RPC, wallet tracking, signed-intent journal and regtest checks.
+- `lib/api-spec/openapi.yaml`: authoritative API contract; regenerate clients with codegen.
+- `lib/vault-cloudflare`: Worker, D1 migration and replication/backup endpoint scaffolding.
+- `scripts/vault-backup.mjs`: offline, independently keyed encrypted export.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Keep the user's explicit secret-based owner access; do not replace it with username/password.
+- Metadata availability must not control Bitcoin signing correctness; one local signer is authoritative.
+- Expiration is not destruction. Unsettled-fund policy and verifiable storage erasure need owner approval before destructive scheduling.
+- No fake balances, fake transactions or preview infrastructure presented as live production.
 
 ## Product
 

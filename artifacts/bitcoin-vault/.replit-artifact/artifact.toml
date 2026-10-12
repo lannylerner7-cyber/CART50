@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Personal Bitcoin Vault"
+description = "A single-owner Bitcoin vault with independently expiring receiving wallets, a cold savings view, a limited spending wallet, own-node explorer and market alerts. Test networks only until operational approval."
+version = "1.0.0"
+id = "artifacts/bitcoin-vault"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19507
+
+[services.development]
+run = "pnpm --filter @workspace/bitcoin-vault run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/bitcoin-vault", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/bitcoin-vault/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19507"
+BASE_PATH = "/"

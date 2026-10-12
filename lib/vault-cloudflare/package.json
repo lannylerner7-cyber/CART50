@@ -1,0 +1,6 @@
+{
+  "name": "@workspace/vault-cloudflare",
+  "private": true,
+  "type": "module",
+  "scripts": { "typecheck": "tsc --noEmit -p tsconfig.json" }
+}

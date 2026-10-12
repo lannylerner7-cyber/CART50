@@ -17,6 +17,10 @@ const DEFAULT_JSON_ACCEPT = "application/json, application/problem+json";
 
 let _baseUrl: string | null = null;
 let _authTokenGetter: AuthTokenGetter | null = null;
+let _csrfToken: string | null = null;
+export function setCsrfToken(token: string | null): void {
+  _csrfToken = token;
+}
 
 /**
  * Set a base URL that is prepended to every relative request URL
@@ -336,6 +340,9 @@ export async function customFetch<T = unknown>(
   }
 
   const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
+  if (_csrfToken && !["GET", "HEAD", "OPTIONS"].includes(method)) {
+    headers.set("X-CSRF-Token", _csrfToken);
+  }
 
   if (
     typeof init.body === "string" &&

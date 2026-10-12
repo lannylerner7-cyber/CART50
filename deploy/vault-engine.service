@@ -1,0 +1,27 @@
+[Unit]
+Description=Personal Bitcoin Vault test-network signer
+After=network-online.target bitcoind.service
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=vault
+Group=vault
+WorkingDirectory=/opt/personal-vault
+EnvironmentFile=/etc/personal-vault/engine.env
+ExecStart=/opt/personal-vault/vault-engine
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/personal-vault
+ReadOnlyPaths=/var/lib/bitcoin/signet/.cookie
+UMask=0077
+LimitCORE=0
+
+[Install]
+WantedBy=multi-user.target

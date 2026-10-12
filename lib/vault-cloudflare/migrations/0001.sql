@@ -1,0 +1,14 @@
+CREATE TABLE IF NOT EXISTS vault_state (
+  id INTEGER PRIMARY KEY CHECK (id=1),
+  version INTEGER NOT NULL,
+  data TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS prices (
+  time TEXT PRIMARY KEY,
+  price REAL NOT NULL CHECK(price > 0)
+);
+CREATE TABLE IF NOT EXISTS replica (
+  id TEXT PRIMARY KEY,
+  sequence INTEGER NOT NULL,
+  data TEXT NOT NULL
+);
