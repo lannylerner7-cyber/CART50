@@ -1,5 +1,5 @@
 # Separate private signer image; build context is the repository root.
-FROM golang:1.24-bookworm AS build
+FROM golang:1.26.9-bookworm AS build
 WORKDIR /src
 COPY services/vault-engine/go.mod ./
 COPY services/vault-engine/*.go ./

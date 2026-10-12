@@ -50,3 +50,15 @@ Thumbs.db
 **/.vault-data/
 /generated-artifacts/
 /services/vault-engine/vault-engine
+
+# Runtime credentials and private vault material must never enter Git.
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.vault
+*.sqlite*
+**/engine.json*
+**/wallet.dat
+**/.cookie

@@ -33,7 +33,7 @@ privileged mode or mount the Docker socket.
 
 The lockfile currently excludes ARM and musl native build packages, so this
 Dockerfile deliberately rejects a non-amd64 builder. Debian/glibc is intentional.
-Node 24 and Go 1.24 image tags are mutable, not digest-pinned. Review current
+Node 24 and Go 1.26.9 image tags are mutable, not digest-pinned. Review current
 security updates and record/pin tested image digests before operational approval.
 pnpm is pinned to 10.26.1 and dependency installation uses the frozen lockfile.
 
@@ -64,6 +64,9 @@ to separate operator credentials, not this runtime token.
 ## 3. Runtime variables
 
 Enter these in Coolify's environment/secrets manager as **runtime-only** values.
+Use `deploy/coolify.env.example` as the consolidated variable inventory, not as a
+place to save real secrets in Git. Variables configure services; they do not move
+D1 records, Core wallets or signer state into Coolify's environment manager.
 Do not expose secrets to builds or use Docker build arguments for credentials.
 Never paste a login key, seed, RPC cookie or backup key in chat or commit it.
 
