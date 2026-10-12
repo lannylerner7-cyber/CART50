@@ -8,7 +8,7 @@
   "d1_databases": [{
     "binding": "DB",
     "database_name": "personal-vault",
-    "database_id": "SET-YOUR-D1-DATABASE-ID",
+    "database_id": "f7f16095-2d5a-4cda-8889-94666a7bea06",
     "migrations_dir": "migrations"
   }],
   "r2_buckets": [{ "binding": "BACKUPS", "bucket_name": "personal-vault-encrypted-backups" }],

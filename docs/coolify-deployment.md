@@ -39,6 +39,10 @@ pnpm is pinned to 10.26.1 and dependency installation uses the frozen lockfile.
 
 ## 2. Cloudflare prerequisites (not automatically created)
 
+For resources already provisioned and remaining blockers, first consult
+`docs/vault-commissioning-status.md`. Reuse the dedicated resources recorded there;
+do not create duplicates. Their existence does not mean the Worker is deployed.
+
 Use dedicated vault resources, not databases or buckets belonging to other apps:
 
 1. Create D1 `personal-vault`; apply
@@ -144,6 +148,10 @@ For the signer container:
 - Set `BITCOIN_NETWORK=signet`, the same `VAULT_ENGINE_TOKEN` as the app, and
   `COLD_DESCRIPTOR` / `COLD_DESCRIPTOR_SHA256` only after verifying the public
   descriptor's fingerprint offline. Never install a cold seed in either image.
+- After the Worker is verified, set `REPLICA_URL` to its HTTPS `/replicate`
+  endpoint and set independent `REPLICA_TOKEN` in the signer runtime secret
+  manager. Preserve the adjacent health journal on the persistent volume.
+  See the commissioning record for bounded replay and rollback rules.
 - Retain the image defaults `ENGINE_LISTEN=0.0.0.0:9090` (container-only) and
   `ENGINE_DATA_DIR=/var/lib/personal-vault`.
 - Configure restart-on-failure with a bounded retry count (for example 5).

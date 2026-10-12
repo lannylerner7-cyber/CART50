@@ -8,10 +8,27 @@ interface Env {
   MARKET_ENABLED: string;
 }
 type Checkpoint = { id: "engine-health"; sequence: number; data: { network: "signet" | "regtest"; blocks: number; recoveryStatus: string; lastSync: string } };
+async function boundedText(req: Request): Promise<string | null> {
+  if (!req.body) return "";
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > 4096) { await reader.cancel(); return null; }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
 function validateCheckpoint(v: unknown): Checkpoint {
   if (!v || typeof v !== "object") throw new Error("Invalid checkpoint");
   const x = v as Checkpoint;
-  if (x.id !== "engine-health" || !Number.isSafeInteger(x.sequence) || x.sequence < 0 || !x.data || !["signet", "regtest"].includes(x.data.network) || !Number.isSafeInteger(x.data.blocks) || typeof x.data.recoveryStatus !== "string" || x.data.recoveryStatus.length > 100 || !Number.isFinite(Date.parse(x.data.lastSync))) throw new Error("Invalid checkpoint");
+  if (x.id !== "engine-health" || !Number.isSafeInteger(x.sequence) || x.sequence < 1 || !x.data || !["signet", "regtest"].includes(x.data.network) || !Number.isSafeInteger(x.data.blocks) || x.data.blocks < 0 || !["starting", "healthy", "retrying", "sweep_blocked"].includes(x.data.recoveryStatus) || typeof x.data.lastSync !== "string" || (x.data.lastSync !== "" && !Number.isFinite(Date.parse(x.data.lastSync)))) throw new Error("Invalid checkpoint");
   // Whitelist only operational metadata: no keys, addresses, balances or tx history.
   return { id: "engine-health", sequence: x.sequence, data: { network: x.data.network, blocks: x.data.blocks, recoveryStatus: x.data.recoveryStatus, lastSync: x.data.lastSync } };
 }
@@ -53,10 +70,14 @@ export default {
         }, { headers: { "Cache-Control": "public, max-age=30", "X-Content-Type-Options": "nosniff" } });
       }
       if (!await authorized(req, env)) return Response.json({error: "Unauthorized"}, {status: 401});
+      if (req.method === "GET" && url.pathname === "/replica") {
+        const { results } = await env.DB.prepare("SELECT sequence FROM replica WHERE id = ?").bind("engine-health").all<{sequence: number}>();
+        return Response.json({sequence: results[0]?.sequence ?? 0}, {headers: {"Cache-Control": "no-store"}});
+      }
       if (req.method === "POST" && url.pathname === "/replicate") {
         if (Number(req.headers.get("content-length") ?? 0) > 4096) return new Response("Too large", {status: 413});
-        const text = await req.text();
-        if (text.length > 4096) return new Response("Too large", {status: 413});
+        const text = await boundedText(req);
+        if (text === null) return new Response("Too large", {status: 413});
         await env.REPLICA.send(validateCheckpoint(JSON.parse(text)));
         return Response.json({queued: true}, {status: 202});
       }

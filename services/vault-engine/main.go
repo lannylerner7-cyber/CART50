@@ -262,6 +262,13 @@ func main() {
 	if err = syscall.Flock(int(lock.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
 		log.Fatal("another signer owns this journal")
 	}
+replica, err := newHealthReplica(e.file + ".health", os.Getenv("REPLICA_URL"), os.Getenv("REPLICA_TOKEN"))
+if err != nil {
+log.Fatal("invalid health replication configuration or journal")
+}
+if replica != nil {
+go replica.run(e)
+}
 	go func() {
 		backoff := time.Second
 		for {

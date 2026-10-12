@@ -21,6 +21,7 @@ type Engine struct {
 	file, network, descriptor string
 	lastSync                  string
 	connected                 bool
+blocks                    int
 }
 type Chain struct {
 	Chain    string  `json:"chain"`
@@ -281,6 +282,7 @@ func (e *Engine) sync() error {
 	}
 	e.refreshDestructionReadiness(time.Now())
 	e.state.Checkpoint = c.Best
+e.blocks = c.Blocks
 	e.state.Recovery = "healthy"
 	e.lastSync = stamp()
 	e.connected = true
