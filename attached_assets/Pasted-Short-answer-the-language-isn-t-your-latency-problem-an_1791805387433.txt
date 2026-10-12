@@ -1,0 +1,64 @@
+Short answer: the language isn't your latency problem, and none of these will give you "zero latency." Your latency is dominated by (1) Bitcoin block time — 10 minutes on average, (2) RPC round-trips to your node, (3) the Cloudflare Worker edge hop, and (4) the mempool-to-confirmation wait. Microseconds of language overhead are noise next to a 600-second block interval.
+
+That said, the languages are not equivalent for this project. Here's the honest breakdown.
+
+---
+
+What each language actually is in your stack
+
+· React — frontend only. It doesn't touch your node, your sweeper, or your keys. Irrelevant to this question except as the UI layer.
+· Python — the main.py sweeper I sketched. Fine, but slow startup, GIL, and you'll fight it if you ever want concurrency at scale.
+· Node.js / TypeScript — best fit for the Cloudflare side. Workers are V8 isolates; the runtime is JavaScript. This is not optional.
+· C# / .NET — fast, great async, but no first-class story on Cloudflare Workers. You'd only use it if you were running the whole thing on your own host.
+· Go — the language most crypto node infrastructure is actually written in (btcd, lnd, geth is Go, most indexers, most RPC tooling). Cold start in single-digit ms, trivial concurrency, single static binary, tiny Docker image.
+· Rust — fastest of the list, but the marginal gain over Go for this workload is unmeasurable when your bottleneck is a 10-minute block time. Higher dev cost, slower iteration.
+
+---
+
+The right answer for your architecture
+
+You have two runtimes and they want different languages. Fighting this is the mistake.
+
+Cloudflare side (Workers, Queues, D1 access, webhook endpoints, cron triggers):
+
+TypeScript. Not because it's fast — because it's the only first-class language on Workers. Everything else is WASM-compiled or transpiled, and you lose the ergonomics of D1 bindings, Durable Object alarms, and Queues producers. Worker cold start is ~0–5 ms, which is faster than any of your other hops. There is no reason to fight this.
+
+AWS host side (sweeper daemon, node RPC client, regex engine, D1 sync):
+
+Go. For your specific workload:
+
+· Single static binary → Docker image is ~10 MB, not 400 MB like a Python or .NET image.
+· Goroutines make "watch 500 retired addresses, sweep N of them concurrently, retry failed broadcasts with backoff" trivial. Python needs asyncio + careful footguns. Node is fine here too but you're already writing TS on the other side, so the marginal cost is low either way.
+· The Bitcoin/EVM ecosystem's reference tooling is Go. btcd, btcutil, go-ethereum, most RPC clients. You'll find working code for everything you need instead of hand-rolling it.
+· Cold start: single-digit milliseconds. Python starts in ~200 ms. .NET in ~100 ms. For a long-running daemon this barely matters, but it matters for health checks and restarts.
+
+If you want one language across both sides: TypeScript everywhere. Write the sweeper in Node, run it in a container on the host. This is a legitimate simplification and I'd only argue against it if your sweeper were doing heavy crypto parsing at high volume — which it isn't.
+
+---
+
+What "zero latency" actually means here
+
+If you literally want the fastest possible path from "a UTXO appears" to "a sweep is signed and broadcast," the language barely factors. What matters:
+
+1. Run the node and the sweeper on the same host, same Docker network. Already in the compose file. This kills network RPC latency.
+2. Watch the mempool, not just the chain. Subscribe to zmqpubrawtx from bitcoind. You see the payment the moment it hits your node's mempool — often 30–120 seconds before it's in a block. This is the single biggest latency win available, and it's language-independent.
+3. Pre-derive the next temp address and pre-warm a watch. Don't wait for a query to derive it.
+4. Sign and broadcast in the same process. No IPC, no queue hop for the critical path. Use the Cloudflare Queue only for logging and retry, never for the primary sweep.
+5. Use compact block filters (BIP158) with blockfilterindex=1 — already in the compose file — so scanning for payments to your addresses is O(blocks) not O(blocks × addresses).
+
+Do those five things and the language you pick is a rounding error.
+
+---
+
+What I'd actually pick
+
+Layer Language Why
+Frontend (React UI) TypeScript Obviously
+Cloudflare Workers / Queues / cron TypeScript Only real option
+Sweeper daemon on AWS Go Best ecosystem fit, tiny image, concurrency-free
+Node client itself N/A Use bitcoind / geth directly
+Scripting / one-off ops Python or bash Whatever's fastest to write
+
+If you're not already a Go dev and want to ship this month: TypeScript end-to-end. You lose maybe 20–40 ms per sweep cycle versus Go. On a chain with 10-minute blocks, that is 0.005% of your latency budget. Ship faster, refactor later if you ever need to.
+
+What you should not do: write the Cloudflare Worker in anything but TypeScript, or write the sweeper in Python and then wonder why the container image is 500 MB and the daemon leaks memory after a week of websocket reconnects. Those are the two real traps in your stack.

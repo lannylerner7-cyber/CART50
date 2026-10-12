@@ -1,0 +1,21 @@
+**Project Blueprint: Self-Hosted, Single-User Crypto Node & Wallet Architecture**
+**Objective:** Build a strictly personal, self-hosted crypto wallet and full node. The system must operate independently of external APIs, prioritize absolute operational security (zero-recovery), and utilize Cloudflare infrastructure for robust data persistence decoupled from the compute environment (Coolify).
+**1. Authentication & Security (Zero-Recovery Model)**
+ * **Authentication:** Eliminate standard username/password combinations. Implement login requiring a locally generated, 164-character random AES key.
+ * **Offline First:** The AES key and master seed phrase must be generated, encrypted, and saved strictly offline by the user.
+ * **Passkey Integration:** Support Passkey (WebAuthn) setup tied to the master authorization for frictionless daily access.
+ * **Immutability:** The system must be entirely self-custodial. If the offline key/seed is lost, the hidden savings cannot be recovered.
+**2. Wallet Architecture & Lifecycle**
+ * **Main Wallet (Cold):** The primary, untraceable savings vault. Never exposed directly for incoming transactions.
+ * **Ephemeral Wallets (Hot/Temp):**
+   * Generate a new temporary receiving wallet every 48 hours.
+   * Implement an automated sweeping mechanism to route all incoming payments from the active temp wallet to the Main Wallet.
+   * **Expiration Protocol:** Schedule complete deletion/destruction of each temp wallet precisely at the 72-hour mark. This creates a 24-hour overlapping buffer to ensure all pending blockchain transactions are collected before the wallet disappears.
+**3. Infrastructure & Data Persistence (Cloudflare Stack)**
+ * **Cloudflare D1 (Database):** Serve as the primary ledger to manage unbounded wallet balances, encrypted key seed references, custom phrases, and routing state. This acts as our permanent DB, insulating data from any future Coolify structural changes.
+ * **Cloudflare R2 / S3:** Act as the storage layer for temporary wallet metadata, state history, and transaction artifacts prior to their 72-hour expiration.
+ * **Cloudflare Queues / Workers:** Act as the CDN and queueing system to asynchronously process, route, and broadcast incoming/outgoing transactions without bottle-necking the node.
+**4. Transaction Processing & Node Logic**
+ * **Self-Hosted Node:** Operate a standalone crypto node (e.g., via Coolify container) to parse the blockchain directly, strictly avoiding third-party APIs (like Infura or Alchemy).
+ * **Regex Engine:** Implement strict regex filtering and parsing for all incoming and outgoing transaction data payloads.
+ * **Scalability:** The internal ledger (D1) and UI must be configured to handle and display unlimited balance tracking.

@@ -1,0 +1,159 @@
+Direct answers first
+
+1. Pruned, not archival. For a personal wallet that generates addresses, watches for incoming payments, and sweeps, you need signing + broadcast + address monitoring. You do not need 600 GB of historical blocks. Run prune=10000 (~10 GB) with blockfilterindex=1 so you can still detect payments to arbitrary addresses without a full rescan. Costs drop from ~1/mo. The one thing you give up: historical rescans beyond the prune horizon, and -txindex. Neither matters if you're watching addresses in real time, which you are.
+
+2. Yes — here's the compose file, plus the corrections you need to make before you build, because three parts of the blueprint will lose funds as written.
+
+---
+
+What I'd change before you build
+
+The 72-hour key purge does nothing cryptographically, and could lose funds. If your temp wallets are BIP-32 derived from the master seed (m/44'/0'/0'/1/N), the private key is the seed plus the index. Deleting the index from D1 doesn't destroy the key — you can re-derive it. So "purge at hour 72" is a database row deletion, not a security boundary. That's fine, but call it what it is. And do not delete the derivation index. A transaction broadcast at hour 71 can confirm at hour 80, and reorgs happen. Keep the index forever; mark the wallet retired in D1 and keep a background scanner watching it for 90 days. Late deposits to a "deleted" address are otherwise unrecoverable — not because the key is gone, but because you forgot which index to look at.
+
+Auto-sweep and self-custody are in direct conflict, and the chain you pick decides whether it's solvable. This is the biggest architectural fork in your blueprint:
+
+Chain Can a server auto-sweep without holding a spendable key?
+Bitcoin No, not today. There is no covenant (CTV/APO) on mainnet that lets you commit a temp address to a fixed destination at creation time. Your options are: (a) a hot key on the AWS host, (b) the user must be online to sign, or (c) accept that "self-custodial auto-sweep" is not achievable.
+EVM (ERC-4337) Yes. The temp wallet is a smart contract account. Install a session key scoped to transfer(mainWallet, amount) only, with an expiry. Even if that key leaks, an attacker can only send funds to your main wallet. This is the correct answer for your requirement.
+
+If you're on Bitcoin and want automatic sweeps, you are running a hot wallet on the server. That's a legitimate choice for small temp balances — just don't tell yourself it's cold. Size the risk: cap temp wallet balances, sweep frequently, keep the real savings on a hardware wallet.
+
+Sweeping everything to one main wallet destroys the untraceability you're building the temp wallets for. On-chain analysis does exactly this: it clusters addresses by common-spend and by destination. Ten temp addresses all sweeping to bc1q...main are trivially linked, and so is every payer who sent to them. Temp addresses buy you payment-level privacy (each payer sees a unique address) but not balance-level privacy. If you want the latter you need intermediate hops, coinjoin, or Lightning. Be clear with yourself about which one you're buying.
+
+A 164-character AES key is not a login mechanism. Two problems. First, a raw AES key is a key, not a credential — the server has to verify it, which means either the server sees it (bad) or you use it to decrypt a server-issued challenge (fine, but then it's just a password with extra steps). Second, 164 characters is a terrible thing to type. What you actually want: Argon2id(passphrase) → AES-256-GCM key, or better, WebAuthn PRF → HKDF → AES-256-GCM key. The passkey is your daily unlock; the offline keyfile is your recovery. Store the keyfile, don't memorize it.
+
+Also: D1 is not a backup. If Cloudflare suspends the account or D1 has an incident, your ledger is gone. Set up a nightly encrypted dump of D1 → R2, and a weekly encrypted dump → your AWS host. Cheap insurance.
+
+---
+
+docker-compose.yml for Coolify
+
+Paste this as a Docker Compose resource in Coolify. Before you do, on the AWS host:
+
+```bash
+sudo mkdir -p /var/crypto-node/{bitcoin,sweeper,cloudflared}
+sudo chown -R 1000:1000 /var/crypto-node
+```
+
+Generate your RPC credential (run once, on any machine with Python):
+
+```bash
+python3 -c "
+import base64, hashlib, os, sys
+pw = base64.b64encode(os.urandom(32)).decode()
+salt = base64.b64encode(os.urandom(16)).decode()
+print('password:', pw)
+print('rpcauth:', 'sweeper:' + salt + '\$' + hashlib.sha256((pw+salt).encode()).hexdigest())
+"
+```
+
+Save the password into the sweeper's env; paste the rpcauth line into the bitcoind command below.
+
+```yaml
+services:
+  bitcoind:
+    image: ruimarinho/bitcoin-core:27
+    container_name: btc-node
+    restart: unless-stopped
+    command:
+      - -printtoconsole
+      - -server=1
+      - -listen=0                      # outbound-only: no inbound P2P, host IP stays hidden
+      - -maxconnections=16
+      - -prune=10000                   # ~10 GB
+      - -blockfilterindex=1            # BIP158 filters: detect payments w/o full blocks
+      - -peerblockfilters=0
+      - -txindex=0
+      - -rpcbind=0.0.0.0
+      - -rpcallowip=172.16.0.0/12
+      - -rpcallowip=10.0.0.0/8
+      - -rpcauth=sweeper:PASTE_YOUR_RPCAUTH_HERE
+      - -disablewallet=0
+      - -fallbackfee=0.00001
+    volumes:
+      - /var/crypto-node/bitcoin:/home/bitcoin/.bitcoin
+    networks:
+      - node_net
+    # No `ports:` block. RPC is reachable only inside the Docker network.
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    healthcheck:
+      test: ["CMD", "bitcoin-cli", "-rpcauth=sweeper:PASTE_YOUR_RPCAUTH_HERE", "getblockcount"]
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 300s
+
+  sweeper:
+    build:
+      context: /var/crypto-node/sweeper
+      dockerfile: Dockerfile
+    container_name: btc-sweeper
+    restart: unless-stopped
+    depends_on:
+      bitcoind:
+        condition: service_healthy
+    environment:
+      BTC_RPC_URL: http://bitcoind:8332
+      BTC_RPC_USER: sweeper
+      BTC_RPC_PASS: ${BTC_RPC_PASS}
+      CF_ACCOUNT_ID: ${CF_ACCOUNT_ID}
+      CF_D1_DATABASE_ID: ${CF_D1_DATABASE_ID}
+      CF_API_TOKEN: ${CF_API_TOKEN}      # D1 Edit + Queues Edit only, scoped
+      SWEEP_INTERVAL_SEC: 120
+      RETIRE_AFTER_HOURS: 72
+      WATCH_AFTER_HOURS: 2160            # 90 days of late-deposit scanning
+    volumes:
+      - /var/crypto-node/sweeper/state:/app/state
+    networks:
+      - node_net
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cfd
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
+    networks:
+      - node_net
+
+networks:
+  node_net:
+    driver: bridge
+```
+
+And a minimal Dockerfile in /var/crypto-node/sweeper/:
+
+```dockerfile
+FROM python:3.12-slim
+WORKDIR /app
+RUN pip install --no-cache-dir httpx aiohttp
+COPY . .
+CMD ["python", "-u", "main.py"]
+```
+
+Notes on the file:
+
+· No ports: anywhere. Nothing on this host is reachable from the internet. cloudflared makes outbound connections to Cloudflare and you route node.yourdomain.com through the tunnel. Then close 8000/80/443 in the AWS Security Group.
+· listen=0 means outbound-only P2P. You'll have ~8–16 peers instead of 100+, which is fine for a wallet. Your host IP never appears in the peer graph.
+· blockfilterindex=1 is what lets a pruned node answer "did anything ever pay address X?" without the full chain. This is the setting that makes pruning viable for your use case. Do not skip it.
+· Bind mounts, not named volumes. /var/crypto-node/bitcoin lives on the host. Wipe Coolify, reinstall it, the chain and wallet stay put.
+· The sweeper talks to D1 over the Cloudflare REST API with a scoped token. Keep that token to D1 + Queues only. If it leaks, someone can read your metadata (which is public anyway) but not your seeds (which are client-side encrypted).
+· IBD will take 2–5 days on a t3.medium. Bitcoin Core needs ~2 GB RAM during initial sync. Don't try this on a t3.micro.
+
+---
+
+The one decision left
+
+Before the sweeper code can be written, you have to pick:
+
+· Bitcoin + hot sweeper key. Simple, works, custodial for temp balances only. Cap temp balances at something you'd shrug off losing.
+· EVM + ERC-4337 session keys. Non-custodial, auto-sweep works as designed, but you're now maintaining a bundler and paymaster relationship, or running your own bundler.
+· Bitcoin + user-online sweep. Truly non-custodial, no hot key, but the 72-hour guarantee becomes "72 hours or whenever you next open the app." Late deposits are recovered manually from the retained derivation index.
+
+Tell me which one and I'll write the main.py sweeper logic — the RPC calls, the D1 upsert flow, the retirement state machine, and the late-deposit scanner.

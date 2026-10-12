@@ -1,0 +1,1 @@
+- [Owner access requirement](owner-access.md) — single-user project uses a manually saved random secret, not username/password.

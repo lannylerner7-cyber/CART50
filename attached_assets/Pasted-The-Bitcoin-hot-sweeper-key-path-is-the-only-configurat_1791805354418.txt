@@ -1,0 +1,83 @@
+The **Bitcoin + hot sweeper key** path is the only configuration that satisfies your requirement for automated 72-hour background sweeps without relying on external EVM bundler APIs. It keeps the architecture entirely self-contained on your Coolify host and Cloudflare stack.
+However, sweeping multiple temporary balances into a single Main Wallet address destroys the untraceability you requested. Blockchain analysis easily clusters these transactions by their shared destination. To fix this, the server must not hold a static main address. It will hold the **xpub (Extended Public Key)** of your offline Main Wallet. For every automated sweep, the node derives a brand new cold address, keeping the payment trails completely fragmented.
+### The Security Boundary
+ * **The Server (Hot):** Holds dynamically generated keys in the node's wallet.dat for the 72-hour temporary window. If the server is compromised, the attacker can only steal funds currently sitting in a temporary wallet.
+ * **The Main Wallet (Cold):** The offline master seed is never exposed. The server only knows its xpub. It can send funds *to* it, but cannot spend *from* it.
+## 1. Cloudflare D1 Schema (The Ledger)
+Execute this in your Cloudflare D1 dashboard to track the temporary wallets and the cold derivation state. Do not delete rows at hour 72; update the status to retired. The keys are purged from the live node, but the index is retained here to recover late payments manually.
+```sql
+-- Tracks the 72-hour temporary receiving addresses
+CREATE TABLE temp_wallets (
+    address TEXT PRIMARY KEY,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status TEXT DEFAULT 'active' -- 'active', 'frozen', 'swept', 'retired'
+);
+
+-- Tracks the Cold Wallet destination so every sweep gets a fresh address
+CREATE TABLE cold_wallet_state (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    xpub TEXT NOT NULL,
+    last_derived_index INTEGER DEFAULT 0
+);
+
+```
+## 2. Sweeper Daemon Implementation (main.py)
+Inside the btc-sweeper container, this Python script orchestrates the sweeps via the Bitcoin Core RPC and Cloudflare D1 API. It uses Bitcoin Core's native descriptor engine to derive the fresh cold addresses without needing external cryptographic libraries.
+```python
+import os, time, httpx
+
+BTC_RPC_URL = os.environ.get("BTC_RPC_URL", "http://bitcoind:8332")
+RPC_USER = os.environ.get("BTC_RPC_USER", "sweeper")
+RPC_PASS = os.environ.get("BTC_RPC_PASS")
+
+D1_URL = f"https://api.cloudflare.com/client/v4/accounts/{os.environ['CF_ACCOUNT_ID']}/d1/database/{os.environ['CF_D1_DATABASE_ID']}/query"
+HEADERS = {"Authorization": f"Bearer {os.environ['CF_API_TOKEN']}"}
+
+def btc_rpc(method, params=None):
+    payload = {"jsonrpc": "1.0", "id": "sweeper", "method": method, "params": params or []}
+    resp = httpx.post(BTC_RPC_URL, auth=(RPC_USER, RPC_PASS), json=payload).json()
+    if resp.get('error'):
+        raise Exception(resp['error'])
+    return resp['result']
+
+def query_d1(sql, params=None):
+    payload = {"sql": sql, "params": params or []}
+    response = httpx.post(D1_URL, headers=HEADERS, json=payload).json()
+    return response['result'][0].get('results', [])
+
+def sweep_active_wallets():
+    # 1. Get all confirmed & unconfirmed balances tracked by the local node
+    unspent = btc_rpc("listunspent", [1, 9999999])
+    
+    for utxo in unspent:
+        amount = utxo['amount']
+        if amount > 0.00001:  # Ignore dust
+            
+            # 2. Fetch the Cold xpub and increment index from D1
+            state = query_d1("SELECT xpub, last_derived_index FROM cold_wallet_state WHERE id = 1")[0]
+            next_idx = state['last_derived_index'] + 1
+            
+            # 3. Derive a fresh Native Segwit (Bech32) destination natively in Bitcoin Core
+            descriptor = f"wpkh({state['xpub']}/0/{next_idx})"
+            desc_info = btc_rpc("getdescriptorinfo", [descriptor])
+            cold_dest = btc_rpc("deriveaddresses", [desc_info['descriptor']])[0]
+            
+            # 4. Broadcast the sweep transaction (subtracts network fee from total automatically)
+            txid = btc_rpc("sendtoaddress", [cold_dest, amount, "", "", True])
+            
+            # 5. Advance the cold index in D1
+            query_d1("UPDATE cold_wallet_state SET last_derived_index = ? WHERE id = 1", [next_idx])
+            print(f"Swept {amount} BTC to {cold_dest}. TXID: {txid}")
+
+def rotate_temp_wallets():
+    # Queries D1 for active wallets > 48hrs, generates a new one via btc_rpc("getnewaddress", ["", "bech32"]),
+    # and updates D1 state to 'frozen' or 'retired'
+    pass
+
+if __name__ == "__main__":
+    while True:
+        sweep_active_wallets()
+        rotate_temp_wallets()
+        time.sleep(120)  # Check every 2 minutes
+
+```

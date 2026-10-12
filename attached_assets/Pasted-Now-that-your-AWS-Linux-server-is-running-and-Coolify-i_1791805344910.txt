@@ -1,0 +1,50 @@
+Now that your AWS Linux server is running and Coolify is accessible via its IPv4, here is how you should structure the environment to align with your zero-recovery, Cloudflare-decoupled architecture.
+### 1. Lock Down the Server & Hide the IPv4
+Leaving Coolify accessible via http://<your-ipv4>:8000 exposes your server to automated port scans and exposes your AWS IP address to the public.
+ * **Assign an AWS Elastic IP:** AWS dynamic public IPs change if you stop/start the instance. Attach an Elastic IP to keep it static.
+ * **Route Through Cloudflare Tunnel (cloudflared):** Instead of opening ports 80, 443, or 8000 to the world, install Cloudflare Tunnel on the AWS host.
+   * Point your custom domain (or subdomain like node.yourdomain.com) to the tunnel.
+   * Cloudflare handles free SSL/TLS termination and DDoS protection.
+ * **Close Inbound AWS Security Group Ports:** Once the tunnel is working, close port 8000 and all web ports in your AWS Security Group. Inbound traffic will only travel via Cloudflare’s encrypted outbound tunnel, keeping your real AWS IP completely hidden.
+### 2. Configure Node Storage & Resource Sizing
+Running a blockchain node on AWS EBS (Elastic Block Store) requires attention to costs and disk persistence:
+ * **Pruned vs. Full Node:**
+   * A **Full Node** (e.g., Bitcoin) currently requires over **600 GB** of SSD storage. 600+ GB of AWS gp3 EBS storage will add noticeable monthly costs.
+   * If your goal is only verifying transactions, generating temp addresses, and sweeping funds, configure your node as a **Pruned Node** (e.g., prune=5000 or ~10–15 GB). This reduces AWS storage costs by ~95% while retaining full signing, sending, and verification capabilities.
+ * **Persistent Host Bind Mounts (Coolify Decoupling):**
+   * Do not let Coolify store blockchain data in ephemeral Docker volumes.
+   * Mount a dedicated folder directly from the host filesystem (e.g., /var/crypto-node/data) into your node container. Even if Coolify is wiped, upgraded, or reinstalled, the underlying blockchain sync and node configurations on the Linux host remain untouched.
+### 3. Deploy the Architecture Stack on Coolify
+Inside the Coolify dashboard, deploy the system as modular services:
+```
+[ Cloudflare Edge ]
+  ├── D1 (Ledger, Encrypted Seeds, Passkey/AES auth state)
+  ├── R2 (Temporary address metadata & audit snapshots)
+  └── Queues / Worker (Public webhook endpoints & scheduled sweeps)
+          │ (Authenticated via Cloudflare Tunnel)
+          ▼
+[ AWS Host via Coolify ]
+  ├── Service A: Crypto Node (Bitcoin/EVM daemon - local RPC only)
+  └── Service B: Sweeper & Regex Engine (Pulls from node RPC, syncs with D1)
+
+```
+ 1. **Crypto Node Service:**
+   * Deploy the official node image (e.g., bitcoind or your chosen chain client).
+   * Restrict the RPC interface (127.0.0.1 only or internal Docker network). Do not expose RPC ports to the internet.
+ 2. **Local Regex & Sweeper Daemon:**
+   * A lightweight backend container running your custom logic.
+   * Interfaces with the local node via RPC to generate temporary addresses and broadcast raw signed transactions.
+   * Connects outbound to **Cloudflare D1** via Cloudflare's REST API or worker bindings to update address balances and execution states.
+### 4. Implement the Ephemeral Address Lifecycle (48h/72h)
+To prevent data lock-in and keep AWS stateless:
+ * **State in D1:** Address generation timestamps, hashed IDs, and lifecycle states (active, sweeping, expired) reside entirely in Cloudflare D1, not inside Coolify.
+ * **Cron Sweeping:** Coolify's internal cron or a Cloudflare Worker Cron Trigger checks active temp wallets every few minutes.
+ * **The 48h → 72h Transition:**
+   * **Hour 0–48:** Wallet is marked active for receiving payments.
+   * **Hour 48:** The wallet is marked frozen_for_new. A new temp wallet is generated in D1.
+   * **Hour 48–72 (Grace Period):** Any incoming UTXOs/funds are swept immediately into the Cold Main Wallet.
+   * **Hour 72:** The private key/seed metadata for that temp address is purged from memory/D1.
+### Recommended Next Step
+Log into your Coolify panel and decide your node configuration:
+ 1. Are you targeting a **pruned node** (~15 GB) or a **full archival node** (~600+ GB) for the blockchain daemon?
+ 2. Would you like a docker-compose.yml template configured with host bind mounts and strict internal networking ready to paste into Coolify?
