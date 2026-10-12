@@ -2,7 +2,9 @@
 name: Temporary wallet destruction
 description: User's privacy goal and desired retention boundary for temporary wallets.
 ---
-The user explicitly wants temporary wallets to self-destruct after 72 hours or a recommended interval, including their transaction history in the application's database, rather than retaining them indefinitely. They want the main vault balance and outgoing history retained, and outgoing transfers tracked to three confirmations.
+The user explicitly selected five days for temporary-wallet self-destruction, including their transaction history in the application's database, rather than indefinite retention. They want the main vault balance and outgoing history retained, outgoing transfers tracked to three confirmations, and a separate spending vault.
+
+They want over 100 temporary wallet addresses active simultaneously, with individual creation timestamps, total received, confirmed/unconfirmed balances, live pending-transaction timing and an in-app explorer using their own node rather than public tracking services.
 
 **Why:** The user wants to limit exposure if their infrastructure or a payment service is compromised.
 
