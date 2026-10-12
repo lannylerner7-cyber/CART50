@@ -90,6 +90,21 @@ Get the offline generator from the repository at
 network, generate the owner credential and retain the keyfile offline. Install
 only its verifier. Do not create a new key on every container restart.
 
+### Login cooldown and security email
+
+See `docs/login-security.md`. Three invalid keys restrict the observed client IP
+for one hour; counters persist in D1. Set `TRUSTED_PROXY_IPS` only after verifying
+the actual reverse-proxy chain and isolating the app container from direct access.
+An empty setting trusts no forwarded headers and may group users under a proxy IP.
+Do not add Apache or trust arbitrary headers to try to discover a VPN user's
+original IP.
+
+Set `SECURITY_ALERT_TO`, a Resend-verified `SECURITY_ALERT_FROM`, and the
+runtime-only `RESEND_API_KEY` through Coolify. Email delivery is not commissioned
+until a controlled invalid-key alert reaches the owner's inbox. Neither the
+Replit recipient variable nor a Replit provider connection is automatically
+copied to Coolify.
+
 The container refuses startup on missing/invalid required settings, mainnet,
 an absent built dashboard, or a failed D1 schema/access check. It never silently
 uses SQLite in production. The signer URL/token may both be absent for initial

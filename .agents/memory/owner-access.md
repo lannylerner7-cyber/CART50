@@ -10,8 +10,8 @@ The user wants this single-user crypto project to use a manually saved long rand
 
 The user requested a cooldown after three invalid access keys, protection against
 attempts from changing VPN addresses, and email alerts for incorrect keys/login
-attempts. They also mentioned a temporary login; its meaning and the cooldown
-duration require clarification.
+attempts. They confirmed a one-hour cooldown; "temporary login" means retrying
+after the countdown, not a bypass credential.
 
 **Why:** These are explicit owner requirements for the personal vault's access controls.
 

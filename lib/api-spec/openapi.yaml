@@ -111,6 +111,18 @@
         "operationId": "unlockVault",
         "parameters": [],
         "responses": {
+          "429": {
+            "description": "IP cooldown or overall attempt budget exceeded",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds until another attempt is allowed",
+                "schema": { "type": "integer", "minimum": 1 }
+              }
+            },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
           "200": {
             "description": "Success",
             "content": {
@@ -1777,6 +1789,11 @@
       "Session": {
         "type": "object",
         "properties": {
+          "loginRetryAfterSeconds": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Server-authoritative login cooldown remaining; absent on successful login."
+          },
           "authenticated": {
             "type": "boolean"
           },

@@ -12,7 +12,12 @@ export const HealthCheckResponse = zod.object({
 })
 
 
+export const getVaultSessionResponseLoginRetryAfterSecondsMin = 0;
+
+
+
 export const GetVaultSessionResponse = zod.object({
+  "loginRetryAfterSeconds": zod.number().int().min(getVaultSessionResponseLoginRetryAfterSecondsMin).optional().describe('Server-authoritative login cooldown remaining; absent on successful login.'),
   "authenticated": zod.boolean(),
   "configured": zod.boolean(),
   "csrfToken": zod.string().nullable(),
@@ -30,7 +35,12 @@ export const UnlockVaultBody = zod.object({
   "credential": zod.string().min(unlockVaultBodyCredentialMin).max(unlockVaultBodyCredentialMax)
 })
 
+export const unlockVaultResponseLoginRetryAfterSecondsMin = 0;
+
+
+
 export const UnlockVaultResponse = zod.object({
+  "loginRetryAfterSeconds": zod.number().int().min(unlockVaultResponseLoginRetryAfterSecondsMin).optional().describe('Server-authoritative login cooldown remaining; absent on successful login.'),
   "authenticated": zod.boolean(),
   "configured": zod.boolean(),
   "csrfToken": zod.string().nullable(),
@@ -548,7 +558,12 @@ export const PasskeyLoginVerifyBody = zod.object({
   "response": zod.record(zod.string(), zod.unknown())
 })
 
+export const passkeyLoginVerifyResponseLoginRetryAfterSecondsMin = 0;
+
+
+
 export const PasskeyLoginVerifyResponse = zod.object({
+  "loginRetryAfterSeconds": zod.number().int().min(passkeyLoginVerifyResponseLoginRetryAfterSecondsMin).optional().describe('Server-authoritative login cooldown remaining; absent on successful login.'),
   "authenticated": zod.boolean(),
   "configured": zod.boolean(),
   "csrfToken": zod.string().nullable(),

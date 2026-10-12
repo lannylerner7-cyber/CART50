@@ -6,8 +6,10 @@ import vault from "./routes/vault";
 import { HttpError } from "./vault/auth";
 import { ZodError } from "zod";
 import { mountDashboard } from "./static";
+import { configureTrustedProxies } from "./vault/login-security";
 
 const app: Express = express();
+configureTrustedProxies(app);
 
 app.use(
   pinoHttp({

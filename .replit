@@ -22,3 +22,8 @@ timeoutMs = 20000
 [nix]
 channel = "stable-25_05"
 packages = ["bitcoin"]
+
+[userenv]
+
+[userenv.shared]
+SECURITY_ALERT_TO = "support@connectliveagent.com"
