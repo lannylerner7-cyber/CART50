@@ -87,6 +87,30 @@ provider errors produce explicit generic logs without secret values.
 
 ## Verification boundary
 
+### Coolify operator check
+
+After deploying the updated image and applying the runtime variables, open the
+**app container's** terminal in Coolify (not the signer terminal):
+
+```sh
+# No network traffic; confirms required settings exist without printing values.
+node /app/dist/smtp-check.mjs --check-config
+# Checks TLS and authentication; sends no message.
+node /app/dist/smtp-check.mjs --verify
+# Checks authentication and sends exactly one setup-test message.
+node /app/dist/smtp-check.mjs --send-test
+```
+
+The check does not read wallet data, touch login counters, or expose an HTTP
+test-email route. It prints only fixed result messages, never provider dialogue
+or secret values. If the script is missing, the container is running an older
+image. Each `--send-test` invocation can send one email; do not run it repeatedly
+just because delivery is delayed. Check the recipient inbox and Cloudflare Email
+Sending logs. SMTP acceptance alone is not delivery proof.
+
+An HTTP 503 from the app's public domain is a separate deployment/routing failure.
+Do not paste environment dumps or raw provider errors into chat while diagnosing it.
+
 Local tests cover three failures, exact cooldown expiry, serialized state reload,
 changing IPs, concurrent failures, rejected correct keys during cooldown, trusted
 and spoofed proxy headers, HTTP countdown state, and mocked email failure/retry.
