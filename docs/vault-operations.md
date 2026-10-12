@@ -41,7 +41,10 @@ Credential loss does not destroy a separately backed-up cold-wallet seed.
 
 ## AWS / Coolify deployment package
 
-Provisioning is deliberately not performed by this repository.
+The root `Dockerfile` packages the dashboard and API on port 3000. See
+[`coolify-deployment.md`](coolify-deployment.md) for exact Coolify settings,
+runtime variables, build commands and the private signer image. Infrastructure
+provisioning and live commissioning are not performed automatically by the image.
 
 Use a dedicated Linux host and private persistent volumes. Pin Bitcoin Core
 **29.0.0** for the current regtest checks, then review security updates before

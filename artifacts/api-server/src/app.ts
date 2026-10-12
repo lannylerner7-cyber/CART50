@@ -5,6 +5,7 @@ import { logger } from "./lib/logger";
 import vault from "./routes/vault";
 import { HttpError } from "./vault/auth";
 import { ZodError } from "zod";
+import { mountDashboard } from "./static";
 
 const app: Express = express();
 
@@ -32,6 +33,7 @@ app.use(express.json({ limit: "64kb" }));
 
 app.use("/api/vault", vault);
 app.use("/api", router);
+mountDashboard(app, process.env.VAULT_STATIC_DIR);
 app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (err instanceof HttpError) { res.status(err.status).json({ error: err.message }); return; }
   if (err instanceof ZodError || err instanceof SyntaxError) { res.status(400).json({ error: "Invalid request data" }); return; }

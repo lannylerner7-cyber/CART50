@@ -13,6 +13,7 @@ the explicitly unfinished production safeguards.
 - `cd services/vault-engine && VAULT_REGTEST=1 go test -v ./...` — isolated Bitcoin Core checks
 - Vault setup uses `VAULT_OWNER_VERIFIER` and `PUBLIC_ORIGIN`; see operating guide.
 - The unused Postgres starter is not the vault's data store. Do not run its schema push for this product.
+- Operator-run Coolify deployment: root `Dockerfile`, port 3000; see `docs/coolify-deployment.md`. Actual Docker and external commissioning checks remain separate.
 
 ## Stack
 
@@ -46,7 +47,9 @@ _Describe the high-level user-facing capabilities of this app once they exist._
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+The owner wants an intact Docker deployment package so they can deploy through
+their existing Coolify installation without sharing its login. Do not make a
+separate administration domain a prerequisite; encrypted SSH access is an option.
 
 ## Gotchas
 
