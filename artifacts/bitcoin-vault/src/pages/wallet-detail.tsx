@@ -102,7 +102,8 @@ export default function WalletDetail() {
                 <Panel title="history">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-muted-foreground">
-                      {expired ? (empty ? (w.destructionStatus === 'completed' ? 'Expired, empty and destruction verified. Its local history record can be deleted.' : 'Expired and empty. Deletion stays blocked until key destruction is verified; the destruction policy is not yet approved.') : 'Expired but still holds funds. Resolve funds before any destruction or deletion.') : 'History can be deleted only after expiration and verified key destruction. These are separate states.'}
+                      {expired ? (empty ? (w.destructionStatus === 'completed' ? 'Expired, empty and destruction verified. Its local history record can be deleted.' : 'Expired. A displayed zero balance is not proof of safe destruction. Keys remain until fresh node checks verify drainage and settlement, and storage-key destruction is verified.') : 'Expired but still holds funds. Keys are retained while funds are drained; there is no strict destruction deadline.') : 'Expires after 120 hours. Keys must be retained until drainage, settlement and storage-key destruction are verified.'}
+                      {' '}Late deposits after key destruction may be permanently lost. Public Bitcoin history cannot be erased.
                     </p>
                     <Button variant="destructive" size="sm" className="gap-1.5" disabled={!expired || !empty || w.destructionStatus !== 'completed' || del.isPending} onClick={() => setConfirm(true)} data-testid="button-delete-history"><Trash2 className="h-3.5 w-3.5" /> Delete history</Button>
                   </div>

@@ -58,7 +58,7 @@ router.get("/dashboard", async (_req, res) => {
       { name: "Bitcoin Core", status: node.connected ? "connected" : "disconnected", message: node.message },
       { name: "Metadata", status: externalConfigured() ? "connected" : "development", message: externalConfigured() ? "Cloudflare D1" : "Local development metadata; Cloudflare is not connected" },
       { name: "Market feed", status: getMarket().available ? "connected" : "disconnected", message: getMarket().message },
-      { name: "Destruction scheduler", status: "blocked", message: "Awaiting approved policy and storage-erasure verification" },
+      { name: "Destruction scheduler", status: "blocked", message: "120-hour expiry; wait for verified drainage. Existing storage retained by owner choice: key destruction and history deletion remain blocked because storage erasure is unverified." },
     ],
     activity: [{ id: "safety", title: "Test-network safety boundary", message: "Mainnet and automatic key destruction are disabled.", createdAt: new Date().toISOString(), severity: "info" }],
   }));

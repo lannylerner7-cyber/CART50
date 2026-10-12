@@ -126,10 +126,22 @@ References:
 ## Expiration is not erasure
 
 Every temporary wallet expires at creation +120 hours. The UI then stops offering
-its address for receipt. Destruction state remains blocked pending the owner's
-strict-versus-postponed decision and a tested storage-erasure design. No API
-currently destroys keys. Manual history deletion is allowed only after verified
-destruction and zero funds; it cannot bypass these conditions.
+its address for receipt. The owner selected **wait for verified drainage**:
+retain keys past expiry while funds, unsettled sweeps or node uncertainty remain.
+Read-only readiness checks now include trusted/pending/immature balances, unsafe
+and locked coins, sweep replacements, active-chain checkpoints, wallet scan state
+and node freshness. An empty legacy wallet remains `blocked_storage_verification`.
+No API currently destroys keys. Manual history deletion is allowed only after
+verified destruction and zero funds; it cannot bypass these conditions.
+
+The owner chose to retain existing storage rather than add a separate
+key-management service. A reference independent-key design and copy inventory
+are in [`temporary-wallet-storage.md`](temporary-wallet-storage.md); this design
+is not enabled or implemented. No post-revocation recovery is claimed. The
+inventory is a host-verification checklist, not a claim that deployed backups
+were inspected. The existing offline-generated access key is unchanged: configure
+only its SHA-256 verifier in `VAULT_OWNER_VERIFIER`, never reuse that access
+credential as a temporary-wallet encryption key.
 
 Core unloading, deleting a row and overwriting files do not guarantee SSD/EBS
 erasure. Inventory Core wallet databases, WAL files, swap, crash dumps, journal

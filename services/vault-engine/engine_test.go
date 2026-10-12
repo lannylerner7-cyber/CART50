@@ -37,7 +37,7 @@ func TestExpiryAndDeletion(t *testing.T) {
 	w := blankWallet("x", "x", "temporary")
 	w.ExpiresAt = strptr(now.Format(time.RFC3339))
 	expire(&w, now)
-	if w.Status != "expired" || w.DestructionStatus != "blocked_pending_policy" {
+if w.Status != "expired" || w.DestructionStatus != "waiting_for_verification" {
 		t.Fatal("expiry must not imply destruction")
 	}
 	if deletionAllowed(w) == nil {
@@ -226,10 +226,27 @@ func TestRegtestWalletsAndPayments(t *testing.T) {
 	if err = e.send(sweep); err != nil {
 		t.Fatal(err)
 	}
+// Expiry does not authorize destruction while the sweep is in the mempool.
+expiredIndex := -1
+for n := range e.state.Wallets {
+if e.state.Wallets[n].ID == wallets[0].ID {
+expiredIndex = n
+e.state.Wallets[n].ExpiresAt = strptr(time.Now().Add(-time.Hour).UTC().Format(time.RFC3339))
+}
+}
+if err = e.sync(); err != nil {
+t.Fatal(err)
+}
+if expiredIndex < 0 || e.state.Wallets[expiredIndex].DestructionStatus != "waiting_for_settlement" {
+t.Fatal("unsettled sweep must block destruction")
+}
 	call("", "generatetoaddress", []any{3, mining}, nil)
 	if err = e.sync(); err != nil {
 		t.Fatal(err)
 	}
+if e.state.Wallets[expiredIndex].DestructionStatus != storageUnverified {
+t.Fatalf("drained legacy storage must remain blocked: %s", e.state.Wallets[expiredIndex].DestructionStatus)
+}
 	rows, err := e.transactions()
 	if err != nil || len(rows) == 0 {
 		t.Fatal("transactions missing")
@@ -249,6 +266,9 @@ func TestRegtestWalletsAndPayments(t *testing.T) {
 	if err = e.sync(); err != nil {
 		t.Fatal(err)
 	}
+if e.state.Wallets[expiredIndex].DestructionStatus != "blocked_reorg" {
+t.Fatal("reorg must block destruction even with a zero displayed balance")
+}
 	for _, p := range e.state.Intents {
 		if p.TxID == sweep.TxID && p.Status == "confirmed" {
 			t.Fatal("reorg not reflected")
@@ -258,4 +278,16 @@ func TestRegtestWalletsAndPayments(t *testing.T) {
 	if err != nil || restored.ColdIndex != 1 {
 		t.Fatal("cold reservation lost")
 	}
+// Late deposits before destruction must retain keys and restore the funds blocker.
+call("", "generatetoaddress", []any{3, mining}, nil)
+call("miner", "sendtoaddress", []any{*wallets[0].Address, btc(20000)}, nil)
+if err = e.sync(); err != nil {
+t.Fatal(err)
+}
+if e.state.Wallets[expiredIndex].DestructionStatus != "waiting_for_funds" {
+t.Fatal("late deposit did not block destruction")
+}
+if deletionAllowed(e.state.Wallets[expiredIndex]) == nil {
+t.Fatal("late-funded history must not be deleted")
+}
 }

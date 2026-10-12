@@ -30,5 +30,5 @@ export async function nodeStatus() {
 }
 export async function operationalSettings() {
   const { settings } = await readState();
-  return { ...settings, network: process.env.BITCOIN_NETWORK === "regtest" ? "regtest" : "signet", destructionPolicy: "disabled_pending_owner_approval", expiryHours: 120, provider: "Kraken via Cloudflare Worker", priceCurrency: "USD", externalConfigured: !!process.env.VAULT_ENGINE_URL };
+  return { ...settings, network: process.env.BITCOIN_NETWORK === "regtest" ? "regtest" : "signet", destructionPolicy: "wait_for_drainage_storage_unverified", expiryHours: 120, provider: "Kraken via Cloudflare Worker", priceCurrency: "USD", externalConfigured: !!process.env.VAULT_ENGINE_URL };
 }

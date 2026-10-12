@@ -81,7 +81,7 @@ func blankWallet(id, label, kind string) Wallet {
 	w := Wallet{ID: id, Label: label, Kind: kind, CreatedAt: stamp(), Status: "active", DestructionStatus: "not_scheduled", Confirmed: "0", Unconfirmed: "0", Available: "0", Received: "0", Swept: "0"}
 	if kind == "temporary" {
 		w.ExpiresAt = strptr(time.Now().UTC().Add(120 * time.Hour).Format(time.RFC3339))
-		w.DestructionStatus = "blocked_pending_policy"
+		w.DestructionStatus = "waiting_for_expiry"
 	}
 	return w
 }
@@ -92,8 +92,8 @@ func expire(w *Wallet, now time.Time) {
 	expiry, err := time.Parse(time.RFC3339, *w.ExpiresAt)
 	if err == nil && !now.Before(expiry) {
 		w.Status = "expired"
-		if w.DestructionStatus != "completed" {
-			w.DestructionStatus = "blocked_pending_policy"
+		if w.DestructionStatus == "blocked_pending_policy" || w.DestructionStatus == "waiting_for_expiry" {
+			w.DestructionStatus = "waiting_for_verification"
 		}
 	}
 }

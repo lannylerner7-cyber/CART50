@@ -12,4 +12,8 @@ The user subsequently selected “Track real prices and market drops,” superse
 
 **Why:** The user wants to limit exposure if their infrastructure or a payment service is compromised.
 
-**How to apply:** Respect destruction as a product goal, while explaining that blockchain records cannot be deleted and expired addresses can still receive funds. The choice between a strict deadline and waiting for confirmed drainage is not yet resolved; do not interpret this preference as authorization to destroy actual keys or funds.
+The user selected “Wait for verified drainage”: expire at 120 hours, but retain keys until the node is healthy, balances are zero and sweeps have settled. This is not authorization for destructive production operations.
+
+When asked about adding a separate key-management service versus keeping existing storage with destruction blocked, the user ultimately said “No keep the existing one,” superseding their initial approval of a new service. Keep existing storage and the existing sign-in credential; do not add a key-management service without renewed approval.
+
+**How to apply:** Respect destruction as a product goal, while explaining that blockchain records cannot be deleted and expired addresses can still receive funds. Under the retained-storage decision, actual key destruction stays disabled; do not substitute file deletion for verified erasure. The drainage policy does not authorize a strict fund-losing deadline.

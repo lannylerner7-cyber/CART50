@@ -279,6 +279,7 @@ func (e *Engine) sync() error {
 			return err
 		}
 	}
+	e.refreshDestructionReadiness(time.Now())
 	e.state.Checkpoint = c.Best
 	e.state.Recovery = "healthy"
 	e.lastSync = stamp()
