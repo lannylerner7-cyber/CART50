@@ -1,14 +1,17 @@
-# GitHub and Coolify readiness — 2026-10-12
+# GitHub and Coolify readiness — 2026-10-13
 
 ## Decision
 
 **Not approved for real funds or live commissioning.** Code can be prepared for
-a private repository; no GitHub push was performed during this verification.
+a private repository; repository delivery is not approval to deploy with real funds.
 The owner selected `https://github.com/lannylerner7-cyber/CART50.git` and confirmed
 retaining Cloudflare storage. Configuration consolidation is not a database migration.
-Repository access and private visibility have not yet been verified: the GitHub
-connection reports active, but CLI authentication is unavailable and remote
-inspection timed out. No existing remote content has been overwritten.
+Repository access now works with an owner-authorized repository-specific SSH
+deploy key. Authenticated Git reads succeed while the unauthenticated repository
+API returns 404, consistent with the selected private repository. The existing
+remote main contains only `es.txt`; its unrelated history is preserved by merging,
+not force-pushing. The private SSH key is outside the working tree and is not
+part of the deployment package. Coolify should use a separate read-only key.
 
 ## Verification actually performed
 
@@ -29,10 +32,14 @@ inspection timed out. No existing remote content has been overwritten.
 - Dependency scan initially reported 1 critical, 4 high and 45 moderate findings.
   Compatible overrides for proxy-addr, brace-expansion, source-map-js and fast-uri
   reduce the report to 0 critical, 1 high and 43 moderate.
-- Heuristic scan of 333 reachable Git-history blobs found no private-key header,
+- Pre-push verification reran the full local script and isolated container checks
+  successfully. All three configured preview workflows were running; this does
+  not mean a production Core, signer, Worker consumer or SMTP sender is running.
+- Heuristic scan of 388 reachable local/remote Git-history blobs found no private-key header,
   supported provider-token or 219-character vault-credential pattern. It is not a
-  comprehensive secret/PII clearance. Existing tracked uploaded documents and
-  project memory remain in history and require publication review.
+  comprehensive secret/PII clearance. Existing tracked uploaded plans and
+  project memory are included in this owner-requested private codebase delivery;
+  do not make the repository public without a separate publication review.
 
 Repeat local checks with `bash scripts/vault-verify.sh`. This does not exercise
 the deployed vault and cannot certify security "once and for all."
@@ -150,11 +157,11 @@ Cloudflare unless a separately approved architecture change removes the Worker.
   checks. It publishes no ports and uses only disposable test credentials.
 - Live HTTPS was rechecked and still returns **503 / no available server**.
   The owner confirmed only settings have been saved in Coolify; the app is not
-  yet deployed. No live SMTP test or GitHub push is claimed.
+  yet deployed. No live SMTP test is claimed.
 
-- Verify access and private visibility of the selected repository and publish only reviewed content.
-  GitHub integration is present, but `gh repo list` currently reports missing CLI
-  authentication; push capability has not been proven.
+- Keep the selected repository private. GitHub CLI OAuth remains unavailable;
+  use the repository-specific deploy key for source delivery. Confirm the
+  remote branch matches the local commit after each push.
 - Retain Cloudflare D1 as confirmed by the owner. No storage migration is needed.
 - Follow `docs/vault-commissioning-status.md` for the previously observed public
   503, DNS permission failure and Worker upload challenge; this pass does not
