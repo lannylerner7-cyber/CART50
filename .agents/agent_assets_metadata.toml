@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "JfF5zxKalV-FNsj6YrV39"
+uri = "file://docs/vault-completion-plan.md"
+type = "text"
+title = "Remaining Vault Commissioning Plan"
+description = "Staged plan with dependencies, workspace/background work, operator steps, acceptance checks, and the no-push gate."
+logical_id = "26dcffe8-7a3b-441b-9aeb-ee259ee55361"
+content_hash = "sha256:3c012c69a9bdb0afb1e98118768a5a291d0db4114c19619e269083f909dbc397"
+size = 17307
+mtime_ms = 1791870992244
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/26dcffe8-7a3b-441b-9aeb-ee259ee55361/a9d2d5f7-d864-49fd-990a-e7ab9eb95e7b"
+storage_version_token = "1791871005978678"
+content_type = "text/markdown"
