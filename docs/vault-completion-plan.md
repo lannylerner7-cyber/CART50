@@ -2,11 +2,16 @@
 
 ## Rules and current position
 
+**Updated owner authorization:** source may now be pushed to the private GitHub
+repository for operator-run manual deployment before commissioning is finished.
+This supersedes the original no-push sequencing in the draft diagram and stages
+below; it does not waive any live commissioning or real-funds safety check.
+
 This is a draft execution plan, not a completion certificate. No deployment,
 outage simulation, GitHub push, secret change, or background job is started by
 creating this document.
 
-- **No GitHub push until the agreed commissioning gates below pass.**
+- **Source push is authorized; live commissioning and real-funds approval remain separate gates.**
 - Signet only; no mainnet, real funds, destructive wallet erasure, or market feed.
 - The owner remains the server operator. Do not request server credentials in chat.
 - Preserve existing GitHub history, D1 data, signer state, and access paths.

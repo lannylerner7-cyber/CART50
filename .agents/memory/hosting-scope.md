@@ -15,14 +15,27 @@ deployment variables managed in Coolify for this personal project.
 
 **How to apply:** Keep source publication separate from runtime secret installation.
 
-Do not push this vault to GitHub while the agreed plan remains incomplete.
+The owner authorizes pushing the source to GitHub before live commissioning so
+they can perform the deployment manually.
 
-**Why:** The user stopped the proposed push after learning that live commissioning
-checks were still outstanding.
+**Why:** After initially withholding permission until completion, the owner
+explicitly changed the order and requested a push for manual deployment.
 
-**How to apply:** Passing local tests is not permission to push an incomplete
-deployment. Resolve the live-verification prerequisite with the owner rather than
-silently relaxing this gate or claiming that local tests complete the plan.
+**How to apply:** Push source and operator instructions only, excluding secrets
+and operational data. Source delivery is not live commissioning or real-funds
+approval; keep remaining checks explicitly incomplete.
+
+Do not assume a deploy key generated outside the workspace survives into a later
+task environment.
+
+**Why:** The previously working deploy key under the runner's home SSH directory
+was absent on a later push attempt, although the repository and known-hosts file
+remained. GitHub's public key alone cannot authenticate a push.
+
+**How to apply:** Check private-key existence without reading its contents before
+promising SSH access. Use secure credential storage or a restricted, ignored
+workspace location; never commit a private key or claim it is recoverable from
+its public half.
 
 The user explicitly chose to keep Cloudflare storage and manage app/signer
 runtime variables in Coolify. Do not migrate the database or publish wallet data.
