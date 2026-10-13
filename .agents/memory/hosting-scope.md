@@ -14,6 +14,16 @@ deployment variables managed in Coolify for this personal project.
 **Why:** The user explicitly stated this deployment order and configuration goal.
 
 **How to apply:** Keep source publication separate from runtime secret installation.
+
+Do not push this vault to GitHub while the agreed plan remains incomplete.
+
+**Why:** The user stopped the proposed push after learning that live commissioning
+checks were still outstanding.
+
+**How to apply:** Passing local tests is not permission to push an incomplete
+deployment. Resolve the live-verification prerequisite with the owner rather than
+silently relaxing this gate or claiming that local tests complete the plan.
+
 The user explicitly chose to keep Cloudflare storage and manage app/signer
 runtime variables in Coolify. Do not migrate the database or publish wallet data.
 
