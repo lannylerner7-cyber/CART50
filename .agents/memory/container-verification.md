@@ -13,3 +13,11 @@ fault that host tests had missed.
 to the original build tree or workspace dependencies, with disposable state and
 no external network. Include the runtime modes actually being claimed as tested;
 successful host tests do not prove a relocated image runs.
+
+Treat a failed toolchain-install callback as potentially state-changing.
+
+**Why:** The Go package installer rejected its language argument but still added
+a Go module to project configuration. Failure did not mean no changes occurred.
+
+**How to apply:** Inspect configuration changes after a failed install and restore
+unintended changes through the configuration-validation tool, not direct edits.

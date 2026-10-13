@@ -8,6 +8,6 @@ pnpm --filter @workspace/api-server exec tsx --test src/vault/*.test.ts src/stat
 node --test deploy/app-config.test.mjs scripts/vault-backup.test.mjs lib/vault-cloudflare/src/index.test.mjs
 pnpm --filter @workspace/api-server run build
 NODE_ENV=production PORT=3000 BASE_PATH=/ pnpm --filter @workspace/bitcoin-vault run build
-node --test scripts/vault-package.test.mjs
+node --test scripts/vault-package.test.mjs scripts/vault-live-probe.test.mjs scripts/mockup-discovery.test.mjs
 (cd services/vault-engine && go test -race ./... && go vet ./...)
 git diff --check

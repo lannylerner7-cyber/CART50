@@ -16,7 +16,8 @@ part of the deployment package. Coolify should use a separate read-only key.
 ## Verification actually performed
 
 - Workspace TypeScript and Worker typechecks passed.
-- 20 Node tests passed across the full verification script and the added template
+- 25 Node tests passed across the full verification script, including template,
+  public-probe and preview-discovery checks, plus
   test: API access (27 protected route/method combinations), credential encoding, market alert windows,
   configuration rejection, static routing, replication, backup integrity and
   isolated production bundle execution.
@@ -31,7 +32,9 @@ part of the deployment package. Coolify should use a separate read-only key.
 - Static and privacy scanners returned no findings.
 - Dependency scan initially reported 1 critical, 4 high and 45 moderate findings.
   Compatible overrides for proxy-addr, brace-expansion, source-map-js and fast-uri
-  reduce the report to 0 critical, 1 high and 43 moderate.
+  first reduced the report to 0 critical, 1 high and 43 moderate. Replacing the
+  mockup tool's fast-glob dependency with tested native Node discovery removes
+  that high finding: the latest audit is **0 critical, 0 high, 43 moderate**.
 - Pre-push verification reran the full local script and isolated container checks
   successfully. All three configured preview workflows were running; this does
   not mean a production Core, signer, Worker consumer or SMTP sender is running.
@@ -46,11 +49,9 @@ the deployed vault and cannot certify security "once and for all."
 
 ## Remaining security findings
 
-1. **High:** braces 3.0.3, via the mockup sandbox's development fast-glob/micromatch
-   dependency. Registry latest remains 3.0.3 with no reported patched version.
-   Not in the production app Docker allowlist. Never give this tooling untrusted
-   glob patterns; replace/update the preview dependency before calling the
-   entire repository vulnerability-free.
+1. **Resolved high finding:** braces through the mockup sandbox's
+   fast-glob/micromatch chain was removed. Native discovery has a regression test
+   for nested TSX files, ignored helper directories, hidden files and empty roots.
 2. **Moderate:** postcss-selector-parser 6.0.10 through build-time
    @tailwindcss/typography. Scanner recommends 7.1.6, a major transitive upgrade.
    Evaluate the parent upgrade and CSS output rather than silently forcing an
@@ -58,8 +59,11 @@ the deployed vault and cannot certify security "once and for all."
 3. **Go scan interpretation:** the scanner reports stdlib 1.24.99 based on module
    metadata, while the workspace runs 1.26.5 and the rebuilt container uses
    1.26.9. Do not call the remaining 42 Go advisories resolved based on this
-   mismatch. Perform binary-aware vulnerability analysis and image/OS scanning
-   before operational approval. Node/Debian images also remain mutable tags.
+   mismatch alone. A subsequent govulncheck v1.1.4 binary-mode scan of the extracted
+   Go 1.26.9 signer returned "No vulnerabilities found." This narrows the evidence
+   to that binary and the vulnerability database at scan time; it does not scan
+   the image's OS packages. Image/OS scanning remains outstanding. Node/Debian
+   images also remain mutable tags.
 
 ## File and service boundaries
 

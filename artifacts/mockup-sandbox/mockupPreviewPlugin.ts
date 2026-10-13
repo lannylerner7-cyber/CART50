@@ -1,12 +1,21 @@
 import { mkdirSync, writeFileSync } from "fs";
 import path from "path";
-import glob from "fast-glob";
+import { glob } from "node:fs/promises";
 import chokidar from "chokidar";
 import type { FSWatcher } from "chokidar";
 import type { Plugin } from "vite";
 
 const MOCKUPS_DIR = "src/components/mockups";
 const GENERATED_MODULE = "src/.generated/mockup-components.ts";
+
+export async function discoverMockupFiles(root: string): Promise<string[]> {
+  const files: string[] = [];
+  for await (const file of glob(`${MOCKUPS_DIR}/**/*.tsx`, {
+    cwd: root,
+    exclude: ["**/_*/**", "**/_*.tsx"],
+  })) files.push(file.split(path.sep).join("/"));
+  return files.sort();
+}
 
 interface DiscoveredComponent {
   globKey: string;
@@ -40,10 +49,7 @@ export function mockupPreviewPlugin(): Plugin {
   }
 
   async function discoverComponents(): Promise<Array<DiscoveredComponent>> {
-    const files = await glob(`${MOCKUPS_DIR}/**/*.tsx`, {
-      cwd: root,
-      ignore: ["**/_*/**", "**/_*.tsx"],
-    });
+    const files = await discoverMockupFiles(root);
 
     return files.map((f) => ({
       globKey: "./" + f.slice("src/".length),
