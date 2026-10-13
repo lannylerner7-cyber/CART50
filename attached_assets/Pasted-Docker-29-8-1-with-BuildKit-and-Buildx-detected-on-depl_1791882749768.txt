@@ -1,0 +1,68 @@
+Docker 29.8.1 with BuildKit and Buildx detected on deployment server (localhost).
+2026-Oct-13 09:10:58
+Starting deployment of <REDACTED>:lannylerner7-cyber/CART50.git:main to localhost.
+2026-Oct-13 09:10:58
+Preparing container with helper image: docker.io/coollabsio/coolify-helper:1.0.17
+2026-Oct-13 09:10:59
+[CMD]: docker stop --timeout=30 '94tjqxf5f8n07ietd4ga8ru4'
+2026-Oct-13 09:10:59
+Error response from daemon: No such container: 94tjqxf5f8n07ietd4ga8ru4
+2026-Oct-13 09:10:59
+[CMD]: docker run -d --network 'coolify' --name 94tjqxf5f8n07ietd4ga8ru4  --rm -v /root/.docker/buildx:/root/.docker/buildx -v /var/run/docker.sock:/var/run/docker.sock docker.io/coollabsio/coolify-helper:1.0.17
+2026-Oct-13 09:10:59
+f9cda84cccd0b68fc4ee6a5868b4c6b7711301cbfe0a34d328386790d55bd1fa
+2026-Oct-13 09:11:00
+[CMD]: docker exec 94tjqxf5f8n07ietd4ga8ru4 bash -c 'GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa_coolify_94tjqxf5f8n07ietd4ga8ru4 -o IdentitiesOnly=yes" git ls-remote '\''<REDACTED>:lannylerner7-cyber/CART50.git'\'' '\''refs/heads/main'\'''
+2026-Oct-13 09:11:00
+<REDACTED>: Permission denied (publickey).
+2026-Oct-13 09:11:00
+fatal: Could not read from remote repository.
+2026-Oct-13 09:11:00
+2026-Oct-13 09:11:00
+Please make sure you have the correct access rights
+2026-Oct-13 09:11:00
+and the repository exists.
+2026-Oct-13 09:11:00
+========================================
+2026-Oct-13 09:11:00
+Deployment failed: Command execution failed (exit code 128): docker exec 94tjqxf5f8n07ietd4ga8ru4 bash -c 'GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /root/.ssh/id_rsa_coolify_94tjqxf5f8n07ietd4ga8ru4 -o IdentitiesOnly=yes" git ls-remote '\''<REDACTED>:lannylerner7-cyber/CART50.git'\'' '\''refs/heads/main'\'''
+2026-Oct-13 09:11:00
+Error: <REDACTED>: Permission denied (publickey).
+2026-Oct-13 09:11:00
+fatal: Could not read from remote repository.
+2026-Oct-13 09:11:00
+2026-Oct-13 09:11:00
+Please make sure you have the correct access rights
+2026-Oct-13 09:11:00
+and the repository exists.
+2026-Oct-13 09:11:00
+Error type: App\Exceptions\DeploymentException
+2026-Oct-13 09:11:00
+Error code: 128
+2026-Oct-13 09:11:00
+Location: /var/www/html/app/Traits/ExecuteRemoteCommand.php:251
+2026-Oct-13 09:11:00
+Stack trace (first 5 lines):
+2026-Oct-13 09:11:00
+#0 /var/www/html/app/Traits/ExecuteRemoteCommand.php(123): App\Jobs\ApplicationDeploymentJob->executeCommandWithProcess()
+2026-Oct-13 09:11:00
+#1 /var/www/html/vendor/laravel/framework/src/Illuminate/Collections/Traits/EnumeratesValues.php(275): App\Jobs\ApplicationDeploymentJob->{closure:App\Traits\ExecuteRemoteCommand::execute_remote_command():87}()
+2026-Oct-13 09:11:01
+#2 /var/www/html/app/Traits/ExecuteRemoteCommand.php(87): Illuminate\Support\Collection->each()
+2026-Oct-13 09:11:01
+#3 /var/www/html/app/Jobs/ApplicationDeploymentJob.php(2997): App\Jobs\ApplicationDeploymentJob->execute_remote_command()
+2026-Oct-13 09:11:01
+#4 /var/www/html/app/Jobs/ApplicationDeploymentJob.php(1120): App\Jobs\ApplicationDeploymentJob->check_git_if_build_needed()
+2026-Oct-13 09:11:01
+========================================
+2026-Oct-13 09:11:01
+Deployment failed. Removing the new version of your application.
+2026-Oct-13 09:11:01
+[CMD]: bash -c 'if command -v timeout >/dev/null 2>&1; then output=$(timeout -k 10s 60s docker rm -f '\''ynk8pvyyvlhterzq2qp0vsud-20261013T091054'\'' 2>&1); exit_code=$?; else output='\'''\''; exit_code=124; fi; if [ "$exit_code" -eq 124 ]; then echo '\''__COOLIFY_CONTAINER_REMOVE_TIMEOUT__'\''; elif [ "$exit_code" -ne 0 ] && printf '\''%s'\'' "$output" | grep -q '\''No such container:'\''; then exit 0; elif [ "$exit_code" -ne 0 ]; then printf '\''%s\n'\'' "$output" >&2; else printf '\''%s\n'\'' "$output"; fi; exit $exit_code'
+2026-Oct-13 09:11:01
+2026-Oct-13 09:11:01
+Gracefully shutting down build container: 94tjqxf5f8n07ietd4ga8ru4
+2026-Oct-13 09:11:01
+[CMD]: docker stop --timeout=30 '94tjqxf5f8n07ietd4ga8ru4'
+2026-Oct-13 09:11:01
+94tjqxf5f8n07ietd4ga8ru4
