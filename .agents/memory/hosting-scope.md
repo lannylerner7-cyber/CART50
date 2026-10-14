@@ -51,3 +51,12 @@ and the connection/reconnection forms could not be opened.
 **How to apply:** Verify remote access and repository visibility before publishing;
 if the managed connection flow fails, ask the owner to connect through the Git pane
 rather than requesting a token in chat.
+
+Try the managed GitHub connection using an HTTPS remote before replacing a missing
+SSH deploy key.
+
+**Why:** The managed connection successfully authenticated HTTPS Git access even
+when the previously generated private SSH key was absent.
+
+**How to apply:** Verify HTTPS access with `git ls-remote`, fetch and check ancestry,
+then use a normal push. An active connection still requires a live access check.
