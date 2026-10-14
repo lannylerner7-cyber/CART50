@@ -17,7 +17,13 @@ The owner selected Trust Wallet for mainnet savings.
 
 **Why:** Explicit wallet choice during mainnet setup.
 
-**How to apply:** Keep its private keys/seed out of the server and chat. Verify
-receiving compatibility before changing the fresh-address design. A fixed
-destination would require explaining address reuse and obtaining approval;
-Trust Wallet on a phone must not be described as offline cold custody.
+The owner approved a fixed Trust Wallet native-Bitcoin savings address after
+being told that address reuse makes transfers easier to link.
+
+**Why:** Explicit approval of the fixed-address option during mainnet setup.
+
+**How to apply:** Keep its private keys/seed out of the server and chat. Implement
+the fixed savings destination without replacing separate temporary receiving
+addresses. Trust Wallet on a phone must not be described as offline cold custody.
+Approval of this design does not prove address ownership or authorize an arbitrary
+payment; confirm the actual receiving destination before enabling transfers.
