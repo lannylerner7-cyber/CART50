@@ -55,6 +55,15 @@ separate administration domain a prerequisite; encrypted SSH access is an option
 
 _Populate as you build — sharp edges, "always run X before Y" rules._
 
+## Living roadmap — required for every codebase change
+
+The owner requires `project road map.Rmd` to stay current whenever files are
+added, updated, renamed or excluded. Update the relevant architecture/status
+narrative, run `node scripts/update-roadmap.mjs`, review the file changes, and
+run `node scripts/update-roadmap.mjs --check` before delivering or releasing.
+Never copy secrets, private keys, wallet backups or local database contents into
+documentation. Inventory freshness does not prove semantic documentation accuracy.
+
 ## Pointers
 
 - See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details

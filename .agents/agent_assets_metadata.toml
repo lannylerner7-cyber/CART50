@@ -42,3 +42,17 @@ mtime_ms = 1791984376165
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/e58a71d7-099a-46dd-89ad-86bf467147a8/e552725f-f152-4ec3-81d0-547b1e7b2d77"
 storage_version_token = "1791984413698456"
 content_type = "text/html"
+
+[[outputs]]
+id = "Q2LmcIkvjyQF0i0OWGrBo"
+uri = "file://project%20road%20map.Rmd"
+type = "unspecified"
+title = "Project road map"
+description = "Living R Markdown reference: architecture, deployment, security boundaries, readiness, next steps and a 353-file inventory."
+logical_id = "fdc28597-c06c-4bd5-8961-002cc649c04d"
+content_hash = "sha256:c291a2652e07bdf72615940da485bd6ae20dcce87b1a93bd9f009625a1fa9f26"
+size = 88439
+mtime_ms = 1792017365739
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/fdc28597-c06c-4bd5-8961-002cc649c04d/c0b50915-27a9-4199-a718-eb1ca3517f56"
+storage_version_token = "1792017377945314"
+content_type = "application/octet-stream"

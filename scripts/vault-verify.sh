@@ -2,6 +2,8 @@
 # Local verification only. Does not commission infrastructure or use real funds.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+node scripts/update-roadmap.mjs --check
+node --test scripts/update-roadmap.test.mjs
 pnpm run typecheck
 pnpm --filter @workspace/vault-cloudflare run typecheck
 pnpm --filter @workspace/api-server exec tsx --test src/vault/*.test.ts src/static.test.ts

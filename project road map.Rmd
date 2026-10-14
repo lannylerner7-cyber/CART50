@@ -1,0 +1,736 @@
+---
+title: "Personal Bitcoin Vault — Project Road Map"
+subtitle: "Living architecture, operations, file inventory and readiness record"
+date: "2026-10-14"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+---
+
+# Read this first
+
+This is the living project reference. It describes the repository, not a claim
+that every implemented feature has passed live commissioning. It is an R Markdown
+document containing ordinary Markdown; reading it requires no R runtime. Optional
+HTML rendering requires R and rmarkdown, which are not required by the application.
+
+**Current network: Bitcoin Signet. Mainnet is disabled. Do not send real BTC.**
+The owner has acknowledged test mode. A running deployment, a QR code, a successful
+build and a healthy node do not establish real-money custody readiness.
+
+Evidence labels used here:
+
+- **Source:** implemented or configured in the repository.
+- **Local check:** a local validation result, not proof of the deployed environment.
+- **Owner-confirmed:** reported by the owner, not independently repeated by an agent.
+- **Screenshot:** visible in supplied screenshots; a point-in-time observation.
+- **Pending:** not established by the available evidence.
+
+# Product and scope
+
+Single-owner, self-hosted Bitcoin vault with a responsive web interface. The
+project uses React/TypeScript and Node.js/Express for the website and API, and Go
+for the private Bitcoin engine. C# is not part of the current implementation.
+AWS is the host for Coolify, not an application integration with AWS managed
+services. Cloudflare D1 remains the production metadata store.
+
+The interface includes a portfolio overview, cold and spending wallets, temporary
+receiving wallets, receiving QR codes, transactions, payment review, node explorer,
+market/alerts and operational settings. The explorer uses the owner's node rather
+than requiring a public block explorer. The existence of a screen does not mean
+its external service is configured.
+
+## Owner requirements
+
+- No username/password account system: use a manually saved random owner key and
+  enrolled passkeys.
+- Owner credential is 64 random bytes encoded as 86 unpadded base64url characters.
+  Its SHA-256 verifier is 64 hexadecimal characters. These lengths describe
+  different encodings/objects; they are not interchangeable credentials.
+- Support many independent temporary receiving wallets; the batch UI supports up
+  to 200 per request. Local regtest evidence includes 101 wallets; live scale
+  readiness remains separate.
+- Show timestamps, incoming transactions, pending/confirmed balances, and expiry.
+- Temporary wallets expire after 120 hours (five days). Expiration is not proof
+  of destruction and does not reclaim a remaining balance.
+- Keep a clean, approachable mobile-wallet UI rather than an engineering console.
+- Track real prices and market drops, not simulated prices or market manipulation.
+- Keep this roadmap current when files are added, changed, renamed or removed.
+
+# Architecture and trust boundaries
+
+```text
+Owner browser (HTTPS)
+  -> Coolify website: React static assets + Express API
+      -> Cloudflare D1: application metadata
+      -> private vault-engine:9090 (matching service token)
+          -> Bitcoin Core RPC (private network + cookie authentication)
+          -> persistent signer journal and Core wallet storage
+      -> optional market Worker (not currently established as live)
+
+Optional health replication:
+  signer -> authenticated HTTPS Worker -> bounded metadata replication
+Optional encrypted recovery exports:
+  operator-controlled offline tooling -> encrypted backup storage
+```
+
+The browser does not hold Core RPC credentials. Public cold descriptors identify
+receiving destinations but do not authorize cold spending. The hot spending
+wallet and temporary wallet keys belong to the Core/signer custody boundary.
+D1 availability must not become the authority for Bitcoin signing correctness.
+Never run two active signers against the same state.
+
+## Repository structure
+
+| Path | Responsibility |
+|---|---|
+| `artifacts/bitcoin-vault/` | Live React/Vite wallet UI and public HTML generators |
+| `artifacts/api-server/` | Express API, authentication, passkeys, metadata, market and mail adapters |
+| `artifacts/mockup-sandbox/` | Separate visual prototype workspace; not the production wallet |
+| `services/vault-engine/` | Go engine, Core RPC, wallets, payment journal, reconciliation and tests |
+| `lib/api-spec/` | Authoritative OpenAPI contract and Orval generation configuration |
+| `lib/api-client-react/` | Generated client/hooks plus custom fetch/session handling |
+| `lib/api-zod/` | Generated API validation schemas/types |
+| `lib/vault-cloudflare/` | Worker, D1 migration, price and replication implementation |
+| `lib/db/` | Unused PostgreSQL starter; do not migrate the vault into it |
+| `deploy/` | Coolify, Core and signer container/operating configuration |
+| `scripts/` | Verification, packaging, offline backup, generator and release utilities |
+| `docs/` | Detailed runbooks and historical readiness records |
+| `attached_assets/` | Uploaded reference images/text/logs; not application runtime dependencies |
+| `.agents/memory/` | Project decisions and environment lessons, not credentials |
+| `generated-artifacts/` | Excluded generated exports; not authoritative source |
+
+# Application walkthrough
+
+## Authentication and sessions
+
+The lock page accepts a saved keyfile or pasted owner key. The server verifies
+the credential against its verifier; the owner secret must not be placed in
+source code, chat or this document. Passkey enrollment and login use WebAuthn.
+Session handling includes origin/CSRF protections, expiration, revocation,
+rate-limiting and security notification support. Logout clears protected client
+state and handles an already-expired session as logged out.
+
+**Owner-confirmed on 2026-10-14:** passkey sign-in is working on the deployed app.
+This confirms the reported sign-in experience, not every enrollment, revocation,
+cross-device or recovery scenario.
+
+Changing the deployment origin can affect cookies and WebAuthn. Preserve a working
+owner-key backup and verify origin/RP configuration before changing domains.
+
+## Dashboard, receiving and temporary wallets
+
+The overview polls balances and node readiness. Missing node data must not appear
+as a fabricated balance. Wallet pages expose receipt, labels, details and batch
+creation. The receive interface uses the server's receive result, QR encoding,
+copy/share controls and network warnings.
+
+Signet native SegWit addresses begin with `tb1`, but this prefix alone does not
+uniquely distinguish Signet from all other Bitcoin test networks. The configured
+node network is authoritative. Real Bitcoin mainnet must not be sent to the
+current QR codes.
+
+Creation is blocked while Core reports initial block download or blocks trail
+headers. The current “disconnected” presentation can also mean reconciliation is
+incomplete; it must not be mistaken for proof that network transport is broken.
+After sync the engine attempts initialization/reconciliation of the cold and
+spending wallets. Temporary wallets are independent from those two main wallets.
+
+## Sending, sweeping and recovery
+
+Payments have review/approval and durable transaction tracking. Signed transaction
+identity is journaled before broadcast so ambiguous responses can be reconciled
+instead of blindly creating a second payment. Replacement, eviction, conflict
+and reorg handling are separate from “success”.
+
+Temporary sweeps require at least three confirmations and fresh cold destinations.
+Three confirmations reduce risk; they are not an absolute finality guarantee.
+Cold spending requires signing outside this web application.
+
+Sweeps default to paused and limits default to zero. Configure suitable positive
+fee and exposure limits before deliberately enabling operations. Fee estimates
+that are missing or exceed limits must not silently authorize a payment.
+
+## Expiry and destruction
+
+At five days, a temporary wallet is expired, not magically erased. The implementation
+retains keys while funds, unsettled transactions or uncertainty remain. Actual key
+destruction/history removal remains blocked because secure storage erasure has not
+been verified. Manual deletion must not bypass those conditions.
+
+Deleting local records does not remove public blockchain transactions. Core unload,
+file deletion and volume deletion are not proof that copies disappeared from SSD,
+snapshots, swap, journals or backups. A retained shared seed must not silently
+regenerate supposedly destroyed wallets. Late deposits to old addresses remain
+possible; there is no guaranteed maximum confirmation delay.
+
+## Market and notifications
+
+The Worker implements Kraken XBTUSD sampling and D1 price history, with freshness
+checks and price-drop alerts. The latest dashboard screenshot shows the market
+service disconnected. Verify provider terms and Worker configuration before
+enabling market ingestion. Do not invent prices.
+
+Mail/security-alert code and configuration are present; deployed delivery must be
+verified separately. Do not infer working mail from a successful website build.
+
+# Storage, backups and privacy
+
+| Store | Purpose | Operational boundary |
+|---|---|---|
+| D1 | Vault application metadata; migration includes `vault_state`, `prices`, `replica` | Production must not silently fall back to local SQLite |
+| Development SQLite | Local metadata adapter | Not the deployed D1 database |
+| Core data volume | Blockchain and wallet data | Persistent; do not delete to troubleshoot routine deployment errors |
+| Signer volume | Durable state, payment intent and recovery information | Single-writer authority; protect against rollback |
+| Core cookie volume | Local RPC authentication | Read-only in signer; never expose publicly |
+| R2 / replication scaffolding | Encrypted backup destination / bounded health metadata | Live restoration and end-to-end binding checks remain pending |
+
+The offline backup utility uses AES-256-GCM with an independent 32-byte backup
+key. That key is not the owner login key or signer service token. Recovery exports
+must exclude temporary wallets and the whole hot-wallet journal. An opaque
+spending-wallet backup cannot be proven safe merely by validating its JSON wrapper.
+
+Health replication is a bounded snapshot channel, not a complete audit trail:
+intermediate health samples may be coalesced. Do not claim that its queue contains
+wallet payment history or that it is a substitute for recovery backups.
+
+# Deployment and configuration
+
+## Website resource
+
+Root `Dockerfile` builds the API and React app, then runs a non-root Node 24
+container on port 3000. Its health check calls `/api/healthz`. Coolify routes the
+public HTTPS website to this resource. Static files are served before SPA fallback.
+
+Runtime configuration includes these **names only**:
+
+- `NODE_ENV`, `PORT`, `PUBLIC_ORIGIN`, `BITCOIN_NETWORK`, `VAULT_STATIC_DIR`.
+- `VAULT_OWNER_VERIFIER` — verifier only, never the raw owner credential.
+- `VAULT_ENGINE_URL`, `VAULT_ENGINE_TOKEN` — private signer access.
+- `CF_ACCOUNT_ID`, `CF_D1_DATABASE_ID`, `CF_API_TOKEN` — D1 access.
+- `MARKET_WORKER_URL` — optional configured market service.
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`,
+  `SECURITY_ALERT_FROM`, `SECURITY_ALERT_TO`, `TRUSTED_PROXY_IPS` — mail/proxy configuration.
+
+`deploy/app-config.mjs` and the environment examples remain authoritative for exact
+validation requirements. Do not copy real values into documentation.
+
+## Separate Bitcoin stack
+
+- Build pack: Docker Compose; branch: `main`; base directory: `/`.
+- Compose file: `/deploy/coolify-bitcoin.compose.yaml`.
+- Coolify resolves build contexts from the repository root through
+  `--project-directory`; both build contexts must follow that convention.
+- Core and signer run on the same host as the website with private networking.
+- Owner screenshot established shared network `coolify`; verify again if moving hosts.
+- Core uses an internal RPC network and an outbound peer network.
+- Signer additionally joins the existing application network.
+- No public domains or host port mappings for Core RPC or signer.
+- Required runtime input names: `VAULT_ENGINE_TOKEN`, `COLD_DESCRIPTOR`,
+  `COLD_DESCRIPTOR_SHA256`, `COOLIFY_NETWORK`.
+- Existing website uses `VAULT_ENGINE_URL=http://vault-engine:9090` on the verified
+  shared private network and the same signer token.
+- Disable build-time availability for signer credentials. Do not bake them into images.
+- Core's Compose health check stays enabled. Do not add an unauthenticated HTTP
+  check to the signer's protected `/status` endpoint.
+- “Healthy” means the health probe passed; it does not mean initial sync finished.
+
+Core is pinned to 29.0 for the current test deployment with a tarball checksum.
+Reassess maintenance/security versions before any mainnet deployment; a checksum
+check is not a claim of an independent release-signature verification.
+
+## Setup generators
+
+`public/offline-keygen.html` is for owner credentials. The Signet generator's source
+is in `scripts/signet-setup-generator.mjs` plus its HTML template; the build script
+produces `public/signet-setup.html` and an excluded downloadable copy.
+
+The owner chose HTTPS on-device generation for a disposable Signet wallet because
+the phone's downloaded-file preview did not run it. The page generates locally,
+requires saving a private backup before showing deployment variables, and is not
+a mainnet cold-wallet ceremony. The temporary homepage buttons were removed after
+the owner obtained the setup. The HTML file remains present.
+
+## Release and rollback discipline
+
+Validate first, inspect changes, fetch GitHub, preserve existing history and use a
+normal fast-forward push. Do not force-push or expose deploy private keys. A push is
+not proof of a successful Coolify rollout. Observe runtime logs after deployment.
+Never remove persistent wallet volumes as a casual rollback strategy.
+
+# Current readiness — 2026-10-14
+
+| Capability | Evidence | Current conclusion |
+|---|---|---|
+| Website and Bitcoin stack build/start | Owner report and deployment logs | Running on Coolify; not mainnet approval |
+| Core connection and wallet initialization | Owner screenshots | Connected; cold and spending wallets shown |
+| Sync/recovery snapshot | Screenshot: blocks=headers 326,375; 99.99%; recovery healthy | Point-in-time Signet readiness indicator |
+| QR receive interface | Owner screenshots | Signet network/address warning displayed |
+| Passkey sign-in | Explicit owner confirmation | Working for the owner's reported deployed flow |
+| Temporary wallet creation at live scale | Local test evidence only | Live successful batch and persistence still need evidence |
+| Confirmed live receive/send | No completed hosted payment evidence supplied | Pending |
+| Restart, outage and restored-wallet reconciliation | Partial source/local checks | Hosted end-to-end evidence pending |
+| R2 restore and replication bindings | Infrastructure/source groundwork | Live restore/permission/replay verification pending |
+| Market feed | Latest screenshot disconnected | Not commissioned |
+| Secure temporary-key destruction | Explicitly blocked in source | Not implemented as verified erasure |
+| Mainnet | Guards in app/engine/deployment | Disabled; separate migration required |
+
+Older dated status files remain historical evidence. Their “not deployed” or
+“not connected” statements must not override the newer owner reports above.
+Likewise the newer connection screenshots do not prove pending payment/recovery tests.
+
+# Roadmap and acceptance criteria
+
+## 1. Finish hosted Signet commissioning
+
+- Demonstrate temporary-wallet creation and persistence across a controlled restart.
+- Receive test coins and show pending -> confirmed transitions from this node.
+- Review/send once, confirm on-chain, and demonstrate safe duplicate handling.
+- Configure positive fee/exposure limits deliberately; exercise sweeps at three
+  confirmations and confirm destination/accounting.
+- Exercise unavailable-node behavior, recovery and restored-wallet reconciliation
+  with disposable test funds and preserved backups.
+- Retain passkey owner confirmation; separately verify revocation, expiry,
+  logout across tabs and account-recovery paths if those behaviors change.
+- Improve status labels so transport connectivity and wallet readiness are distinct.
+
+## 2. Finish external services and recovery evidence
+
+- Commission market Worker only after provider/configuration approval.
+- Verify alert delivery and clear failure reporting.
+- Verify live D1/R2/Worker/replication bindings, authentication and outage replay.
+- Perform an actual encrypted recovery round trip and restore reconciliation.
+
+## 3. Mainnet migration — explicit separate release
+
+- Review custody/security assumptions and maintained dependency/Core versions.
+- Introduce consistent mainnet configuration across API, signer, UI and validators.
+- Provision separate mainnet storage and a verified receiving descriptor from the
+  owner's backed-up wallet, preferably hardware-backed for cold custody.
+- Never reuse the disposable web-generated Signet private backup for mainnet custody.
+- Synchronize mainnet and validate readiness; do not bypass syncing gates.
+- Verify small controlled receive/send/recovery behavior before meaningful funds.
+- Keep clear network labels and QR validation; changing wording is not migration.
+
+## 4. Destruction policy implementation
+
+Retain disabled destruction until an approved independent key lifecycle and copy
+inventory can support verifiable erasure. Define late-deposit handling and irreversible
+loss consequences. Blockchain history cannot be erased by this application.
+
+# Developer workflow and verification
+
+```sh
+pnpm run typecheck
+pnpm --filter @workspace/api-spec run codegen
+bash scripts/vault-verify.sh
+node scripts/build-signet-generator.mjs
+node scripts/update-roadmap.mjs
+node scripts/update-roadmap.mjs --check
+```
+
+Run codegen only when changing the API contract, and rebuild the Signet HTML after
+editing its generator/template. The broad verification script covers types,
+Node/API/frontend utility tests, deployment packaging and Go checks. Inspect its
+current contents for the exact suite. Regtest and container probes are local
+evidence, not replacements for hosted commissioning.
+
+Documentation-only work should validate documentation/inventory, not unnecessarily
+restart services or run real payment flows. No new live-payment evidence is claimed
+by this roadmap update.
+
+# Continuous documentation contract
+
+For every codebase update:
+
+1. Update the relevant narrative sections, status evidence, configuration and tests.
+2. Refresh the inventory with `node scripts/update-roadmap.mjs`.
+3. Review its added/changed/removed list. Confirm that exclusions are intentional.
+4. Run `node scripts/update-roadmap.mjs --check` before release.
+5. Keep pending work pending until evidence supports completion.
+
+The script enumerates tracked plus non-ignored untracked project files, excludes
+private/tool-generated locations, and records file size and SHA-256 content
+fingerprints. The document's own fingerprint normalizes the generated inventory
+section to avoid a self-referential hash. Changes to the narrative are still detected.
+This is an inventory freshness check, not an automatic semantic code reviewer.
+Purpose summaries are indexed roles, not a claim that every line was manually audited.
+
+Never inventory actual secrets, `.env` values, private keys, wallet backups, database
+contents, installed dependencies or local tool state. Uploaded evidence is listed
+by filename only; its text/images are not copied into the roadmap.
+
+## Excluded file classes
+
+`.git`, `.local`, `.cache`, `.config`, `node_modules`, build output, caches, generated
+exports, temporary logs, secret files and wallet/database state are excluded.
+Tracked source-generated clients and the public bundled Signet page remain included.
+Ignored uploads are outside the version-controlled handoff; tracked uploads remain
+listed as evidence assets. Filenames are not evidence that an attachment is safe
+to publish: review repository assets before release.
+
+# File-by-file inventory
+
+<!-- ROADMAP-INVENTORY:START -->
+
+353 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+
+| File | Bytes | SHA-256 | Responsibility |
+|---|---:|---|---|
+| `.agents/agent_assets_metadata.toml` | 3000 | `c4e96a25aac94d4c82b5086ad7486ac497e3f93536d99a6288ca75b7736df5eb` | Workspace asset metadata; not application logic. |
+| `.agents/memory/MEMORY.md` | 984 | `42ba984959dd22461ba55d84b819c0b812c157cd000821a464b828bb8e0b940c` | Durable project decision/lesson: MEMORY. |
+| `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
+| `.agents/memory/health-replication.md` | 1196 | `a960703d098ebe5dabcd92a0cb3b5d01b5cef3c1e5ed1328e9d326b642f30471` | Durable project decision/lesson: health-replication. |
+| `.agents/memory/hosting-scope.md` | 2997 | `50f6d147b664dc3c3a631aae74b25a96fde98a05d0222eafba7b252300ad06fb` | Durable project decision/lesson: hosting-scope. |
+| `.agents/memory/owner-access.md` | 1808 | `159d57009f9e05cc3a71f1adaf0eb452995a20aa1fe57e837629feb5d9d29088` | Durable project decision/lesson: owner-access. |
+| `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
+| `.agents/memory/temporary-wallet-destruction.md` | 2255 | `308fab6c2e98bb62dc6f2cdc25c5f5716eb296a98b7f81af7c4e57bca7a4c538` | Durable project decision/lesson: temporary-wallet-destruction. |
+| `.agents/memory/wallet-presentation.md` | 693 | `05cd9feef50fb7e88957f063678ffa928715f8cfe3c0e0185edf241d92a3bb27` | Durable project decision/lesson: wallet-presentation. |
+| `.dockerignore` | 1244 | `eefc785d351d322092a490d2b9a5e4bb3e08e04b394e62b882c406de0011841b` | Repository/tool configuration: .dockerignore. |
+| `.gitignore` | 911 | `04d7c0ec9e25280c87ff990c90b57492be5958258114a213e713fb01732857bd` | Repository/tool configuration: .gitignore. |
+| `.npmrc` | 56 | `1ded4f26f4851b35dae702edd5719d1be5ff31db6983858d088d5e6593ea7c99` | Repository/tool configuration: .npmrc. |
+| `.replit` | 619 | `579245dff1125dc8a620512d6c646586f1b8366960436a11f2e3facbf2b95021` | Repository/tool configuration: .replit. |
+| `.replitignore` | 239 | `5add696818c05230042bee377eedf5177a2e5e5e8757ed13c8df2cd3b0011e06` | Repository/tool configuration: .replitignore. |
+| `Dockerfile` | 1526 | `bf97b038cbde6eab31279ebb1879ac0173cf971d1b51cc8fdb2045cdbd3fedf7` | Multi-stage production website/API image; non-root runtime and HTTP health check. |
+| `artifacts/api-server/.replit-artifact/artifact.toml` | 784 | `e461708bfe50f6eb964fa755cf0c6ba813c19392be055d5ef96c729aa0173539` | Managed artifact service/routing configuration; update through artifact tooling. |
+| `artifacts/api-server/build.mjs` | 3657 | `97e0a7f2a0509d86b390bc9f1f97f4848eb77339b0c27ac1c7e90b17a8784d6a` | build.mjs module in artifacts/api-server; see the owning subsystem above. |
+| `artifacts/api-server/package.json` | 1031 | `1057ae534032ae130e07320d9226d401ad1a03f8a9def9ce90e15aaf93a6b567` | Package identity, dependencies and runnable scripts. |
+| `artifacts/api-server/src/app.ts` | 1536 | `4c88d05528019c1321b73f35d5479ab18eda5d4a90cc4a6dc27b2b8aa9803cad` | app.ts module in artifacts/api-server/src; see the owning subsystem above. |
+| `artifacts/api-server/src/index.ts` | 670 | `9212d26ec83d06ba7f3f001d69c2686411aacdb79d435ff5834b6ced7007c7fa` | index.ts module in artifacts/api-server/src; see the owning subsystem above. |
+| `artifacts/api-server/src/lib/.gitkeep` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Empty-directory placeholder. |
+| `artifacts/api-server/src/lib/logger.ts` | 421 | `29e1ca75036fe917595a3a74fd450857d845836fe0625c30b9caa02df4acba62` | logger.ts module in artifacts/api-server/src/lib; see the owning subsystem above. |
+| `artifacts/api-server/src/middlewares/.gitkeep` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Empty-directory placeholder. |
+| `artifacts/api-server/src/routes/health.ts` | 288 | `0386ceddb4ff4bff220af72ca38a62191ad95a2f41fd619df3bb9ceffce03db2` | health.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
+| `artifacts/api-server/src/routes/index.ts` | 171 | `957c7d2e44a720dc48ffc511a738c57bb7659a3ab273c8b64b919a9d2a06b232` | index.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
+| `artifacts/api-server/src/routes/vault.ts` | 9016 | `80329bb3c6fe0da866e3a9d5bf1018bf2d022fe2d8855f988eef0fb22dc1ac34` | Owner-gated vault API endpoints and contract validation. |
+| `artifacts/api-server/src/smtp-check.ts` | 2672 | `2181f6e32c377c4ff424a7fff89b78655b5ca61d3b975a191b07702fc490d2fc` | smtp-check.ts module in artifacts/api-server/src; see the owning subsystem above. |
+| `artifacts/api-server/src/static.test.ts` | 2045 | `ac5f507e71f260f39c88e8d35748880069e0beec273f1d695cd8c787f3374fd7` | Regression tests for static; local checks, not hosted evidence. |
+| `artifacts/api-server/src/static.ts` | 1093 | `61813a4c38f28bf0f03b97fdd4353a7cb0d281082b876226906e39b61a71da71` | static.ts module in artifacts/api-server/src; see the owning subsystem above. |
+| `artifacts/api-server/src/vault/access.test.ts` | 6837 | `bb0a19f80249c165158aa00bd8c2f0e7027a84b62c9bda6b6a15a626a1865052` | Regression tests for access; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/auth.ts` | 4608 | `e9469fb115134e4820c396e28c77246123a48b250754d1e8f596ea16a6eb3e22` | Owner-key verification, session authentication and request protections. |
+| `artifacts/api-server/src/vault/credential.test.ts` | 1405 | `b55efa6443b025f1b0e3f9be9dd46873d6abcda8a4d00c4d403dd857ee1e4f04` | Regression tests for credential; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/engine.test.ts` | 1710 | `64aeba3fb9321433ead0c831b1d09dac5669a8f5db8a6b0fede43174a7608d97` | Regression tests for engine; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/engine.ts` | 2337 | `95118c9b9c584037aa90dbaa8746c61830fd339fb8e639302b29fa751066064f` | Private signer client and node readiness adapter. |
+| `artifacts/api-server/src/vault/login-security.test.ts` | 5051 | `df18c40288b82e0e73f8b8433319f97e44ab12851866781b6d75bf20eae4bd26` | Regression tests for login-security; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/login-security.ts` | 4108 | `13ca1fb8ccb409d3104f92f8c7af64ecaeea6bac36755883ccb56904a03a9ac9` | Login attempt tracking and access restrictions. |
+| `artifacts/api-server/src/vault/market.test.ts` | 1172 | `32e98a536b8de783a48055cd1ff738b5d0ca8dd63f33533bda9ad8932fad2816` | Regression tests for market; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/market.ts` | 3387 | `cfdf94b95d7f6c089ef281a2faa35c86bc001e598847d0b2c8509dba3e82f63c` | Market freshness, pricing state and alert evaluation. |
+| `artifacts/api-server/src/vault/passkeys.ts` | 6143 | `1e13f0c38ec58fa624eff64f28f14c3d421c6434e5233545c8d3054564789cc2` | WebAuthn passkey enrollment, authentication and management. |
+| `artifacts/api-server/src/vault/security-mail.ts` | 2034 | `1b625e27ca0d77d96fca66cf44633a2d64069930cfcf792f4958e66b0102d0de` | Security-event mail coordination. |
+| `artifacts/api-server/src/vault/smtp.test.ts` | 1306 | `8f99832fc6b62622254a129a431c390bd15691f81db9dd6891c53b767ca4678b` | Regression tests for smtp; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/smtp.ts` | 1981 | `54a2a9c5ef47fe207b0ca65447488271f9601a8fd92591f6a45a3e80d4fbfc93` | SMTP delivery transport. |
+| `artifacts/api-server/src/vault/store.ts` | 4716 | `a2d8132e67a99774070a4a917529659eb2442fad4a3d32069b2d52794fb59c3e` | Metadata persistence adapters and application-state access. |
+| `artifacts/api-server/tsconfig.json` | 335 | `aa300909ccd1d4282761b5d6549a174717b663bb56cb0f59d107d4b3d96cb009` | TypeScript compilation/project-reference configuration. |
+| `artifacts/bitcoin-vault/.replit-artifact/artifact.toml` | 770 | `8ffc0ab0be434d79fa9639b72cde3be4bf299f71dd6692b49640f13852b9195d` | Managed artifact service/routing configuration; update through artifact tooling. |
+| `artifacts/bitcoin-vault/components.json` | 434 | `3a5d5af62f05e6e3de6c5085f31ed4f49273d57cfeae4d69d00a2568c91f54f9` | UI component tooling and import/style configuration. |
+| `artifacts/bitcoin-vault/index.html` | 1346 | `0105ff85f76d3b095fc08a2e738546300467fe755c93cfc8630cb3fcd7fa5284` | Browser HTML shell and asset entry. |
+| `artifacts/bitcoin-vault/package.json` | 2809 | `d3357a04c624527881d905120e802105a36662031a8b5d98a946f4aba7a65806` | Package identity, dependencies and runnable scripts. |
+| `artifacts/bitcoin-vault/public/favicon.svg` | 163 | `8ffbde9092b1fa4de97c9481b76f518b131268c82e7c555041925225b1dab6e0` | Public static asset/tool: favicon.svg; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/offline-keygen.html` | 3706 | `1102ffcdc57e9ed88ed53a7ea10f9e1b5acf5cee09c85cf466ed2e4ff5289c09` | Public static asset/tool: offline-keygen.html; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/robots.txt` | 23 | `16ceb5ee3e0dc13aa9adf31a3ebbe45a1d965b8c2b9f72eaf84e5911e140ed95` | Public static asset/tool: robots.txt; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/signet-setup.html` | 66997 | `41f76188e4442f023c632c16cad297819724ea1d1b913b2d5e0097d08544bb0e` | Public static asset/tool: signet-setup.html; never place generated secrets here. |
+| `artifacts/bitcoin-vault/src/App.tsx` | 4944 | `21c6d84198c295466ff11120bec92636c110f56a24921c5f23b49f54ed18ebef` | Application routing/providers and access boundary. |
+| `artifacts/bitcoin-vault/src/components/data-table.tsx` | 6964 | `b1d4638a74e718ed562e7f2712d825456d2332221bb6d7d57e5b0fa4dbdb89f8` | data-table.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/error-boundary.tsx` | 2735 | `c1ea4d88be8cd206a46bd87f19edf025b2504a70a2b65cd9c438e4a0e62dafe0` | error-boundary.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/kit.tsx` | 8267 | `e57c9ee17eaddf6f441fccf75c404d91b1846bbf8ad42f71b7b5c70ed640e511` | kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/receive.tsx` | 10982 | `29611d9c8f58398281edc91a580d2e5282afef8e8ab5db6d476ecf0879d942b0` | Receive dialog, QR code, network warning, copy/share and readiness gating. |
+| `artifacts/bitcoin-vault/src/components/shell.tsx` | 7422 | `17b70492334883097971d8a92bd250457b7c00286f6f56ee92ef30bf7ba036ad` | shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/ui/accordion.tsx` | 2013 | `8e4230a3e6d38bfab7b02f00f9e948c8c4038432c5b1bf2d0ea44dc8b5ce09cc` | Reusable accordion UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/alert-dialog.tsx` | 4447 | `d76901a06e6881e94aa3847fde2602ee6f6ddc9f4cace9fa238627a5572bd24e` | Reusable alert-dialog UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/alert.tsx` | 1609 | `695369ea4d1ba4438dcedacaa8059b08b6463ac93170360f3bd42b983b7608e9` | Reusable alert UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/aspect-ratio.tsx` | 143 | `2f5b0ed3cbcf84e526caad0c6b88d4457f8745a365c86cc74d924a1b6e013a36` | Reusable aspect-ratio UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/avatar.tsx` | 1431 | `429f5e82fc3dcf265625650176f16ff9b35e55826183e1f1b2d4dc2a338f9b15` | Reusable avatar UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/badge.tsx` | 1528 | `ba6f51e428a520f54e600fded4ea030a8099fa6a9a7b7110af8dca34795415d1` | Reusable badge UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/breadcrumb.tsx` | 2735 | `44b4de47f806eec0e3de5130f0399e83700eaf0bc8deb47af5ffda2bb11eb3f1` | Reusable breadcrumb UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/button-group.tsx` | 2222 | `b89025c11d08652597cb46b097d3e04658ad2c383bf81ed445c8182c0ed1b260` | Reusable button-group UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/button.tsx` | 2370 | `9c20a340ca0c948d0164158eff44fca2e26343c8ee387ffc22f9cd677c59d27d` | Reusable button UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/calendar.tsx` | 7607 | `1cdd1e62797356fe62f61f5521fcf0da8e3570b1120868ccca2b48370157fe46` | Reusable calendar UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/card.tsx` | 1856 | `9fed39a53303c12fa6ac6f5f8813c1683e2198df9ee067cffbdfe69044cf3e4f` | Reusable card UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/carousel.tsx` | 6288 | `4ae2f69bc2c1ce33c60b23ddc5382f4b93882dac07c2d18cce32fb148ff52c48` | Reusable carousel UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/chart.tsx` | 10846 | `ac747c83483d742e207426a193ba5e2cf639fa18cd819c1f12d12329520c6c12` | Reusable chart UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/checkbox.tsx` | 1038 | `6b9e336fa42475bbb2ad4d76478afb8d2555e6e26bac245b9ccde62a9a033adc` | Reusable checkbox UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/collapsible.tsx` | 335 | `aedcd10b62404b39d8d5544c01fee90aa7b66e7280bb80a215601ad198a1b8fd` | Reusable collapsible UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/command.tsx` | 4918 | `d8fb66e44f9f8de558f6a94c781f3d890871d76dbabcda64e6fab3c917b3237d` | Reusable command UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/context-menu.tsx` | 7446 | `bdff38b45a6010e3db808c099c799bd61e6aca619378074e7b14b63c1291e4c9` | Reusable context-menu UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/dialog.tsx` | 3889 | `e0d3fa53f4cb7d8011ab09f2d198c24234062d24638fabf5142f5fbce57d2ba5` | Reusable dialog UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/drawer.tsx` | 3029 | `152bc340ad982e84f851e3bc1a6b8e7ffd0151a7445c6ecf1b1e3e13cbc19210` | Reusable drawer UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/dropdown-menu.tsx` | 7646 | `a79d5419ee174de35880340aef44d67847cee54846c058e02ac4a846b603c60f` | Reusable dropdown-menu UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/empty.tsx` | 2410 | `48824b1b37bd406fa74f48db726a4f1d70cf88db5b3432f7b1d59f584f1c5dad` | Reusable empty UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/field.tsx` | 6079 | `c3787ffb045354e9f18e70d94890627caea94939a226e49c1e6cedee84a1e9e1` | Reusable field UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/form.tsx` | 4232 | `1960463b09152760fdd99ca3eb16187408d064c7599ed66384b42d1613d3a3a3` | Reusable form UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/hover-card.tsx` | 1245 | `e0b4e3f0126757a8eb5c6e436c8c041c049430abe9a2eb84b10154144b31c29c` | Reusable hover-card UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/input-group.tsx` | 4993 | `f4befbf9bf8ebd755b267c4db2b396be296adb95acca5c3fba54f6495bdedebd` | Reusable input-group UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/input-otp.tsx` | 2160 | `b4891335e70920518cfbdef2aeb399f61477fbc4b3ffe3b8a2938f19074164cc` | Reusable input-otp UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/input.tsx` | 775 | `03ac1648171bd5ad90dbc03e9ebff9a9cc77708bcc53bdac914b80eeebfe3032` | Reusable input UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/item.tsx` | 4519 | `4a84cda22d692ee176f5128517a4003a63d11f907df445e7586ef034c88e8772` | Reusable item UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/kbd.tsx` | 867 | `4348a7a06a715e9e9673602cbb9ed89a6a4c6cbdd457d4c03db0f23a139d19eb` | Reusable kbd UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/label.tsx` | 733 | `fbc0c7db4221227941271a004bf71db5067aee9d8668f3351d91113cd5934c8c` | Reusable label UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/menubar.tsx` | 8655 | `26dbbf36e4ffd87aab74e61dd1e3613f0c640988479679d53bacd8dbd15cc891` | Reusable menubar UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/navigation-menu.tsx` | 5150 | `222020e1ac703ce01700d6e8822c6263932bc71c481d724b8ef53ccaae8ad63f` | Reusable navigation-menu UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/pagination.tsx` | 2772 | `dd65d2e59226a3f384014b596ae701aef50f130cb3061f4657e81c588587b8da` | Reusable pagination UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/popover.tsx` | 1351 | `dc574442536873c8aa88733c348503c4599ad6ed0fc9898fd25406d94e095cca` | Reusable popover UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/progress.tsx` | 799 | `74223bcccf7ca2ed026d197476abbe3d48fbc531c40f4252445f56954a270c75` | Reusable progress UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/radio-group.tsx` | 1421 | `8155d32dea5d4ddea2048b6d12f83fe4805d9bc87c97b994dbb0d040981334f2` | Reusable radio-group UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/resizable.tsx` | 1733 | `8e73dfb8b582944364d73b64ed03378016f20f7251f15f880dcf0fb140e1ad41` | Reusable resizable UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/scroll-area.tsx` | 1650 | `73f5dedda781e5285092ea269f747378dbad8d95631eab638e15b3c31595dc59` | Reusable scroll-area UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/select.tsx` | 5773 | `c64c9c1574c91f1eff922f3557e7609ba6c1d5e39959dbdecf8d386d7ae41990` | Reusable select UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/separator.tsx` | 764 | `2b129347f918742bf006099f7f56a9be373250de2ecc3ad201297563e3d1f807` | Reusable separator UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/sheet.tsx` | 4307 | `ef2ae35ccab1252c4eee56e67e9f1b2499b5bbfb3ae39037d8d4be39915c272f` | Reusable sheet UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/sidebar.tsx` | 21969 | `de7566e708ba8bf34cb4a78fc018c784315c9d7a16d70e66255f8c72caf9d1db` | Reusable sidebar UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/skeleton.tsx` | 269 | `d78130b2e311a750e7bb524e66e3af4c04e2ab02b04fd68539c1afd0bbb47152` | Reusable skeleton UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/slider.tsx` | 1043 | `ecac74b8f3a044ba7a9e4eb0bdbfdf48be92483a32d2c414c5078c9f38e1f369` | Reusable slider UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/sonner.tsx` | 902 | `de5a5d9ae404545fcb0f21123530ffcf89d24a47812c70b3ca1376591e28dbdd` | Reusable sonner UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/spinner.tsx` | 334 | `4458ea392b32f439cd4c64b9593846f339370fa1295c04f9003f05c1f3386689` | Reusable spinner UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/switch.tsx` | 1155 | `f81bc9b5ce2d6a92b6b2f1f3376c0489f30f7073081a1d9d6c56553880f44c58` | Reusable switch UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/table.tsx` | 2881 | `dd29f5ef260af67ed09c84505495e3fddbad14009e3b3ce689d0c354ffaf55d3` | Reusable table UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/tabs.tsx` | 1890 | `320609101fbaa6cccda0b899154cb510fa322926cfdbaf07e33b79c00c83fcd6` | Reusable tabs UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/textarea.tsx` | 655 | `63fb699771afe60c5073ed50e1a042d7d7f21eefd12d15bcb750cf3230985011` | Reusable textarea UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/toast.tsx` | 4871 | `04d4ef720079342e2f4380c22683f1544bd8e93a581fb55e447458f04a6127d5` | Reusable toast UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/toaster.tsx` | 777 | `d34c7cd51482ddd5703a13378d9ac69b3459a304581e42f56ac2c696e53163ac` | Reusable toaster UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/toggle-group.tsx` | 1767 | `6d7aca86245edf5d0a8f6f3ed73bd19316f4865425891eabccd6f3e37e59519e` | Reusable toggle-group UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/toggle.tsx` | 1494 | `5800d2099224ef90892e8c1d972d2a0964391c33cd43d7f5c6abf5cd42e023e1` | Reusable toggle UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/ui/tooltip.tsx` | 1277 | `e3c6ea9d4ecd62881af33564e25be013d35a8a7fa78475a6dcc98a06c7f894eb` | Reusable tooltip UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/hooks/use-mobile.tsx` | 585 | `82bff42ff087bd5dc90a5d17609cc428b8688de92d1333073a839af5ad3c9cbd` | use-mobile.tsx module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/hooks/use-toast.ts` | 3952 | `12cce940e597e1d597f7063131acd19658d25e924904308bf719bde17b67e351` | use-toast.ts module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/index.css` | 10787 | `4d29e462f02affbd517083390e6c8f12b15d325e33bac54287b7016b2245ba02` | Application stylesheet and design tokens. |
+| `artifacts/bitcoin-vault/src/lib/session-lock.test.ts` | 1648 | `86e951698a47a5037b3e43156cad26fc0ccb79f49fd1e723efd3d5fbd9d99eb0` | Regression tests for session-lock; local checks, not hosted evidence. |
+| `artifacts/bitcoin-vault/src/lib/session-lock.ts` | 1115 | `5962a8ac11ca1035e7024c1463f78897f2d93d42a22fa39f57cc770aa775ee39` | Client lock, protected cache clearing and cross-tab session notification. |
+| `artifacts/bitcoin-vault/src/lib/utils.ts` | 170 | `afc0e1dc0e142d6b81f688d91087f81a4b2db4240cf70f55b6e5e4dcc199ebf1` | utils.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/vault.tsx` | 3543 | `4aad0cc8f08811709b537612bb3f3331469751a5952290f6245e1a342023b61e` | vault.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/main.tsx` | 446 | `e7e03b61f962dc1787ea029d4941424475455366b5a4f079c8fcb4f5df4d076c` | React browser mount entrypoint. |
+| `artifacts/bitcoin-vault/src/pages/explorer.tsx` | 4021 | `b67c12740585a2237541c3e2f520da90bb40ab6f25c31f0c0f8e0d88adc43bc4` | explorer wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/lock.tsx` | 12002 | `86201961a41960a4a1930872df473e4c5fac6b6def80b77db2c218586895958d` | lock wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/market.tsx` | 12977 | `5a54373e2e613e0421ef3010868c7c8703fa855a409c480f3b7988f57fce17cf` | market wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/not-found.tsx` | 739 | `6aaea7a7125024440020566f3a14fde4f65149b1fd21f68c6a437b193e88c642` | not found wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/overview.tsx` | 14045 | `627fd462b0fa8044cfc45c92deccbd94ac24ac1ace57e4e527a7a91ae4ea9ef5` | overview wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/settings.tsx` | 13354 | `fa7665f9f8667e7307afbc4c77be4a81f7e31385894892c6159f96f600ae2421` | settings wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/spending.tsx` | 9703 | `0f829627c6cd291d7dad40dc807445300aafb1c5cee7edc92aefcc080ddb8367` | spending wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 4245 | `c5b543fa5209f0f24ce962cd3f16734d3aafe7677a90fc3119a4c90db6add2a1` | transactions wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/wallet-detail.tsx` | 10128 | `b50bcfaa097f018d4b5eedd49dd230a8ece583e388f60759f682efeb5c0a6c87` | wallet detail wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/wallets.tsx` | 9500 | `9b8e42b30fe51b49535636a99f0497d17cac932a66774e16c4a78d0698fd5106` | wallets wallet screen. |
+| `artifacts/bitcoin-vault/tsconfig.json` | 520 | `e0a2fd8a7f3bfc860ccab5623b1881e754eb02336612708ff8b59215e8c256c9` | TypeScript compilation/project-reference configuration. |
+| `artifacts/bitcoin-vault/vite.config.ts` | 1803 | `4f7c94d802c4f2d5f5c92e051ac99f5701d62d518a8cb412b9ae094879e0a4f7` | Vite host, bundling, aliases and artifact base-path configuration. |
+| `artifacts/mockup-sandbox/.replit-artifact/artifact.toml` | 327 | `e259a07aa72cd0a1d06c141f4aa00c16aa6942443ddf17b7cb59e88a9882f4f9` | Managed artifact service/routing configuration; update through artifact tooling. |
+| `artifacts/mockup-sandbox/components.json` | 426 | `aa1b56411ed0e8fc2ac14315f211c7059406e03d68666e1921f640186b8c096f` | UI component tooling and import/style configuration. |
+| `artifacts/mockup-sandbox/index.html` | 4325 | `fa4111c44a19ea399d44d7c6486387ffd49d9f21459ac87906ded4dd5c2bcb6c` | Browser HTML shell and asset entry. |
+| `artifacts/mockup-sandbox/mockupPreviewPlugin.ts` | 4876 | `5ee1a290c105350456ae67e4fc333d72bc35dba1ae490eec647a489afc4b2955` | mockupPreviewPlugin.ts module in artifacts/mockup-sandbox; see the owning subsystem above. |
+| `artifacts/mockup-sandbox/package.json` | 2489 | `be3f60a9fafba27718f90b1da58f10abf4e9ababdcac821799d1523251633d2f` | Package identity, dependencies and runnable scripts. |
+| `artifacts/mockup-sandbox/src/.generated/mockup-components.ts` | 171 | `2c23d71ff9b2704c9db9aff8a414a728b810b10abc508e3bd75acf5718651cec` | Generated mockup-components.ts contract/registry output; update its source generator rather than hand-editing. |
+| `artifacts/mockup-sandbox/src/App.tsx` | 3654 | `0e0e60da88a64ef68a930565bb5c5d326896aaa0f9cea62702eef4c02db2462a` | Application routing/providers and access boundary. |
+| `artifacts/mockup-sandbox/src/components/ui/accordion.tsx` | 2001 | `dcbfb3243a26096fc3e5f54039ccb5c4c23d9bb79a4d5846b4be75bf912f07d9` | Reusable accordion UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/alert-dialog.tsx` | 4419 | `311bede35f785d7b1ecd7398986757e26409d1049352a94ccf83586b8603c92d` | Reusable alert-dialog UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/alert.tsx` | 1598 | `5950ac01377e7eedc94b00eb3fee678745e4cc1a72b5343867f0733d07db6660` | Reusable alert UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/aspect-ratio.tsx` | 140 | `08b0aa0b05efc573c7d63363c03e83d4b101bfeb54140764e96ddea30659cfcc` | Reusable aspect-ratio UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/avatar.tsx` | 1419 | `e78b35ed76c67d8ff50603fbe0dfa4fe600097bd860d89e65beea3e16683dad8` | Reusable avatar UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/badge.tsx` | 1163 | `0564174ab513773e924dda521ce205535b05c7df9842e331ebbb59dd8b86022d` | Reusable badge UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/breadcrumb.tsx` | 2712 | `c3d3dcb0d82fc5e91d8830bac7fead905686fe876f1f42c3ed872bb0a6b6584e` | Reusable breadcrumb UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/button-group.tsx` | 2209 | `e3716d270e9ef6457b5cd29464ae00194abc8093c08ebf726c9204d7a69231d9` | Reusable button-group UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/button.tsx` | 1925 | `4ea01d60fddbf1a0e66aa8234807d010378786b9bc5a934ed76a09edfa671040` | Reusable button UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/calendar.tsx` | 7569 | `787a19c855cf2b826942d25440b63150c45094154c6a40e95abdb4109298b8b4` | Reusable calendar UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/card.tsx` | 1828 | `525c4bb2c051987be64df0e92e1d90174912b219bf541e24ffbc4a3406de49e8` | Reusable card UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/carousel.tsx` | 6210 | `5a4ff73c804e86c873382da80c453f1399006326ef042fb984c24162ec86666e` | Reusable carousel UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/chart.tsx` | 10674 | `74005899ffa62cff5cc71ddd72a727bdc84a9bd9b7e26901e1f10d2ca8d90b62` | Reusable chart UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/checkbox.tsx` | 1031 | `ac389a574651c8bedffc10f80674c5fc2f02ab81291a5f4ad9c587d1f775fdce` | Reusable checkbox UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/collapsible.tsx` | 329 | `f4cdd104de29928bfcd40b865c7d08eed9157a537fbb8b5e6d0921f02b63cc04` | Reusable collapsible UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/command.tsx` | 4887 | `5a57ebc119f2357b097098d22865d45de8fda623ee88fe98b99999838c13633b` | Reusable command UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/context-menu.tsx` | 7406 | `5369fc82c51df067aec2934f5e711aaf9e3f745ed7baadd7ba4b77397dee2a1b` | Reusable context-menu UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/dialog.tsx` | 3835 | `f9c982ed8114c253c6ca738043d3f455e89c6d65569e90c9415776d6b4d6be14` | Reusable dialog UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/drawer.tsx` | 3007 | `47ff6248307a4ac09bf7e00181a2a29f9f846691092e04cad03e15d749bc249b` | Reusable drawer UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/dropdown-menu.tsx` | 7606 | `dc109123ecd59af01d07aa9f3a8e8a7085bd3f337388c5369799ab1ce6c2d45f` | Reusable dropdown-menu UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/empty.tsx` | 2396 | `9f975582a0290dbc7ce6efa3b36b376a4c3f07863026c3b74c1e73cb0023acb8` | Reusable empty UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/field.tsx` | 6044 | `e463611ab049c5e9b1c61691d239e05970ead7b577a191b3f80aa6f8ffccada9` | Reusable field UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/form.tsx` | 4175 | `d50adf86568f76246f0f319c9e1e858627475563f6c1e38f5df7d4ee23958559` | Reusable form UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/hover-card.tsx` | 1237 | `00f9086b1412843e04e01d31d2fab00a25d65d789d1a382e41f01b1f3c167c3b` | Reusable hover-card UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/input-group.tsx` | 4883 | `131052098fa8b16b423192ec7dcc8c8506f0e7e81355134aae4c9044e1d3ef95` | Reusable input-group UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/input-otp.tsx` | 2143 | `7c4799e3597f2780c09a39a1391b921fa16eaedd0476457492af734f58e2ec98` | Reusable input-otp UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/input.tsx` | 768 | `6299a6a387dc55e528aec4342deaea0b83f1ea3a365c135a31a18ee55334f441` | Reusable input UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/item.tsx` | 4494 | `90983640aa7cfef8217422347d8e14825cf55137c76369decacf440767f03188` | Reusable item UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/kbd.tsx` | 862 | `0c025e7736d435f563bfb44105e562629672799eb1f35cbf194148d06cd1a9f7` | Reusable kbd UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/label.tsx` | 724 | `2eac8fbb04002c42b0fbc4062d20d131e421796eaf65c37d2049e29e42ecbc5a` | Reusable label UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/menubar.tsx` | 8608 | `def61eb2c47c9ec319423471f4ca20045e99549958211cacf832e4ede769e484` | Reusable menubar UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/navigation-menu.tsx` | 5124 | `a06d96a582ac207ffcd38445d773c05e841d646efb185b5e9b65f73e5bd388c7` | Reusable navigation-menu UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/pagination.tsx` | 2751 | `9506dbd19ddd0c2810d1c9668a3f01606e39d9bf33ddc43329523c03bf629012` | Reusable pagination UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/popover.tsx` | 1342 | `04cf38bf94abd3fe1b51e90227e6e235ca74776f6fc6af718bfc149e7424f582` | Reusable popover UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/progress.tsx` | 792 | `6b3b4b69a1cb361076174892e9a96e1a09020307616965ef89f2f7e2495b57a9` | Reusable progress UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/radio-group.tsx` | 1410 | `9ba7808b7404cdf2159c81883a39290033bc4308f2978eb80797c92b87421301` | Reusable radio-group UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/resizable.tsx` | 1723 | `70d1e35a5fb0897af7063cdd841d8ed636e1c332ef7ea6469f0f175a5a93dddf` | Reusable resizable UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/scroll-area.tsx` | 1642 | `d7d02600effca55d0dcadce8c09c97ebddda3a19c5fa1d52dc9f6f727b26c6b1` | Reusable scroll-area UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/select.tsx` | 5745 | `3d93ae07a8f3fe121ba60f4439e26bd7859f247eb8bfcafcf4b4a8a069888eec` | Reusable select UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/separator.tsx` | 756 | `c956c4cca4b8442fa9314d6079b9f975e1ee39d5804aaf2966990f6258ac342a` | Reusable separator UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/sheet.tsx` | 4280 | `363f8e06aa5b53c6475f445117f60fa9294be79e9e4f1f5bf70886800188124e` | Reusable sheet UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/sidebar.tsx` | 21056 | `53c5391594a46de2c3161de40eb56953ff6ddb09a9c64b877ea98af810b0ed35` | Reusable sidebar UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/skeleton.tsx` | 266 | `87608e7cc815ad3d88e0b9de6c402bb37b58ea1b38636cf69709da1baff6e334` | Reusable skeleton UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/slider.tsx` | 1037 | `234e38fef59169bd02d8f5b56ca02e5ec13a0bd6846c328927b924e1299f7fb0` | Reusable slider UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/sonner.tsx` | 894 | `771ab8637d27384c3ed030ba3be01a07b90c791c294eae06646250f8e81bc49e` | Reusable sonner UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/spinner.tsx` | 331 | `3e6e6e8d37fb4069f8e43e55318f8db06fbc36e6c8be0096da3c9337c1c798b9` | Reusable spinner UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/switch.tsx` | 1148 | `ba5867cd3145af1290edd80bb56d4b6d61c6331aa8ef96ae0b85487f4499feaf` | Reusable switch UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/table.tsx` | 2859 | `a4a6972c2d47d465d7f02c1dc4a6cbfeda7a97e46479c1b0cebdaf26bf9b497a` | Reusable table UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/tabs.tsx` | 1877 | `6f74706bc6b53f9e4bcebb5e7ab8743b616aef181edc7758b8ee905f9b2fdcd7` | Reusable tabs UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/textarea.tsx` | 649 | `ec7c92aaed80f6923a7caa4bfe4eead395b50a7001504fd7fbb0b9381804dae9` | Reusable textarea UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/toast.tsx` | 4845 | `99f9f4a3e897f71d89b01c6772b2f5db51b888cecb2c8214fb2c2dbb2b3e6356` | Reusable toast UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/toaster.tsx` | 772 | `1348f1a1f9820e2f1394b93cecc156a7e22f03636ab9270753985549aae2be74` | Reusable toaster UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/toggle-group.tsx` | 1753 | `dba95ead40d163af6959198ded9853a2cc9282b2cb534980f99937a65edf4e2d` | Reusable toggle-group UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/toggle.tsx` | 1486 | `955fa1bb97505b7a8bba3f7cff1991035a9afa0e1113f5d598147e6369dbf44b` | Reusable toggle UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/components/ui/tooltip.tsx` | 1267 | `ce6afa34fb9dae51053a863b4c3f7c6e55f3da23b00149f31a8e4402bc963be0` | Reusable tooltip UI primitive (prototype sandbox). |
+| `artifacts/mockup-sandbox/src/hooks/use-mobile.tsx` | 565 | `ad0936f84f1df79d3697bfbff9c18f8ad58431c1cbaf2359c6a853b0fcc9f28b` | use-mobile.tsx module in artifacts/mockup-sandbox/src/hooks; see the owning subsystem above. |
+| `artifacts/mockup-sandbox/src/hooks/use-toast.ts` | 3767 | `eb23d01c5e502ae1e0772f4303147170811b11f498c7e8f0dc8424c0f3463c94` | use-toast.ts module in artifacts/mockup-sandbox/src/hooks; see the owning subsystem above. |
+| `artifacts/mockup-sandbox/src/index.css` | 5760 | `3935d982402c0101e55b60039685383ade4fd25227d2f4149ba356e6c2932aa3` | Application stylesheet and design tokens. |
+| `artifacts/mockup-sandbox/src/lib/utils.ts` | 166 | `7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d` | utils.ts module in artifacts/mockup-sandbox/src/lib; see the owning subsystem above. |
+| `artifacts/mockup-sandbox/src/main.tsx` | 157 | `29946f51942fba11605c7595fd82b50b0d7e50148e0194fd356dacbc958f18ec` | React browser mount entrypoint. |
+| `artifacts/mockup-sandbox/tsconfig.json` | 513 | `bd0a1d0c1afa46c590350664a29d7848f6ccb91cfbd76426c40798437369fbf0` | TypeScript compilation/project-reference configuration. |
+| `artifacts/mockup-sandbox/vite.config.ts` | 1592 | `7de0f52b190e4d8f0854ed852e7a0d24420b4242e22423c6dd2712e7b0497cc7` | Vite host, bundling, aliases and artifact base-path configuration. |
+| `attached_assets/0_IMG_2274_1791984759039.png` | 278201 | `c8cc5341a5dda5d6843381beb7b810f27723c19119388cf06ca2fe541cf5538d` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/0_IMG_2275_1791984832255.png` | 195336 | `a8b9ca1d661008b5cb9f0c95ce66966266a5a93ce91b916caca4f0c99c4165c5` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2262_1791972847481.jpeg` | 133994 | `859009edaa8fdb8f3a03633037a2627c07be091c533aa2716af3b55f9b363323` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2263_1791972847481.jpeg` | 117250 | `f92c72838322e8b401cf42917345da1b903f66586fb57cfbc5bf92085d11ffc0` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2264_1791972847481.jpeg` | 140771 | `d089aec0eb34aae907bfff0db170cf207076a814891d928d5402d6d7598bab6d` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2265_1791972847481.jpeg` | 139171 | `d7ab5bbfcbb6d06933705916bad75a3ca3dddf91c4c3d14693cd1820ba273149` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2267_1791976831016.png` | 2904959 | `bb6f3919274beecc60b14ad6cc04fc31049a64ba8d17b113f4af74414dc17cf8` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2268_1791976831016.jpeg` | 819061 | `87bd4267128d2f10474bc178c664bf7cbc98382067cc9df7735299a7351689f3` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2269_1791983612023.jpeg` | 241473 | `f32a56e2154ffee1fce226fd0c338bc9ade584f5d4587f79ff98ea65c1850f89` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2271_1791983904284.png` | 200540 | `a62ddb87f21767902a5e36fa26a59798fa49cb303232aa9a7922eb8da323edeb` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2272_1791983904284.png` | 214223 | `fb11340dddab4a54bfd76ac59ae52c9aca60116f0c2fc067122cf6cabb2e1051` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2279_1792000855236.jpeg` | 829339 | `932b88942595bd49e2137cb953c3b34f651051fc9b7499820da33905539fa684` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2281_1792000855236.jpeg` | 170062 | `94837321f53da47c12e3162d924450b4361e4b9c0bae984fbc19278dea7f3eea` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2294_1792016824115.jpeg` | 841332 | `37b5d27e57ea2f74956cdafc3054ed0c25898b3fe84e203c26e11c5856d35499` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2295_1792016824116.png` | 1283205 | `aae501f55764bbb51af2a8f1c7ece5bbcacb540bd9bde41b9b574cda04f27000` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2297_1792016824116.jpeg` | 181362 | `2ccf3c33a9cee0c5cf274c7e225199ccc29024b74a51849326c166e76126a82d` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2298_1792016824116.png` | 1427553 | `2c8df15d734261f9b9c2b22da5c273e9964411015f1da4318338ab3659f682c8` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Pasted--Project-Blueprint-Self-Hosted-Single-User-Crypto-Node-_1791805333879.txt` | 2752 | `752e822393f96d8bb566a4136a7d8418a807a55d8f639be90fc8ee103ecc38a0` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Pasted-2026-Oct-14-17-27-45-Docker-29-8-1-with-BuildKit-and-Bu_1791998920351.txt` | 7083 | `30867b1c8836eec05e69426db70b104ec8c217db5cf38377f28139c862d6868e` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Pasted-Direct-answers-first-1-Pruned-not-archival-For-a-person_1791805377057.txt` | 8843 | `1fe0f380d4e15e37ae0d5c0f064d5bcde708a4c3a8b40bacee1aec56650c195d` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Pasted-Docker-29-8-1-with-BuildKit-and-Buildx-detected-on-depl_1791882749768.txt` | 4159 | `95771317a554c8d637d78e519c14d0384b0ecb93bb806ea82670ad2f6d59b275` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Pasted-Now-that-your-AWS-Linux-server-is-running-and-Coolify-i_1791805344910.txt` | 4442 | `2687908194139a4aba0372c7f61f8d1eb3033592579509ba8b555d12589ce91c` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Pasted-Overall-this-is-a-strong-plan-better-than-most-producti_1791808556236.txt` | 7951 | `e659977d457edecfe0ff0abc7acea4bdf2d71abb66d9a984e79f179d69bf3dda` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Pasted-Short-answer-the-language-isn-t-your-latency-problem-an_1791805387433.txt` | 5155 | `6f392cf12925bce3d1316d1f0add639e0d99355057104a5399a3c5b8d9aea071` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Pasted-The-Bitcoin-hot-sweeper-key-path-is-the-only-configurat_1791805354418.txt` | 4745 | `5c17ab5e65f907429d6856ac0044ef777420fab723e8cfa5a53c5b8747bf37b1` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Pasted-This-is-an-exceptionally-rigorous-sovereign-tier-self-c_1791808542763.txt` | 3931 | `665744a1d182a773808de8ebefd099a73a476565c77af4874b0ac3620cc97516` | Uploaded reference/evidence asset; content not reproduced here. |
+| `deploy/app-config.mjs` | 3301 | `54ca91063104bf8b6cc01bc75f3128131738251af5d5f8cd95d1bf2120bee47d` | Deployment configuration/tool: app-config.mjs; see deployment chapter and runbooks. |
+| `deploy/app-config.test.mjs` | 3466 | `e998734e2277312ff8b98b58c4be9ca9be5693313816f9565e700b1cfe2f07c3` | Regression tests for app-config; local checks, not hosted evidence. |
+| `deploy/app-entrypoint.mjs` | 1320 | `1cf752f14460de6fb9c30acf1e1b1e3195dcc5cbea2ea93881dc31645dbb1f09` | Deployment configuration/tool: app-entrypoint.mjs; see deployment chapter and runbooks. |
+| `deploy/bitcoin-core.Dockerfile` | 1283 | `c81be1c1c13f568bffbd5d0841c7dcd8f851e18b89e18eb1b930872e116cfa30` | Deployment configuration/tool: bitcoin-core.Dockerfile; see deployment chapter and runbooks. |
+| `deploy/bitcoin-signet.conf` | 418 | `68fa71b0d1ae399365ec61955a4589683d9231df43f5a4006108cd1469c4977c` | Deployment configuration/tool: bitcoin-signet.conf; see deployment chapter and runbooks. |
+| `deploy/coolify-bitcoin.compose.yaml` | 1950 | `1eb81e22a01553061bf7d742967030bff84c412c5cdd5653139ba6c728eac37f` | Deployment configuration/tool: coolify-bitcoin.compose.yaml; see deployment chapter and runbooks. |
+| `deploy/coolify-bitcoin.test.mjs` | 2942 | `8c96a80e602c947bf36952b928ebb2877fdaf85d67b5259f667faabd142e84c8` | Regression tests for coolify-bitcoin; local checks, not hosted evidence. |
+| `deploy/coolify-signer.env.example` | 1076 | `791c6f78f950f4f1d929bb9a0af2153bf990254479e8b64e84e748094da592a8` | Configuration variable template; placeholders only, not installed secrets. |
+| `deploy/coolify.env.example` | 1767 | `0e845779565197feabb5613f996c6500f24463f08fa8df2268552de59b701c2e` | Configuration variable template; placeholders only, not installed secrets. |
+| `deploy/vault-engine.Dockerfile` | 928 | `4ae9c083ac18886196b9a90f56bf1f7bb859bca581e2cfcc8d88a985d3479acb` | Deployment configuration/tool: vault-engine.Dockerfile; see deployment chapter and runbooks. |
+| `deploy/vault-engine.service` | 606 | `c05c133b8fe8fd2a1f2391f24bbdc825470a9290e8e7399ab34e06308a6487dd` | Deployment configuration/tool: vault-engine.service; see deployment chapter and runbooks. |
+| `docs/coolify-bitcoin-setup.md` | 5969 | `8e682206a29bf3b75e6f0130b4dc0ec11ce86be48a504d513a0b7279c92ce46e` | Detailed coolify bitcoin setup runbook/status reference; respect dated evidence. |
+| `docs/coolify-deployment.md` | 13046 | `2b3e922475938f23b032496c27fcda353fc680f8fa5f54691b884d273c5c67f8` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
+| `docs/github-readiness.md` | 11521 | `10908f86e6a211ff20ae51d92f6e0c11938d131426fdfa100a3c4f1979d82c65` | Detailed github readiness runbook/status reference; respect dated evidence. |
+| `docs/live-session-readiness.md` | 3430 | `ef1e8eecf530e98a45c922f3af036cc4febd62117e59edaab5d447c7b75384a5` | Detailed live session readiness runbook/status reference; respect dated evidence. |
+| `docs/login-security.md` | 6803 | `3759d7aa17f02836e9f4ca921a06b0e964fc0f04e246c6368b3ce4c0385c9abf` | Detailed login security runbook/status reference; respect dated evidence. |
+| `docs/receive-readiness.md` | 2926 | `ed851ccc6e98853b4468a3e82ef5c363fc1fcfc5205118aeea128b6606350b8d` | Detailed receive readiness runbook/status reference; respect dated evidence. |
+| `docs/temporary-wallet-storage.md` | 8254 | `4158aea070887d148cba974cb9fbfe97ba2bc5a85fcb85799c6ba5d219c03b23` | Detailed temporary wallet storage runbook/status reference; respect dated evidence. |
+| `docs/vault-build-status.md` | 2772 | `66b43982b6d201d484671ce23448aa2d23bab295c081e98eaa78a02fd3957753` | Detailed vault build status runbook/status reference; respect dated evidence. |
+| `docs/vault-commissioning-status.md` | 5958 | `45bbf3369dac5eb49ff71a607994d8ab769cf430eee3d6590919754921461047` | Detailed vault commissioning status runbook/status reference; respect dated evidence. |
+| `docs/vault-completion-plan.md` | 17653 | `8254a91f42917b293055d5ad72a335585adcdb7380ba965e66219c11b456ac58` | Detailed vault completion plan runbook/status reference; respect dated evidence. |
+| `docs/vault-offline-handoff.md` | 4435 | `81b725d8436354af4f3d095fde83c6dd62d31116a85286527d84d71779d30480` | Detailed vault offline handoff runbook/status reference; respect dated evidence. |
+| `docs/vault-operations.md` | 12006 | `899ef0ef70d32e0afbe5f508ae5467994ef08a78a45adf5a1a3e20188055a44f` | Detailed vault operations runbook/status reference; respect dated evidence. |
+| `es.txt` | 1 | `01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b` | Legacy root text asset; not an executable entrypoint; purpose requires owner review. |
+| `lib/api-client-react/package.json` | 265 | `ae70f97a12d1f7e7cbb291b5ffd1d6893f0d7a0ff7721a21e615d47bccfad789` | Package identity, dependencies and runnable scripts. |
+| `lib/api-client-react/src/custom-fetch.ts` | 11615 | `3455e24d5ceaed1b3f3cebf8609ff7d804f2a3902c37f112a653ce7c5d4d19e8` | Client HTTP transport and request/session integration. |
+| `lib/api-client-react/src/generated/api.schemas.ts` | 6054 | `66795cadd4c1966900eb43df5a5503369505170ef65890344d95d780e7b39873` | Generated api.schemas.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-client-react/src/generated/api.ts` | 78852 | `184e7358845f68d2000d7e521b425a17aee1a3b9a6bad84fdbbe938c44812d6e` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-client-react/src/index.ts` | 208 | `708d0a9abb7cc7cc6c4873185fb57bc1873f82521c7dff78bbf3c0939d83e21f` | index.ts module in lib/api-client-react/src; see the owning subsystem above. |
+| `lib/api-client-react/tsconfig.json` | 267 | `a00fda842228e3478705abcf2c76d9641f5d6263cd5d2df0b613d5379088ad73` | TypeScript compilation/project-reference configuration. |
+| `lib/api-spec/openapi.yaml` | 64604 | `0ce3d736b7af37f42f0a3f3ca0ee700680d97fc36b3675495a268795a4cfd02a` | Authoritative HTTP API contract. |
+| `lib/api-spec/orval.config.ts` | 2051 | `17bbe15ed439c69c5a900398b2a146e4c8d8c79365479cb0ca9adc4dd4058776` | orval.config.ts module in lib/api-spec; see the owning subsystem above. |
+| `lib/api-spec/package.json` | 228 | `2c0f6e86a51350d26ad83e057f0ae4a886b1d8fd484965b34a6a762c0495f088` | Package identity, dependencies and runnable scripts. |
+| `lib/api-zod/package.json` | 189 | `07009861b2ba8decccb4e9d78d743cb7273bd91915231b5eb1463b296efca13e` | Package identity, dependencies and runnable scripts. |
+| `lib/api-zod/src/generated/api.ts` | 17146 | `fd97f09359f208a1a08c94c9ff91b3206df2f1c890275e0370eaf1eed153b488` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/activity.ts` | 220 | `6a40ba64d552dccf6f83273d142b81fa514c03fae4d38bf900bb214880154ce1` | Generated activity.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/alert.ts` | 367 | `416ac7eeea3c9e6b301029cbc01bb4ce0e01b39d84f00c94f2ddb930192fa228` | Generated alert.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/alertInput.ts` | 512 | `4917d8e0399d7c90b3894594ea1f09668c57e888566d82af7a0a3eb6720be2a2` | Generated alertInput.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/alertInputKind.ts` | 276 | `1000180b62ffa329c9f672f0740bd9cdcad0d20a70e06fbe8bc1df5a980fdcd0` | Generated alertInputKind.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/alertKind.ts` | 256 | `0554761b6b3dea5670528ca02585de5ee51733b5d722c94adac207134ba5b23f` | Generated alertKind.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/credentialInput.ts` | 214 | `9f90a842e62fcc47d72a935e8787a11ddd1e349a04a52f02fb491dd8878f6060` | Generated credentialInput.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/dashboard.ts` | 583 | `f56fbb28b3386145c40a12a01b825d697037ffb9bf9649aab32de7371f9d3ddc` | Generated dashboard.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/error.ts` | 143 | `599b889a1d4f13051d0e001b3da6e0d76fa1b9af37351bdc04b539d32f6aa936` | Generated error.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/exploreVaultParams.ts` | 152 | `f1c650d6a5473b38bf188fcb184f8b7e1db9cccde0bdd8a27397ca6740f27ee0` | Generated exploreVaultParams.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/explorer.ts` | 418 | `0cf5f1266b2870b16574fb229c828a5e4b5eb76ef98234a2f2ded78a004eb8da` | Generated explorer.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/explorerDetails.ts` | 157 | `61cf7f255b34f7689e7e5f0dee1f8a59ed696c1ab15d1f3eb7d90c352cdcc136` | Generated explorerDetails.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/healthStatus.ts` | 151 | `6ccf17c2dc7f498c00627c8568bea6f04963b1954d3db765d8b4278bf343ca66` | Generated healthStatus.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/index.ts` | 1220 | `90f70586f0efcbfe748f6e8408f3ce00cb197417a9852f0c518fc3a99c747a05` | Generated index.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/market.ts` | 408 | `233be950c911aca8a078cce723369b48047274d4fae3c7ccb16f3911d64894fd` | Generated market.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/marketHistoryItem.ts` | 169 | `26fd394071ba2518780d96392359e8376bef0ae5575e21c7b9d6ef60f7afe61b` | Generated marketHistoryItem.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/nodeStatus.ts` | 445 | `fc4c73ed90dc8a3ed388751d00b5e2be962510f1cff370bb186fa9419185ad76` | Generated nodeStatus.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/notification.ts` | 221 | `f405bcf351bf9f89b456a4c5a06f8cd938c4cb23966ee1644145aa1380852c0b` | Generated notification.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/ok.ts` | 157 | `b28fabd4cb17077e8285ce24f46a51519c7a1436162b105491a0146f2d65057f` | Generated ok.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/passkey.ts` | 179 | `0600b33bb36fc4ab9f74faf5bbe7f50d66ac2aa7f93f2bcfff0f0eb4733e0969` | Generated passkey.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/passkeyInput.ts` | 251 | `0c64faecda8e0d051366eb0a756223bb82faf31910eba572c538a7c8cd59fcf0` | Generated passkeyInput.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/passkeyInputResponse.ts` | 162 | `d2f77487f555393b78c96e56d4b541fb2a976a765b313c364e91ddec04c58814` | Generated passkeyInputResponse.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/paymentApproval.ts` | 178 | `2e4baf55bea6a393b0a525c83f98a55f9850e7144d631b8042c68e93f6733fe3` | Generated paymentApproval.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/paymentInput.ts` | 491 | `61e3abd2a2e74f1b7728492d764dbdecf59646459bb22a6f168ca66a3d2626a0` | Generated paymentInput.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/paymentReview.ts` | 269 | `b2fbb7861f15585767cf0c0bbe7eda24dfc2c2375601197ff0a42485efe7fa87` | Generated paymentReview.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/rotationInput.ts` | 181 | `6989e68a829980a1bf52e74d4cef83387b4c58b1aba5db1f0e4071d9ecf78133` | Generated rotationInput.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/service.ts` | 181 | `87215d33d32554bbc8f066096f221e6b1aff8d3f83e9bf28f4f67e498fcdf8e2` | Generated service.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/session.ts` | 439 | `1a16c95f78a37886f21ae78b29faf253d3663a9d8aa81c912257f71ea9f718b7` | Generated session.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/settings.ts` | 390 | `af184a0c2d420d1c20cb7c44a0637f13991f9d24587a3ac112a457d25fccd216` | Generated settings.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/settingsInput.ts` | 344 | `a0cd0b532ef9abcb692a66d3a1b39de390a3712ebd7454ae196a4252d46afdda` | Generated settingsInput.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/transaction.ts` | 413 | `b09b4fe732c8544dc135a3c08f4d3e6922cd2be10e565a1c709a6f43c6ac2ed7` | Generated transaction.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/wallet.ts` | 564 | `f8d593321777ad0e76e9ec65edd07f40b1f4f101563073e9a23601c1d687b265` | Generated wallet.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/walletInput.ts` | 273 | `866f90f078d7d6c5ac5c850448f5bf3a50ca0974b5301b0f3a08854440780213` | Generated walletInput.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/walletKind.ts` | 276 | `5a7454d9a93ce155767c744dcee2bd46317c896c6c1ab6da3dc6fc8529f3580b` | Generated walletKind.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/walletUpdate.ts` | 205 | `cc7c92670820851c837b8ebd0d5e0d5d9f6112ff4c1f2b500c5c9ea4c1e3024f` | Generated walletUpdate.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/webAuthnInput.ts` | 239 | `74c90ccbe0ba58fc7d0313b935e89c6fe4b2f2f403df84d04d72d1f0a1278754` | Generated webAuthnInput.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/webAuthnInputResponse.ts` | 163 | `560798aebbcec3cfad5e7b0f7a644f52e70a0afdcffe5b1e8fb8de4cf8b2d1c1` | Generated webAuthnInputResponse.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/webAuthnOptions.ts` | 159 | `a0adf9e2155334a2d36707b40841b154e93d6e08dfc253ed04451f5fdcdc0178` | Generated webAuthnOptions.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/index.ts` | 68 | `effb7d33b5df99004c9b1a840944516ca3ad65cbcd3ae2fcc717c505814ce039` | index.ts module in lib/api-zod/src; see the owning subsystem above. |
+| `lib/api-zod/tsconfig.json` | 221 | `bb52c0e8b13e658570a208d946cb874fdf2b8d990f7c228f96fb24254c9c5a95` | TypeScript compilation/project-reference configuration. |
+| `lib/db/drizzle.config.ts` | 352 | `57862221556f24a1accd28b283876930c403ad7c86b79d87cfb5c9c200ba6258` | Unused PostgreSQL starter scaffold; not the vault production store. |
+| `lib/db/package.json` | 578 | `9c4e93f8f9f9fa57b581a4230c184d56a130a79ae36e377c2d4720edcbcbf15c` | Package identity, dependencies and runnable scripts. |
+| `lib/db/src/index.ts` | 416 | `fc285bc83108137ba57c4c2774a35053e3c25fda1292c3d7a16a57d43dd9679c` | Unused PostgreSQL starter scaffold; not the vault production store. |
+| `lib/db/src/schema/index.ts` | 743 | `459c09e0be1c1e28c794ee70e838f55d0c3d225fa6614fe2d4182a86fbf5e115` | Unused PostgreSQL starter scaffold; not the vault production store. |
+| `lib/db/tsconfig.json` | 244 | `69c976d11de35f0ac391934625beeccdd1b2689ba5d0f14c54b5384d4c30a9c9` | TypeScript compilation/project-reference configuration. |
+| `lib/vault-cloudflare/migrations/0001.sql` | 348 | `0b0572a16e7806f8257abc0dc3b7efa6dec4308241536f97fb32c023befbefc1` | 0001.sql module in lib/vault-cloudflare/migrations; see the owning subsystem above. |
+| `lib/vault-cloudflare/package.json` | 146 | `218a4b8aa29ff20e55bba282480f0028ce6828c484ac413a3b6bab298e16a498` | Package identity, dependencies and runnable scripts. |
+| `lib/vault-cloudflare/src/index.test.mjs` | 2832 | `c65993c28b77fab9847eac65dc81ad96e5784f0bd882253a81e7b59f83d9b7df` | Regression tests for index; local checks, not hosted evidence. |
+| `lib/vault-cloudflare/src/index.ts` | 6929 | `a7efe6e12af0c23b7b27f4e4d746bedbd775561d0a733315c25e258e211c45a4` | Cloudflare Worker price and health-replication endpoints. |
+| `lib/vault-cloudflare/tsconfig.json` | 206 | `71f61c1494eae268125f8cb1af3530c1d205b784f0b4b1f04fc8e30c4799dd28` | TypeScript compilation/project-reference configuration. |
+| `lib/vault-cloudflare/wrangler.jsonc` | 734 | `5999164a4e53708fa087e3353560a56bf1435c8ae971ca4d6c0570a91d74550d` | wrangler.jsonc module in lib/vault-cloudflare; see the owning subsystem above. |
+| `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
+| `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
+| `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
+| `project road map.Rmd` | 20388 | `058a68c818a41a842fca1ed2bcd3c7de8bbdc995a30ec904db7cb0edda58e3fa` | Living architecture, readiness, roadmap and complete source inventory. |
+| `replit.md` | 3469 | `a8f5a09a8a5128ddad4919887a84041ee4bc60eff97a29ba3cd20951dc70d609` | Collaborator instructions, operating constraints and documentation maintenance contract. |
+| `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
+| `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
+| `scripts/package.json` | 336 | `2cc5a16fa30ac908526d4740473b38d8d5c95e1ed19032a5f5b9b970ec892602` | Package identity, dependencies and runnable scripts. |
+| `scripts/post-merge.sh` | 72 | `b9e43e43dcbacd4bd26b84d68dd616270a6aacbd51ab25a2f6b1b81484eadc37` | Operator/build utility: post-merge.sh; inspect flags before invoking. |
+| `scripts/signet-generator-browser.test.mjs` | 2552 | `4974c31fa508a5e1b5da4f2c13aa8e3ed62e89fed74992b93ba0101e9b4f817d` | Regression tests for signet-generator-browser; local checks, not hosted evidence. |
+| `scripts/signet-setup-generator.mjs` | 6352 | `66284122a83fffd182fb0c1aac99eaf48b03cd1c15ff8fef45df8742e541357b` | Operator/build utility: signet-setup-generator.mjs; inspect flags before invoking. |
+| `scripts/signet-setup-generator.template.html` | 4034 | `d6759aa0108ade15a7860000bd41661bd94ad8d802b7570186938be91104844a` | Operator/build utility: signet-setup-generator.template.html; inspect flags before invoking. |
+| `scripts/signet-setup-generator.test.mjs` | 2443 | `86fa7380f089d2c83a524ccbbff680097b6b4372be0a43ec793d74f60a16c08f` | Regression tests for signet-setup-generator; local checks, not hosted evidence. |
+| `scripts/src/hello.ts` | 46 | `9a865c3de9900891e697e1ee8632dd565ce69bd7cb6b610e48b26bc0ee9e81e9` | Operator/build utility: hello.ts; inspect flags before invoking. |
+| `scripts/tsconfig.json` | 157 | `636dea76ed898c62e56d6657ed97bb3edc85feb0ea8256b5198849d5c6cf462a` | TypeScript compilation/project-reference configuration. |
+| `scripts/update-roadmap.mjs` | 9075 | `246b1a11d004e22cf25612bdebe84bdf7487aa3113383be614d25dc5b8fa40f5` | Deterministic file inventory generator and stale-document check. |
+| `scripts/update-roadmap.test.mjs` | 2302 | `835d9b356ce704b84be849bbfd976c95077ad5db223624b5d85bc8ed8d98c889` | Regression tests for update-roadmap; local checks, not hosted evidence. |
+| `scripts/vault-backup.mjs` | 2761 | `ab67a0ba4197a14a89e076916eddf092260d373da179f9b67761c2ea3895933f` | Operator/build utility: vault-backup.mjs; inspect flags before invoking. |
+| `scripts/vault-backup.test.mjs` | 1528 | `181e73fdd783437c85f3ac2eef13fb4ddcfda688e5fc583302f1665e78b2d31b` | Regression tests for vault-backup; local checks, not hosted evidence. |
+| `scripts/vault-docker-verify.mjs` | 4559 | `4e892df373345bbab32737b3e43f3074fddba6ab43f6a39049f74a53ef7eb1ab` | Operator/build utility: vault-docker-verify.mjs; inspect flags before invoking. |
+| `scripts/vault-live-probe.mjs` | 2986 | `ec049309adbe23560f46aa929fb0579d42860c29401037bf6fe437830caeb147` | Operator/build utility: vault-live-probe.mjs; inspect flags before invoking. |
+| `scripts/vault-live-probe.test.mjs` | 2036 | `3d39bce9677f184c6e13a5c8c985cb55be158965a9b9cc316e19fd4b956a4731` | Regression tests for vault-live-probe; local checks, not hosted evidence. |
+| `scripts/vault-package.test.mjs` | 4098 | `9f489b9e023e2bd35589d24f378779bb7dd619173c5464ee73afc42f6030eed9` | Regression tests for vault-package; local checks, not hosted evidence. |
+| `scripts/vault-release.sh` | 2413 | `7bb1b6fd9606776f9d10b239ae3d973f2d5221f91632972550d41e3563f1a362` | Operator/build utility: vault-release.sh; inspect flags before invoking. |
+| `scripts/vault-verify.sh` | 1057 | `f2099003b696f6886f6659f574f60f1ae732018e961c5dd948e1bc5c492abe57` | Operator/build utility: vault-verify.sh; inspect flags before invoking. |
+| `services/vault-engine/destruction.go` | 4951 | `562d2aa5ba2f659f43ba8f679b7c1037c569d0d8c3fee4e99bf5fe33a3ebd824` | Read-only destruction-readiness checks; no verified key erasure. |
+| `services/vault-engine/destruction_test.go` | 5421 | `1f74cb7a6e098607c70d68ec3d46676e225781d3ac67db2663eee5a546d40733` | Regression tests for destruction; local checks, not hosted evidence. |
+| `services/vault-engine/engine.go` | 12384 | `f92c223829503e0c8f498a81cd2decfcabd50320e3bfbc0aa2097dd0bb1fde56` | Core readiness, wallet initialization, reconciliation and engine persistence. |
+| `services/vault-engine/engine_test.go` | 9826 | `85c3db68b01f134ef931a1aa0683ce8935d34bfc82bf065530d30a3acbeb7de3` | Regression tests for engine; local checks, not hosted evidence. |
+| `services/vault-engine/go.mod` | 38 | `f121f796cf6ed79edf948f45b9aa64e63c43ef4a7579b2a9ceee803743150272` | Go engine module and language version. |
+| `services/vault-engine/main.go` | 10145 | `24c3aa3ab5ca34ca02b02ce9cd60b0db075a0fd64b3377c01127f0149991c8cc` | Private HTTP service, authenticated routes and engine startup. |
+| `services/vault-engine/payments.go` | 15275 | `0006872d96e87cf2c16ce7a2eb9495001f8761a05b38f69799b6dfc17a57f80b` | Payment review, signing, broadcast and transaction lifecycle. |
+| `services/vault-engine/receive.go` | 1482 | `ffb6320cb6fa99d5d6ad0e56525e890e162f4a81af0ae9c3bcacfaa725d9afea` | Receive-address allocation and wallet receipt checks. |
+| `services/vault-engine/receive_test.go` | 670 | `e00f244ac573de00e66b3267d3a78e3de993743ce339227bc3017730ae3615e8` | Regression tests for receive; local checks, not hosted evidence. |
+| `services/vault-engine/replica.go` | 5704 | `b1c25d7ea196b4fc591629900596d84851abebdbf946ec760e9a980c49de26a4` | Durable bounded health snapshots and authenticated replication. |
+| `services/vault-engine/replica_test.go` | 4253 | `6667bdfed328308c3990ff848f4734347896b22ab39f93b8dcff74481d2d6f4e` | Regression tests for replica; local checks, not hosted evidence. |
+| `services/vault-engine/rpc.go` | 2934 | `816f2bea7c1b6bb0a75157e9af621f5935f88ce9d32d8b18747fe0d7650a23c4` | Bitcoin Core JSON-RPC transport and cookie authentication. |
+| `services/vault-engine/state.go` | 4706 | `aef80dd4237195cadc7ad431cb3131970d10555f5e424313c34afc8fda6199cb` | Durable engine data structures and journal state handling. |
+| `tsconfig.base.json` | 692 | `2dfaa6f6168f618e0e6deff048c17e4f5f73d59325bd935d471905ae6773585c` | TypeScript compilation/project-reference configuration. |
+| `tsconfig.json` | 236 | `8883c5dbf9e073ef0c7e91769b3e4abccca022df69b62fa7518d73e1512b37ef` | TypeScript compilation/project-reference configuration. |
+
+<!-- ROADMAP-INVENTORY:END -->
