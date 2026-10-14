@@ -8,14 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Btc, ErrorPanel, PageHeader, Panel, Pill, Skel, SkelRows, Stat } from '@/components/kit';
+import { PolicyError, Btc, ErrorPanel, PageHeader, Panel, Pill, Skel, SkelRows, Stat } from '@/components/kit';
 import { CREDENTIAL_RE, POLL_MS, ago, errMsg, stamp, useCsrf } from '@/lib/vault';
 import { useToast } from '@/hooks/use-toast';
 
 export default function SettingsPage() {
   return (
     <div className="space-y-6">
-      <PageHeader kicker="06 / configuration" title="Settings" desc="Operational limits and the keys to this room. Network and destruction policy are fixed server-side." />
+      <PageHeader kicker="Configuration" title="Settings" desc="Operational limits and the keys to this room. Network and destruction policy are fixed server-side." />
       <div className="grid gap-4 lg:grid-cols-2">
         <Operational />
         <NodePanel />
@@ -42,7 +42,7 @@ function Operational() {
 
   return (
     <Panel title="operational policy" className="lg:row-span-2">
-      {q.isError && <ErrorPanel error={q.error} onRetry={() => q.refetch()} />}
+      {q.isError && <PolicyError error={q.error} onRetry={() => q.refetch()} />}
       {q.isLoading && <SkelRows rows={5} />}
       {s && (
         <div className="space-y-5">

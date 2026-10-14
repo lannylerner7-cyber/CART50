@@ -16,7 +16,7 @@ export default function Explorer() {
 
   return (
     <div className="space-y-6">
-      <PageHeader kicker="04 / own node" title="Explorer" desc="Look up an address or txid against your node only. No third-party explorer sees the query." />
+      <PageHeader kicker="Own node" title="Explorer" desc="Look up an address or txid against your node only. No third-party explorer sees the query." />
       <form onSubmit={(e) => { e.preventDefault(); setQuery(draft.trim()); }} className="flex gap-2">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

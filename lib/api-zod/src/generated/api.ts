@@ -170,6 +170,28 @@ export const CreateWalletsResponseItem = zod.object({
 export const CreateWalletsResponse = zod.array(CreateWalletsResponseItem)
 
 
+export const CreateWalletReceiveAddressParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const CreateWalletReceiveAddressResponse = zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "address": zod.string().nullable(),
+  "kind": zod.enum(['temporary', 'cold', 'spending']),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullable(),
+  "status": zod.string(),
+  "destructionStatus": zod.string(),
+  "confirmedSats": zod.string(),
+  "unconfirmedSats": zod.string(),
+  "availableSats": zod.string(),
+  "totalReceivedSats": zod.string(),
+  "totalSweptSats": zod.string(),
+  "lastSync": zod.string().nullable()
+})
+
+
 export const GetWalletParams = zod.object({
   "id": zod.coerce.string()
 })

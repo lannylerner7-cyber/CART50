@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
-import { Boxes, Plus } from 'lucide-react';
-import { useListWallets, useCreateWallets, getListWalletsQueryKey, getGetVaultDashboardQueryKey, type Wallet } from '@workspace/api-client-react';
+import { ArrowDownToLine, Boxes, Plus } from 'lucide-react';
+import { ReceiveDialog, receiveBlock, useOnline, type Freshness } from '@/components/receive';
+import { useListWallets, useCreateWallets, useGetVaultDashboard, getListWalletsQueryKey, getGetVaultDashboardQueryKey, type Wallet } from '@workspace/api-client-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,7 +23,14 @@ export default function Wallets() {
   const rows = useMemo(() => (q.data ?? []).filter((w) => (kind === 'all' || w.kind === kind) && (status === 'all' || w.status === status)), [q.data, kind, status]);
   const statuses = useMemo(() => Array.from(new Set((q.data ?? []).map((w) => w.status))), [q.data]);
 
+  const dash = useGetVaultDashboard({ query: { queryKey: getGetVaultDashboardQueryKey(), refetchInterval: POLL_MS } });
+  const online = useOnline();
+  const [recvId, setRecvId] = useState<string | null>(null);
+  const fresh: Freshness = { nodeConnected: dash.isError ? false : dash.data?.node.connected, dataUpdatedAt: Math.min(q.dataUpdatedAt, dash.dataUpdatedAt || 0), isError: q.isError || dash.isError };
+  const recvWallet = (q.data ?? []).find((w) => w.id === recvId) ?? null;
+
   const cols: Column<Wallet>[] = [
+    { key: 'receive', label: '', render: (w) => { const why = receiveBlock(w, fresh, online); return <button disabled={!!why} title={why ?? 'Receive'} onClick={(e) => { e.stopPropagation(); setRecvId(w.id); }} className="inline-flex items-center gap-1 rounded-full bg-foreground px-3 py-1 text-xs font-bold text-background disabled:opacity-30" data-testid={`button-receive-${w.id}`}><ArrowDownToLine className="h-3 w-3" />Receive</button>; } },
     { key: 'label', label: 'Label', render: (w) => <span className="font-medium">{w.label}</span>, sort: (w) => w.label.toLowerCase() },
     { key: 'kind', label: 'Kind', render: (w) => <Pill tone={w.kind === 'cold' ? 'cold' : w.kind === 'spending' ? 'ember' : 'neutral'}>{w.kind}</Pill>, sort: (w) => w.kind },
     { key: 'address', label: 'Address', render: (w) => (w.status === 'expired' ? <span className="text-muted-foreground">Expired · do not receive</span> : w.address ? <CopyText value={w.address} display={short(w.address, 8)} /> : <span className="text-muted-foreground">—</span>) },
@@ -41,8 +49,8 @@ export default function Wallets() {
 
   return (
     <div className="space-y-6">
-      <PageHeader kicker="01 / wallets" title="Wallets" desc="Cold reserve, hot spending, and the fleet of receiving wallets. Each temporary wallet expires 120 hours after creation."
-        actions={<Button onClick={() => setOpen(true)} className="gap-1.5 font-mono text-xs uppercase" data-testid="button-open-create"><Plus className="h-4 w-4" /> Batch create</Button>} />
+      <PageHeader kicker="Wallets" title="Wallets" desc="Cold reserve, hot spending, and the fleet of receiving wallets. Each temporary wallet expires 120 hours after creation."
+        actions={<Button onClick={() => setOpen(true)} className="gap-1.5 rounded-full px-5 font-bold" data-testid="button-open-create"><Plus className="h-4 w-4" /> Batch create</Button>} />
       {q.isError && <ErrorPanel error={q.error} onRetry={() => q.refetch()} />}
       {q.isLoading ? <SkelRows rows={10} /> : q.data && (
         <DataTable testId="wallets" rows={rows} columns={cols} rowKey={(w) => w.id} search={(w) => `${w.label} ${w.address ?? ''} ${w.id} ${w.status}`}
@@ -55,6 +63,7 @@ export default function Wallets() {
             action={!q.data.length && <Button size="sm" onClick={() => setOpen(true)} data-testid="button-empty-create">Create wallets</Button>} />} />
       )}
       <CreateDialog open={open} onOpenChange={setOpen} />
+      {recvWallet && <ReceiveDialog wallet={recvWallet} freshness={fresh} open={!!recvId} onOpenChange={(o) => !o && setRecvId(null)} />}
     </div>
   );
 }

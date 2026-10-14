@@ -476,6 +476,18 @@
         }
       }
     },
+    "/vault/wallets/{id}/receive": {
+      "post": {
+        "operationId": "createWalletReceiveAddress",
+        "parameters": [{"name": "id", "in": "path", "required": true, "schema": {"type": "string"}}],
+        "responses": {
+          "200": {"description": "Verified receiving wallet", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Wallet"}}}},
+          "400": {"description": "Wallet cannot receive", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "401": {"description": "Owner authentication required", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}},
+          "503": {"description": "Node unavailable", "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}}
+        }
+      }
+    },
     "/vault/wallets/{id}": {
       "get": {
         "operationId": "getWallet",

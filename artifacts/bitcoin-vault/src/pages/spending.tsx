@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Btc, ErrorPanel, PageHeader, Panel, Pill, Skel, Stat } from '@/components/kit';
+import { PolicyError, Btc, ErrorPanel, PageHeader, Panel, Pill, Skel, Stat } from '@/components/kit';
 import { POLL_MS, btcToSats, remaining, toBig, useCsrf } from '@/lib/vault';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,7 +32,7 @@ export default function Spending() {
   const d = dash.data;
   const s = settings.data;
   const hot = d ? d.wallets.filter((w) => w.kind === 'spending').reduce((a, w) => a + toBig(w.availableSats), 0n) : 0n;
-  const blocked = !d ? 'Loading node status' : !d.node.connected ? 'Node disconnected. Spending is disabled.' : d.node.network === 'main' || d.node.network === 'mainnet' ? (d.mainnetEnabled ? null : 'Mainnet spending is disabled.') : null;
+  const blocked = settings.isError ? 'Spending policy unavailable. Sending is disabled.' : !d ? 'Loading node status' : !d.node.connected ? 'Node disconnected. Spending is disabled.' : d.node.network === 'main' || d.node.network === 'mainnet' ? (d.mainnetEnabled ? null : 'Mainnet spending is disabled.') : null;
   const valid = address.trim().length >= 14 && address.trim().length <= 100 && !!sats && toBig(sats) > 0n && /^[0-9]+(\.[0-9]{1,3})?$/.test(feeRate);
   const exp = rv ? remaining(rv.expiresAt) : null;
 
@@ -48,23 +48,23 @@ export default function Spending() {
 
   return (
     <div className="space-y-6">
-      <PageHeader kicker="03 / hot wallet" title="Spending" desc="Two steps, always. The server prices the transaction against your ceilings, then you confirm the exact figures before anything is signed." />
+      <PageHeader kicker="Spending wallet" title="Send bitcoin" desc="Two steps, always: the vault prices the payment against your limits, then you confirm the exact figures before anything is signed." />
       {dash.isError && <ErrorPanel error={dash.error} onRetry={() => dash.refetch()} title="Node status unavailable" />}
-      {settings.isError && <ErrorPanel error={settings.error} onRetry={() => settings.refetch()} title="Settings unavailable" />}
+      {settings.isError && <PolicyError error={settings.error} onRetry={() => settings.refetch()} />}
 
       <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
         <div className="space-y-4">
-          <Panel title={<span className="flex items-center gap-2"><span className={rv ? 'text-muted-foreground' : 'text-primary'}>1 · compose</span><ArrowRight className="h-3 w-3" /><span className={rv ? 'text-primary' : ''}>2 · confirm</span></span>}>
+          <Panel title={<span className="flex items-center gap-2"><span className={rv ? 'text-muted-foreground' : 'text-primary'}>1 · Details</span><ArrowRight className="h-3 w-3" /><span className={rv ? 'text-primary' : ''}>2 · Confirm</span></span>}>
             {blocked && <div className="mb-4 rounded-sm border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn" data-testid="text-spend-blocked">{blocked}</div>}
             <fieldset disabled={!!blocked || !!rv} className="grid gap-4 disabled:opacity-60">
               <details className="text-sm"><summary className="cursor-pointer text-muted-foreground">Replace a pending payment (RBF)</summary><div className="mt-3 space-y-2"><Label>Original spending transaction ID</Label><Input value={replacesTxid} onChange={(e) => setReplacesTxid(e.target.value)} placeholder="64-character transaction ID; leave blank for a new payment" className="font-mono" /><p className="text-xs text-muted-foreground">Enter the original recipient and amount below, with a higher fee rate. The engine preserves the recipient and amount. The review shows the replacement's total fee, not just its increase.</p></div></details>
-              <div className="grid gap-1.5"><Label>Destination address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} className="font-mono" placeholder="tb1q…" spellCheck={false} data-testid="input-address" /></div>
+              <div className="grid gap-1.5"><Label>Destination address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} className="h-12 rounded-2xl font-mono" placeholder="tb1q…" spellCheck={false} data-testid="input-address" /></div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label>Amount</Label>
                   <div className="flex">
-                    <Input value={amount} onChange={(e) => setAmount(e.target.value.trim())} className="rounded-r-none font-mono" placeholder={unit === 'btc' ? '0.00100000' : '100000'} data-testid="input-amount" />
-                    <button type="button" onClick={() => { setUnit(unit === 'btc' ? 'sats' : 'btc'); setAmount(''); }} className="rounded-r-md border border-l-0 border-input bg-muted px-3 font-mono text-[11px] uppercase" data-testid="button-toggle-unit">{unit}</button>
+                    <Input value={amount} onChange={(e) => setAmount(e.target.value.trim())} className="h-12 rounded-l-2xl rounded-r-none font-mono text-lg" placeholder={unit === 'btc' ? '0.00100000' : '100000'} data-testid="input-amount" />
+                    <button type="button" onClick={() => { setUnit(unit === 'btc' ? 'sats' : 'btc'); setAmount(''); }} className="rounded-r-2xl border border-l-0 border-input bg-muted px-4 text-[12px] font-bold uppercase" data-testid="button-toggle-unit">{unit}</button>
                   </div>
                   {amount && !sats && <span className="font-mono text-[11px] text-destructive">invalid amount</span>}
                   {sats && unit === 'btc' && <span className="font-mono text-[11px] text-muted-foreground">{sats} sats</span>}
@@ -73,11 +73,11 @@ export default function Spending() {
               </div>
             </fieldset>
             {review.isError && <div className="mt-4"><ErrorPanel error={review.error} title="Review rejected" /></div>}
-            {!rv && <Button className="mt-5 gap-2" disabled={!!blocked || !valid || review.isPending} onClick={doReview} data-testid="button-review"><ShieldCheck className="h-4 w-4" />{review.isPending ? 'Pricing' : 'Review payment'}</Button>}
+            {!rv && <Button className="mt-5 h-12 w-full gap-2 rounded-full text-[15px] font-bold sm:w-auto sm:px-8" disabled={!!blocked || !valid || review.isPending} onClick={doReview} data-testid="button-review"><ShieldCheck className="h-4 w-4" />{review.isPending ? 'Pricing' : 'Review payment'}</Button>}
           </Panel>
 
           {rv && (
-            <Panel title="review · verify every character" className="border-primary/50" meta={<span className={`font-mono ${exp && exp.ms <= 0 ? 'text-destructive' : ''}`}>{exp?.ms && exp.ms > 0 ? `valid ${Math.ceil(exp.ms / 1000)}s` : 'expired'}</span>}>
+            <Panel title="Check every character" className="border-primary/50" meta={<span className={`font-mono ${exp && exp.ms <= 0 ? 'text-destructive' : ''}`}>{exp?.ms && exp.ms > 0 ? `valid ${Math.ceil(exp.ms / 1000)}s` : 'expired'}</span>}>
               <div className="rounded-sm bg-muted/60 p-3 font-mono text-sm break-all" data-testid="text-review-address">{rv.address}</div>
               <div className="mt-4 grid grid-cols-3 gap-4">
                 <Stat label="amount"><Btc sats={rv.amountSats} /></Stat>
@@ -91,7 +91,7 @@ export default function Spending() {
               </label>
               {send.isError && <div className="mt-3"><ErrorPanel error={send.error} title="Send failed" /></div>}
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button className="gap-2" disabled={!ack || send.isPending || !exp || exp.ms <= 0} onClick={doSend} data-testid="button-confirm-send"><Send className="h-4 w-4" />{send.isPending ? 'Signing & broadcasting' : 'Confirm and send'}</Button>
+                <Button className="h-11 gap-2 rounded-full px-6 font-bold" disabled={!ack || send.isPending || !exp || exp.ms <= 0} onClick={doSend} data-testid="button-confirm-send"><Send className="h-4 w-4" />{send.isPending ? 'Signing & broadcasting' : 'Confirm and send'}</Button>
                 <Button variant="outline" onClick={() => { setRv(null); review.reset(); }} data-testid="button-edit-payment">Edit</Button>
               </div>
             </Panel>
@@ -99,10 +99,10 @@ export default function Spending() {
         </div>
 
         <div className="space-y-4">
-          <Panel title="hot wallet">
+          <Panel title="Spending wallet">
             {dash.isLoading ? <Skel className="h-16" /> : <Stat label="available"><Btc sats={hot} size="lg" /></Stat>}
           </Panel>
-          <Panel title="policy ceilings">
+          <Panel title="Limits">
             {settings.isLoading ? <Skel className="h-28" /> : s ? (
               <div className="grid gap-3">
                 <Stat label="hot exposure limit"><Btc sats={s.hotExposureLimitSats} /></Stat>

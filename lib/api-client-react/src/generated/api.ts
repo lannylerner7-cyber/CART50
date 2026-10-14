@@ -741,6 +741,74 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCreateWalletsMutationOptions(options));
     }
 
+export const getCreateWalletReceiveAddressUrl = (id: string,) => {
+
+
+
+
+  return `/api/vault/wallets/${id}/receive`
+}
+
+export const createWalletReceiveAddress = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Wallet> => {
+
+  return customFetch<Wallet>(getCreateWalletReceiveAddressUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCreateWalletReceiveAddressMutationKey = () => ['createWalletReceiveAddress'] as const;
+
+export const getCreateWalletReceiveAddressMutationOptions = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createWalletReceiveAddress>>, TError,CreateWalletReceiveAddressMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createWalletReceiveAddress>>, TError,CreateWalletReceiveAddressMutationVariables, TContext> => {
+
+const mutationKey = getCreateWalletReceiveAddressMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createWalletReceiveAddress>>, CreateWalletReceiveAddressMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  createWalletReceiveAddress(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateWalletReceiveAddressMutationResult = NonNullable<Awaited<ReturnType<typeof createWalletReceiveAddress>>>
+
+    export type CreateWalletReceiveAddressMutationError = ErrorType<Error>
+    export type CreateWalletReceiveAddressMutationVariables = {id: string}
+
+    export const useCreateWalletReceiveAddress = <TError = ErrorType<Error>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createWalletReceiveAddress>>, TError,CreateWalletReceiveAddressMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createWalletReceiveAddress>>,
+        TError,
+        CreateWalletReceiveAddressMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateWalletReceiveAddressMutationOptions(options));
+    }
+
 export const getGetWalletUrl = (id: string,) => {
 
 

@@ -101,7 +101,9 @@ func (e *Engine) handler(w http.ResponseWriter, r *http.Request) {
 				err = e.persist()
 				result = wallet
 			}
-		} else if parts[1] == "delete" {
+} else if parts[1] == "receive" {
+result, err = e.receiveWallet(index)
+} else if parts[1] == "delete" {
 			err = deletionAllowed(*wallet)
 			if err == nil {
 				e.state.Wallets = append(e.state.Wallets[:index], e.state.Wallets[index+1:]...)
@@ -116,7 +118,9 @@ func (e *Engine) handler(w http.ResponseWriter, r *http.Request) {
 		rows, err = e.transactions()
 		sort.Slice(rows, func(i, j int) bool { return rows[i].FirstSeen > rows[j].FirstSeen })
 		result = rows
-	case r.Method == "POST" && r.URL.Path == "/settings":
+case r.Method == "GET" && r.URL.Path == "/settings":
+result = e.state.Settings
+case r.Method == "POST" && r.URL.Path == "/settings":
 		var s Settings
 		err = body(r, &s)
 		fee, e1 := parseBTC(json.Number(s.FeeRate))

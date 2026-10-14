@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Link, useLocation, useParams } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
-import { QRCodeSVG } from 'qrcode.react';
-import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
-import { useGetWallet, useUpdateWallet, useDeleteWalletHistory, getGetWalletQueryKey, getListWalletsQueryKey } from '@workspace/api-client-react';
+import { ArrowDownToLine, ArrowLeft, Pencil, Trash2 } from 'lucide-react';
+import { useGetWallet, useUpdateWallet, useDeleteWalletHistory, useGetVaultDashboard, getGetVaultDashboardQueryKey, getGetWalletQueryKey, getListWalletsQueryKey } from '@workspace/api-client-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Btc, CopyText, ErrorPanel, PageHeader, Panel, Pill, Skel, Stat, statusTone } from '@/components/kit';
-import { POLL_MS, ago, remaining, stamp, toBig, useCsrf } from '@/lib/vault';
+import { ReceiveDialog, receiveBlock, useOnline, NetworkBadge, BtcGlyph, type Freshness } from '@/components/receive';
+import { Btc, ErrorPanel, PageHeader, Panel, Pill, Skel, Stat, statusTone } from '@/components/kit';
+import { POLL_MS, ago, remaining, stamp, toBig, useCsrf, useSession } from '@/lib/vault';
 import { useToast } from '@/hooks/use-toast';
 
 export default function WalletDetail() {
@@ -24,6 +24,12 @@ export default function WalletDetail() {
   const [label, setLabel] = useState('');
   const [confirm, setConfirm] = useState(false);
   const w = q.data;
+  const session = useSession();
+  const online = useOnline();
+  const dash = useGetVaultDashboard({ query: { queryKey: getGetVaultDashboardQueryKey(), refetchInterval: POLL_MS } });
+  const [recv, setRecv] = useState(false);
+  const fresh: Freshness = { nodeConnected: dash.isError ? false : dash.data?.node.connected, dataUpdatedAt: Math.min(q.dataUpdatedAt, dash.dataUpdatedAt || 0), isError: q.isError || dash.isError };
+  const why = w ? receiveBlock(w, fresh, online) : 'Loading';
 
   const save = () => update.mutate({ id, data: { label: label.trim() } }, {
     onSuccess: (nw) => { qc.setQueryData(getGetWalletQueryKey(id), nw); qc.invalidateQueries({ queryKey: getListWalletsQueryKey() }); setEditing(false); toast({ title: 'Wallet renamed' }); },
@@ -42,12 +48,12 @@ export default function WalletDetail() {
 
   return (
     <div className="space-y-6">
-      <Link href="/wallets" className="inline-flex items-center gap-1 font-mono text-[11px] uppercase text-muted-foreground hover:text-primary" data-testid="link-back"><ArrowLeft className="h-3.5 w-3.5" /> wallets</Link>
+      <Link href="/wallets" className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground" data-testid="link-back"><ArrowLeft className="h-3.5 w-3.5" /> wallets</Link>
       {q.isError && <ErrorPanel error={q.error} onRetry={() => q.refetch()} title="Wallet unavailable" />}
       {q.isLoading && <div className="grid gap-4 md:grid-cols-[320px_1fr]"><Skel className="h-80" /><Skel className="h-80" /></div>}
       {w && (
         <>
-          <PageHeader kicker={`${w.kind} wallet · ${w.id}`} title={w.label}
+          <PageHeader kicker={`${w.kind === 'temporary' ? 'Temporary receiving' : w.kind === 'cold' ? 'Cold storage' : 'Spending'} wallet`} title={w.label}
             actions={<>
               <Pill tone={statusTone(w.status)} dot testId="status-wallet">{w.status}</Pill>
               <Pill tone={statusTone(w.destructionStatus)} testId="status-destruction">destruction {w.destructionStatus}</Pill>
@@ -55,7 +61,7 @@ export default function WalletDetail() {
             </>} />
 
           {editing && (
-            <Panel title="rename">
+            <Panel title="Rename">
               <div className="flex flex-col gap-2 sm:flex-row">
                 <Input autoFocus value={label} maxLength={64} onChange={(e) => setLabel(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && label.trim() && save()} data-testid="input-rename" />
                 <Button disabled={!label.trim() || update.isPending} onClick={save} data-testid="button-save-rename">{update.isPending ? 'Saving' : 'Save'}</Button>
@@ -66,21 +72,22 @@ export default function WalletDetail() {
           )}
 
           <div className="grid gap-4 md:grid-cols-[320px_1fr]">
-            <Panel title="receive" bodyClass="flex flex-col items-center gap-4 p-6">
-              {w.address && !expired ? (
-                <>
-                  <div className="rounded-md border border-border bg-[hsl(40_45%_97%)] p-4"><QRCodeSVG value={`bitcoin:${w.address}`} size={200} bgColor="transparent" fgColor="hsl(224 38% 12%)" level="M" data-testid="img-qr" /></div>
-                  <CopyText value={w.address} className="max-w-full break-all text-center" />
-                </>
-              ) : (
-                <div className="hatch grid h-[232px] w-[232px] place-items-center rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                  {expired ? 'Expired. Do not share this address for new payments.' : 'No address derived for this wallet.'}
-                </div>
-              )}
-            </Panel>
+            <section className="rise flex flex-col items-center gap-4 rounded-[32px] bg-card p-6 text-center shadow-[0_8px_30px_-16px_hsl(232_30%_20%/0.25)]">
+              <BtcGlyph className="h-14 w-14 rounded-2xl" />
+              <div>
+                <div className="text-sm font-semibold text-muted-foreground">Available</div>
+                <Btc sats={w.availableSats} size="lg" className="font-display font-extrabold" />
+              </div>
+              <NetworkBadge network={session.network} />
+              <button onClick={() => setRecv(true)} disabled={!!why} className="flex w-full items-center justify-center gap-2 rounded-full bg-foreground py-3.5 text-[15px] font-bold text-background transition-transform active:scale-[0.98] disabled:opacity-40" data-testid="button-open-receive">
+                <ArrowDownToLine className="h-4 w-4" /> Receive
+              </button>
+              {why && <p className="text-xs text-muted-foreground" data-testid="text-receive-blocked">{why}</p>}
+            </section>
+            <ReceiveDialog wallet={w} freshness={fresh} open={recv && !why} onOpenChange={setRecv} />
 
             <div className="space-y-4">
-              <Panel title="balances">
+              <Panel title="Balances">
                 <div className="grid grid-cols-2 gap-5 lg:grid-cols-3">
                   <Stat label="confirmed"><Btc sats={w.confirmedSats} size="lg" /></Stat>
                   <Stat label="pending"><Btc sats={w.unconfirmedSats} size="lg" className="text-warn" /></Stat>
@@ -90,7 +97,7 @@ export default function WalletDetail() {
                   <Stat label="last sync"><span className="text-sm">{ago(w.lastSync)}</span></Stat>
                 </div>
               </Panel>
-              <Panel title="expiry" meta={<span className="font-mono">120h window</span>}>
+              <Panel title="Expiry" meta={<span>120 hour window</span>}>
                 <div className="flex items-baseline justify-between">
                   <span className="font-display text-3xl font-extrabold" data-testid="text-expiry">{r.label}</span>
                   <span className="font-mono text-xs text-muted-foreground">{stamp(w.expiresAt)}</span>
@@ -99,7 +106,7 @@ export default function WalletDetail() {
                 <div className="mt-2 font-mono text-[11px] text-muted-foreground">created {stamp(w.createdAt)}</div>
               </Panel>
               {w.kind === 'temporary' && (
-                <Panel title="history">
+                <Panel title="History">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-muted-foreground">
                       {expired ? (empty ? (w.destructionStatus === 'completed' ? 'Expired, empty and destruction verified. Its local history record can be deleted.' : 'Expired. A displayed zero balance is not proof of safe destruction. Keys remain until fresh node checks verify drainage and settlement, and storage-key destruction is verified.') : 'Expired but still holds funds. Keys are retained while funds are drained; there is no strict destruction deadline.') : 'Expires after 120 hours. Keys must be retained until drainage, settlement and storage-key destruction are verified.'}

@@ -73,6 +73,13 @@ router.get("/wallets/:id", async (req, res) => {
   const { id } = Z.GetWalletParams.parse(req.params);
   res.json(Z.GetWalletResponse.parse(await engine(`/wallets/${encodeURIComponent(id)}`)));
 });
+router.post("/wallets/:id/receive", async (req, res) => {
+  const { id } = Z.CreateWalletReceiveAddressParams.parse(req.params);
+  const node = await nodeStatus();
+  const network = process.env.BITCOIN_NETWORK === "regtest" ? "regtest" : "signet";
+  if (!node.connected || node.network !== network) throw new HttpError(503, "Node disconnected or network mismatch; receiving is unavailable");
+  res.json(Z.CreateWalletReceiveAddressResponse.parse(await engine(`/wallets/${encodeURIComponent(id)}/receive`, {})));
+});
 router.patch("/wallets/:id", async (req, res) => {
   const { id } = Z.UpdateWalletParams.parse(req.params);
   res.json(Z.UpdateWalletResponse.parse(await engine(`/wallets/${encodeURIComponent(id)}/rename`, Z.UpdateWalletBody.parse(req.body))));
@@ -88,7 +95,6 @@ router.put("/settings", async (req, res) => {
   if (BigInt(body.totalFeeCeilingSats) > 2100000000000000n || BigInt(body.hotExposureLimitSats) > 2100000000000000n || Number(body.feeRateCeiling) > 10000) throw new HttpError(400, "Limit exceeds supported range");
   // Apply to authoritative signer before reporting success. Metadata alone cannot unpause it.
   await engine("/settings", body);
-  await changeState(s => { s.settings = body; });
   res.json(await operationalSettings());
 });
 router.post("/node/reconnect", async (_req, res) => res.json(Z.ReconnectNodeResponse.parse(await nodeStatus())));

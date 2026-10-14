@@ -1,3 +1,4 @@
 - [Owner access requirement](owner-access.md) — single-user project uses a manually saved random secret, not username/password.
 - [Temporary wallet destruction](temporary-wallet-destruction.md) — user wants temporary keys and local history destroyed, not indefinite retention.
 - [Hosting scope](hosting-scope.md) — AWS is only the server hosting Coolify, not an application AWS-service integration.
+- [Wallet presentation](wallet-presentation.md) — user wants approachable mobile-wallet UX, not an engineering-console appearance.

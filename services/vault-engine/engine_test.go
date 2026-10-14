@@ -139,6 +139,21 @@ func TestRegtestWalletsAndPayments(t *testing.T) {
 	if err = e.initialize(); err != nil {
 		t.Fatal(err)
 	}
+if err = e.sync(); err != nil {
+t.Fatal(err)
+}
+for index, w := range e.state.Wallets {
+received, receiveErr := e.receiveWallet(index)
+if receiveErr != nil || received.Address == nil {
+t.Fatalf("receive %s: %v", w.Kind, receiveErr)
+}
+address := *received.Address
+nextIndex := e.state.ColdIndex
+again, receiveErr := e.receiveWallet(index)
+if receiveErr != nil || *again.Address != address || e.state.ColdIndex != nextIndex {
+t.Fatalf("receive not idempotent for %s", w.Kind)
+}
+}
 	wallets, err := e.createWallets("Receiving", 101)
 	if err != nil {
 		t.Fatal(err)
@@ -146,6 +161,21 @@ func TestRegtestWalletsAndPayments(t *testing.T) {
 	if len(wallets) != 101 {
 		t.Fatal("batch incomplete")
 	}
+if err = e.sync(); err != nil {
+t.Fatal(err)
+}
+for index, w := range e.state.Wallets {
+if w.Kind != "temporary" { continue }
+received, receiveErr := e.receiveWallet(index)
+if receiveErr != nil || received.Address == nil || *received.Address != *w.Address {
+t.Fatalf("temporary receive verification: %v", receiveErr)
+}
+}
+e.connected = false
+if _, receiveErr := e.receiveWallet(0); receiveErr == nil {
+t.Fatal("disconnected receive accepted")
+}
+e.connected = true
 	addresses := map[string]bool{}
 	for _, w := range wallets {
 		if w.Address == nil || addresses[*w.Address] {
@@ -275,7 +305,7 @@ t.Fatal("reorg must block destruction even with a zero displayed balance")
 		}
 	}
 	restored, err := loadState(e.file)
-	if err != nil || restored.ColdIndex != 1 {
+if err != nil || restored.ColdIndex != 2 || restored.ColdIndex != e.state.ColdIndex {
 		t.Fatal("cold reservation lost")
 	}
 // Late deposits before destruction must retain keys and restore the funds blocker.

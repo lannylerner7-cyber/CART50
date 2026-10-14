@@ -1,14 +1,14 @@
 import { useState, type ReactNode } from 'react';
 import { AlertTriangle, Check, Copy, RotateCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { errMsg, satsToBtc, satsGrouped } from '@/lib/vault';
+import { errMsg, errStatus, satsToBtc, satsGrouped } from '@/lib/vault';
 
 export function PageHeader({ kicker, title, desc, actions }: { kicker: string; title: string; desc?: ReactNode; actions?: ReactNode }) {
   return (
-    <header className="rise flex flex-col gap-4 border-b border-border pb-6 md:flex-row md:items-end md:justify-between">
+    <header className="rise flex flex-col gap-4 pb-2 md:flex-row md:items-end md:justify-between">
       <div>
-        <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-primary">{kicker}</div>
-        <h1 className="font-display mt-1 text-3xl font-extrabold md:text-[2.6rem] leading-none" data-testid="text-page-title">{title}</h1>
+        <div className="text-[13px] font-semibold text-muted-foreground">{kicker}</div>
+        <h1 className="font-display mt-1 text-[2rem] font-extrabold md:text-[2.5rem] leading-tight" data-testid="text-page-title">{title}</h1>
         {desc && <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{desc}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -28,7 +28,7 @@ const toneCls: Record<Tone, string> = {
 
 export function Pill({ tone = 'neutral', children, dot, className, testId }: { tone?: Tone; children: ReactNode; dot?: boolean; className?: string; testId?: string }) {
   return (
-    <span data-testid={testId} className={cn('inline-flex items-center gap-1.5 rounded-sm border px-1.5 py-0.5 font-mono text-[10.5px] uppercase tracking-wider whitespace-nowrap', toneCls[tone], className)}>
+    <span data-testid={testId} className={cn('inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold capitalize whitespace-nowrap', toneCls[tone], className)}>
       {dot && (
         <span className="relative flex h-1.5 w-1.5">
           {tone === 'ok' && <span className="pulse-dot absolute inset-0 rounded-full bg-current" />}
@@ -63,7 +63,7 @@ export function Btc({ sats, className, size = 'md', showSats }: { sats: string |
 
 export function ErrorPanel({ error, onRetry, title = 'Request failed' }: { error: unknown; onRetry?: () => void; title?: string }) {
   return (
-    <div className="rise flex items-start gap-3 rounded-md border border-destructive/40 bg-destructive/5 p-4" data-testid="status-error">
+    <div className="rise flex items-start gap-3 rounded-2xl border border-destructive/30 bg-destructive/5 p-4" data-testid="status-error">
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
       <div className="min-w-0 flex-1">
         <div className="text-sm font-semibold text-destructive">{title}</div>
@@ -80,20 +80,20 @@ export function ErrorPanel({ error, onRetry, title = 'Request failed' }: { error
 
 export function Panel({ title, meta, children, className, bodyClass }: { title?: ReactNode; meta?: ReactNode; children: ReactNode; className?: string; bodyClass?: string }) {
   return (
-    <section className={cn('rise rounded-md border border-card-border bg-card shadow-sm', className)}>
+    <section className={cn('rise rounded-3xl border border-card-border bg-card shadow-[0_1px_2px_hsl(232_30%_20%/0.04),0_8px_24px_-12px_hsl(232_30%_20%/0.12)]', className)}>
       {title && (
-        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
-          <h2 className="font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">{title}</h2>
+        <div className="flex items-center justify-between gap-2 px-5 pt-4 pb-1">
+          <h2 className="text-[15px] font-bold capitalize text-foreground">{title}</h2>
           {meta && <div className="text-xs text-muted-foreground">{meta}</div>}
         </div>
       )}
-      <div className={cn('p-4', bodyClass)}>{children}</div>
+      <div className={cn('p-5', bodyClass)}>{children}</div>
     </section>
   );
 }
 
 export function Skel({ className }: { className?: string }) {
-  return <div className={cn('relative overflow-hidden rounded-sm bg-muted hatch', className)} />;
+  return <div className={cn('relative overflow-hidden rounded-2xl bg-muted animate-pulse', className)} />;
 }
 
 export function SkelRows({ rows = 6 }: { rows?: number }) {
@@ -106,7 +106,7 @@ export function SkelRows({ rows = 6 }: { rows?: number }) {
 
 export function Empty({ icon, title, body, action }: { icon: ReactNode; title: string; body: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-md border border-dashed border-border px-6 py-14 text-center ledger-grid" data-testid="status-empty">
+    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card/60 px-6 py-14 text-center" data-testid="status-empty">
       <div className="mb-3 grid h-12 w-12 place-items-center rounded-full border border-border bg-card text-muted-foreground">{icon}</div>
       <div className="font-display text-lg font-semibold">{title}</div>
       <div className="mt-1 max-w-sm text-sm text-muted-foreground">{body}</div>
@@ -137,9 +137,26 @@ export function CopyText({ value, className, display }: { value: string; classNa
 export function Stat({ label, children, sub }: { label: string; children: ReactNode; sub?: ReactNode }) {
   return (
     <div className="min-w-0">
-      <div className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-muted-foreground">{label}</div>
+      <div className="text-[12px] font-medium capitalize text-muted-foreground">{label}</div>
       <div className="mt-1 truncate">{children}</div>
       {sub && <div className="mt-0.5 text-xs text-muted-foreground">{sub}</div>}
     </div>
   );
+}
+
+/** Settings and signer-backed policy return 503 when the signing engine is not configured. */
+export function PolicyError({ error, onRetry }: { error: unknown; onRetry?: () => void }) {
+  if (errStatus(error) === 503) {
+    return (
+      <div className="rise flex items-start gap-3 rounded-2xl border border-warn/30 bg-warn/5 p-4" data-testid="status-signer-unconfigured">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warn" />
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold">Signing engine not connected</div>
+          <div className="mt-0.5 text-[13px] text-muted-foreground">Spending policy and limits are unavailable until the server operator configures the signer. Nothing is assumed; sending stays disabled.</div>
+        </div>
+        {onRetry && <button onClick={onRetry} className="rounded-full bg-muted px-3 py-1 text-xs font-semibold" data-testid="button-retry-policy">Retry</button>}
+      </div>
+    );
+  }
+  return <ErrorPanel error={error} onRetry={onRetry} title="Policy unavailable" />;
 }

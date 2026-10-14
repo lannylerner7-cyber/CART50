@@ -1,5 +1,5 @@
 import { HttpError } from "./auth";
-import { readState } from "./store";
+import * as Z from "@workspace/api-zod";
 
 export async function engine<T>(endpoint: string, body?: unknown): Promise<T> {
   if (!process.env.VAULT_ENGINE_URL || !process.env.VAULT_ENGINE_TOKEN) throw new HttpError(503, "Bitcoin engine not connected. Configure your AWS test-network engine first.");
@@ -29,6 +29,7 @@ export async function nodeStatus() {
   }
 }
 export async function operationalSettings() {
-  const { settings } = await readState();
+  // The signer is authoritative. Never claim a cached D1 policy is enforced.
+  const settings = Z.UpdateVaultSettingsBody.parse(await engine("/settings"));
   return { ...settings, network: process.env.BITCOIN_NETWORK === "regtest" ? "regtest" : "signet", destructionPolicy: "wait_for_drainage_storage_unverified", expiryHours: 120, provider: "Kraken via Cloudflare Worker", priceCurrency: "USD", externalConfigured: !!process.env.VAULT_ENGINE_URL };
 }

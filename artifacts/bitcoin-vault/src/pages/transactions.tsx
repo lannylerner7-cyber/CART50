@@ -31,7 +31,7 @@ export default function Transactions() {
 
   return (
     <div className="space-y-6">
-      <PageHeader kicker="02 / ledger" title="Transactions" desc="Every movement your node has observed for vault wallets, including replaced and unconfirmed spends." />
+      <PageHeader kicker="Ledger" title="Transactions" desc="Every movement your node has observed for vault wallets, including replaced and unconfirmed spends." />
       {q.isError && <ErrorPanel error={q.error} onRetry={() => q.refetch()} />}
       {q.isLoading ? <SkelRows rows={10} /> : q.data && (
         <DataTable testId="transactions" rows={rows} columns={cols} rowKey={(t) => `${t.txid}-${t.walletId}`} search={(t) => `${t.txid} ${t.walletId} ${t.address ?? ''}`}

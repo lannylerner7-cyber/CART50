@@ -1,19 +1,20 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
-import { Activity, ArrowUpRight, Boxes, Gauge, Lock, Menu, ScanSearch, Settings2, TrendingDown, X, ListTree } from 'lucide-react';
+import { Activity, ArrowUpRight, Wallet as WalletIcon, Home, Lock, Menu, ScanSearch, Settings2, LineChart, X, History } from 'lucide-react';
 import { useLockVault, setCsrfToken } from '@workspace/api-client-react';
 import { useCsrf, useSession, remaining, errMsg } from '@/lib/vault';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { NetworkBadge } from '@/components/receive';
 
 export const NAV = [
-  { href: '/', label: 'Overview', icon: Gauge, code: '00' },
-  { href: '/wallets', label: 'Wallets', icon: Boxes, code: '01' },
-  { href: '/transactions', label: 'Transactions', icon: ListTree, code: '02' },
+  { href: '/', label: 'Overview', icon: Home, code: '00' },
+  { href: '/wallets', label: 'Wallets', icon: WalletIcon, code: '01' },
+  { href: '/transactions', label: 'Transactions', icon: History, code: '02' },
   { href: '/spending', label: 'Spending', icon: ArrowUpRight, code: '03' },
   { href: '/explorer', label: 'Explorer', icon: ScanSearch, code: '04' },
-  { href: '/market', label: 'Market', icon: TrendingDown, code: '05' },
+  { href: '/market', label: 'Market', icon: LineChart, code: '05' },
   { href: '/settings', label: 'Settings', icon: Settings2, code: '06' },
 ];
 
@@ -48,7 +49,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const isActive = (href: string) => (href === '/' ? location === '/' : location.startsWith(href));
 
   const nav = (
-    <nav className="flex flex-col gap-0.5">
+    <nav className="flex flex-col gap-1">
       {NAV.map((n) => (
         <Link
           key={n.href}
@@ -56,13 +57,11 @@ export function Shell({ children }: { children: ReactNode }) {
           onClick={() => setOpen(false)}
           data-testid={`link-nav-${n.label.toLowerCase()}`}
           className={cn(
-            'group relative flex items-center gap-3 rounded-sm px-3 py-2 text-sm transition-colors',
-            isActive(n.href) ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground',
+            'flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-[14.5px] font-semibold transition-colors',
+            isActive(n.href) ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
           )}
         >
-          <span className={cn('absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-full bg-sidebar-primary transition-transform origin-center', isActive(n.href) ? 'scale-y-100' : 'scale-y-0')} />
-          <span className="font-mono text-[10px] opacity-40">{n.code}</span>
-          <n.icon className="h-4 w-4" />
+          <n.icon className="h-[18px] w-[18px]" />
           {n.label}
         </Link>
       ))}
@@ -70,46 +69,64 @@ export function Shell({ children }: { children: ReactNode }) {
   );
 
   const footer = (
-    <div className="space-y-3 border-t border-sidebar-border pt-4">
-      <div className="flex items-center justify-between font-mono text-[10.5px] uppercase tracking-wider text-sidebar-foreground/60">
-        <span>network</span>
-        <span className="text-sidebar-primary" data-testid="text-network">{session.network}</span>
+    <div className="space-y-3 rounded-3xl bg-muted/70 p-4">
+      <div className="flex items-center justify-between text-[12.5px] text-muted-foreground">
+        <span>Network</span>
+        <span className="font-bold uppercase text-warn" data-testid="text-network">{session.network}</span>
       </div>
-      <div className="flex items-center justify-between font-mono text-[10.5px] uppercase tracking-wider text-sidebar-foreground/60">
-        <span>session</span>
-        <span data-testid="text-session-expiry">{remaining(session.expiresAt).label}</span>
+      <div className="flex items-center justify-between text-[12.5px] text-muted-foreground">
+        <span>Session</span>
+        <span className="font-semibold text-foreground" data-testid="text-session-expiry">{remaining(session.expiresAt).label}</span>
       </div>
       <button
         onClick={doLock}
         disabled={lock.isPending}
         data-testid="button-lock"
-        className="flex w-full items-center justify-center gap-2 rounded-sm border border-sidebar-border px-3 py-2 font-mono text-[11px] uppercase tracking-wider text-sidebar-foreground hover:border-sidebar-primary hover:text-sidebar-primary transition-colors disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-2 rounded-full bg-card px-3 py-2.5 text-[13px] font-bold shadow-sm transition-transform active:scale-[0.98] disabled:opacity-50"
       >
-        <Lock className="h-3.5 w-3.5" /> {lock.isPending ? 'Locking' : 'Lock vault'}
+        <Lock className="h-4 w-4" /> {lock.isPending ? 'Locking' : 'Lock vault'}
       </button>
     </div>
   );
 
+  const TABS = [NAV[0], NAV[1], NAV[3], NAV[2]];
+
   return (
-    <div className="min-h-[100dvh] md:pl-60">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col bg-sidebar p-4 text-sidebar-foreground md:flex">
+    <div className="min-h-[100dvh] pb-24 md:pb-0 md:pl-64">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-card p-5 md:flex">
         <Brand />
-        <div className="mt-8 flex-1">{nav}</div>
+        <div className="mt-3"><NetworkBadge network={session.network} /></div>
+        <div className="mt-7 flex-1">{nav}</div>
         {footer}
       </aside>
 
-      <div className="sticky top-0 z-30 flex items-center justify-between bg-sidebar px-4 py-3 text-sidebar-foreground md:hidden">
+      <div className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-background/85 px-4 py-3 backdrop-blur-md md:hidden">
         <Brand />
-        <button onClick={() => setOpen((o) => !o)} data-testid="button-mobile-menu" className="p-1">{open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
+        <div className="flex items-center gap-2">
+          <NetworkBadge network={session.network} className="text-[10px]" />
+          <button onClick={doLock} disabled={lock.isPending} aria-label="Lock vault" data-testid="button-lock-mobile" className="grid h-9 w-9 place-items-center rounded-full bg-card shadow-sm"><Lock className="h-4 w-4" /></button>
+        </div>
       </div>
+
+      <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-[26px] border border-border bg-card/95 p-1.5 shadow-[0_12px_32px_-12px_hsl(232_30%_20%/0.35)] backdrop-blur md:hidden">
+        {TABS.map((n) => (
+          <Link key={n.href} href={n.href} onClick={() => setOpen(false)} data-testid={`tab-nav-${n.label.toLowerCase()}`}
+            className={cn('flex flex-col items-center gap-0.5 rounded-2xl py-2 text-[10.5px] font-semibold transition-colors', isActive(n.href) && !open ? 'bg-foreground text-background' : 'text-muted-foreground')}>
+            <n.icon className="h-5 w-5" />{n.label === 'Transactions' ? 'Activity' : n.label === 'Spending' ? 'Send' : n.label === 'Overview' ? 'Home' : n.label}
+          </Link>
+        ))}
+        <button onClick={() => setOpen((o) => !o)} data-testid="button-mobile-menu" className={cn('flex flex-col items-center gap-0.5 rounded-2xl py-2 text-[10.5px] font-semibold', open ? 'bg-foreground text-background' : 'text-muted-foreground')}>
+          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}More
+        </button>
+      </nav>
       {open && (
-        <div className="fixed inset-x-0 top-[52px] z-30 bg-sidebar p-4 text-sidebar-foreground md:hidden rise">
+        <div className="fixed inset-x-3 bottom-[88px] z-40 rounded-[26px] border border-border bg-card p-4 shadow-xl md:hidden rise">
           {nav}
           <div className="mt-4">{footer}</div>
         </div>
       )}
 
-      <main className="mx-auto max-w-[1400px] px-4 py-6 md:px-8 md:py-8">{children}</main>
+      <main className="mx-auto max-w-[1200px] px-4 py-4 md:px-10 md:py-10">{children}</main>
     </div>
   );
 }
@@ -117,10 +134,10 @@ export function Shell({ children }: { children: ReactNode }) {
 function Brand() {
   return (
     <Link href="/" className="flex items-center gap-2.5" data-testid="link-brand">
-      <VaultMark className="h-7 w-7 text-sidebar-foreground" />
+      <span className="grid h-9 w-9 place-items-center rounded-xl bg-foreground text-background"><VaultMark className="h-6 w-6" /></span>
       <div className="leading-none">
-        <div className="font-display text-[15px] font-extrabold text-sidebar-accent-foreground">Strongroom</div>
-        <div className="mt-0.5 font-mono text-[9.5px] uppercase tracking-[0.2em] text-sidebar-foreground/50">personal btc vault</div>
+        <div className="font-display text-[16px] font-extrabold">Strongroom</div>
+        <div className="mt-0.5 hidden text-[11px] text-muted-foreground sm:block">Personal Bitcoin vault</div>
       </div>
     </Link>
   );
