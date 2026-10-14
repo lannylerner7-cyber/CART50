@@ -7,3 +7,47 @@ Use AWS only as the Linux server hosting Coolify for this project, not as an app
 **Why:** The user explicitly corrected the hosting interpretation.
 
 **How to apply:** Package the application for Coolify on that server; do not request AWS API credentials or add managed AWS services merely to deploy the vault.
+
+The user wants the project pushed to GitHub before Coolify hosting, and wants
+deployment variables managed in Coolify for this personal project.
+
+**Why:** The user explicitly stated this deployment order and configuration goal.
+
+**How to apply:** Keep source publication separate from runtime secret installation.
+
+The owner authorizes pushing the source to GitHub before live commissioning so
+they can perform the deployment manually.
+
+**Why:** After initially withholding permission until completion, the owner
+explicitly changed the order and requested a push for manual deployment.
+
+**How to apply:** Push source and operator instructions only, excluding secrets
+and operational data. Source delivery is not live commissioning or real-funds
+approval; keep remaining checks explicitly incomplete.
+
+Do not assume a deploy key generated outside the workspace survives into a later
+task environment.
+
+**Why:** The previously working deploy key under the runner's home SSH directory
+was absent on a later push attempt, although the repository and known-hosts file
+remained. GitHub's public key alone cannot authenticate a push.
+
+**How to apply:** Check private-key existence without reading its contents before
+promising SSH access. Use secure credential storage or a restricted, ignored
+workspace location; never commit a private key or claim it is recoverable from
+its public half.
+
+The user explicitly chose to keep Cloudflare storage and manage app/signer
+runtime variables in Coolify. Do not migrate the database or publish wallet data.
+
+**Why:** The user confirmed the existing storage arrangement rather than migration.
+
+Do not treat a reported active GitHub connection as proof that repository access
+works in the workspace.
+
+**Why:** Connection status reported healthy while CLI authentication was unavailable
+and the connection/reconnection forms could not be opened.
+
+**How to apply:** Verify remote access and repository visibility before publishing;
+if the managed connection flow fails, ask the owner to connect through the Git pane
+rather than requesting a token in chat.

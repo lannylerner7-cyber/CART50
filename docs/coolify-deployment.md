@@ -20,6 +20,8 @@ application on the existing host. Select **Dockerfile** as the build pack.
 | Container port / Ports Exposes | `3000` |
 | Host port mapping / Ports Mappings | **Leave empty**; use Coolify's proxy |
 | Health check | HTTP `GET /api/healthz`, port `3000` |
+| Health hostname / expected response | `127.0.0.1` / HTTP `200` |
+| Health timing | Interval `30s`, timeout `5s`, start period `30s`, retries `3` |
 | Build / install / start overrides | Leave empty; Dockerfile owns these |
 | Replicas | `1` |
 | App persistent storage | None; production metadata is in D1 |
@@ -33,11 +35,15 @@ privileged mode or mount the Docker socket.
 
 The lockfile currently excludes ARM and musl native build packages, so this
 Dockerfile deliberately rejects a non-amd64 builder. Debian/glibc is intentional.
-Node 24 and Go 1.24 image tags are mutable, not digest-pinned. Review current
+Node 24 and Go 1.26.9 image tags are mutable, not digest-pinned. Review current
 security updates and record/pin tested image digests before operational approval.
 pnpm is pinned to 10.26.1 and dependency installation uses the frozen lockfile.
 
 ## 2. Cloudflare prerequisites (not automatically created)
+
+For resources already provisioned and remaining blockers, first consult
+`docs/vault-commissioning-status.md`. Reuse the dedicated resources recorded there;
+do not create duplicates. Their existence does not mean the Worker is deployed.
 
 Use dedicated vault resources, not databases or buckets belonging to other apps:
 
@@ -60,8 +66,22 @@ to separate operator credentials, not this runtime token.
 ## 3. Runtime variables
 
 Enter these in Coolify's environment/secrets manager as **runtime-only** values.
+Use `deploy/coolify.env.example` for the **app**, and
+`deploy/coolify-signer.env.example` for the **private signer**, not as a
+place to save real secrets in Git. Variables configure services; they do not move
+D1 records, Core wallets or signer state into Coolify's environment manager.
 Do not expose secrets to builds or use Docker build arguments for credentials.
 Never paste a login key, seed, RPC cookie or backup key in chat or commit it.
+
+The app template includes this vault's non-secret D1 IDs and SMTP addresses.
+Its required blank fields are `VAULT_OWNER_VERIFIER`, `CF_API_TOKEN` and
+`SMTP_PASSWORD`; production startup rejects missing values. Set exact trusted
+proxy IPs only after verifying Coolify's proxy chain. Keep signer settings absent
+from the app until private networking is commissioned.
+
+The Docker health check measures **process liveness only**. Startup also checks
+D1 access/schema, but a later D1/Core/SMTP outage is not represented by
+`/api/healthz`. It is not a readiness or permission-to-fund signal.
 
 | Variable | Value / purpose |
 | --- | --- |
@@ -82,6 +102,23 @@ Get the offline generator from the repository at
 `artifacts/bitcoin-vault/public/offline-keygen.html`. Save it, disconnect from the
 network, generate the owner credential and retain the keyfile offline. Install
 only its verifier. Do not create a new key on every container restart.
+
+### Login cooldown and security email
+
+See `docs/login-security.md`. Three invalid keys restrict the observed client IP
+for one hour; counters persist in D1. Set `TRUSTED_PROXY_IPS` only after verifying
+the actual reverse-proxy chain and isolating the app container from direct access.
+An empty setting trusts no forwarded headers and may group users under a proxy IP.
+Do not add Apache or trust arbitrary headers to try to discover a VPN user's
+original IP.
+
+Set `SECURITY_ALERT_TO`, `SECURITY_ALERT_FROM` on an onboarded Cloudflare sending
+domain, and runtime-only `SMTP_PASSWORD` (Email Sending: Edit token) through
+Coolify. Use `SMTP_HOST=smtp.mx.cloudflare.net`, `SMTP_PORT=465` and
+`SMTP_USER=api_token`; TLS is mandatory. Email delivery is not commissioned
+until a controlled invalid-key alert reaches the owner's inbox. Neither the
+Replit recipient variable nor a Replit provider connection is automatically
+copied to Coolify.
 
 The container refuses startup on missing/invalid required settings, mainnet,
 an absent built dashboard, or a failed D1 schema/access check. It never silently
@@ -144,6 +181,10 @@ For the signer container:
 - Set `BITCOIN_NETWORK=signet`, the same `VAULT_ENGINE_TOKEN` as the app, and
   `COLD_DESCRIPTOR` / `COLD_DESCRIPTOR_SHA256` only after verifying the public
   descriptor's fingerprint offline. Never install a cold seed in either image.
+- After the Worker is verified, set `REPLICA_URL` to its HTTPS `/replicate`
+  endpoint and set independent `REPLICA_TOKEN` in the signer runtime secret
+  manager. Preserve the adjacent health journal on the persistent volume.
+  See the commissioning record for bounded replay and rollback rules.
 - Retain the image defaults `ENGINE_LISTEN=0.0.0.0:9090` (container-only) and
   `ENGINE_DATA_DIR=/var/lib/personal-vault`.
 - Configure restart-on-failure with a bounded retry count (for example 5).

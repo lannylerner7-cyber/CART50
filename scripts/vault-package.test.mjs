@@ -5,8 +5,30 @@ import { mkdtemp, cp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import net from "node:net";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { once } from "node:events";
+
+test("standalone SMTP CLI checks config without connecting and never prints credentials", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "vault-smtp-package-"));
+  try {
+    await cp("artifacts/api-server/dist", path.join(root, "dist"), { recursive: true });
+    const fixture = "disposable-secret-must-not-appear";
+    const env = {
+      PATH: process.env.PATH, SMTP_PASSWORD: fixture,
+      SECURITY_ALERT_FROM: "vault@example.test", SECURITY_ALERT_TO: "owner@example.test",
+    };
+    for (const args of [[], ["--check-config"], ["--unknown"]]) {
+      const result = spawnSync(process.execPath, [path.join(root, "dist/smtp-check.mjs"), ...args],
+        { cwd: root, env, encoding: "utf8", timeout: 5000 });
+      assert.equal(result.status, args[0] === "--unknown" ? 1 : 0);
+      assert.ok(!(result.stdout + result.stderr).includes(fixture));
+    }
+    const missing = spawnSync(process.execPath, [path.join(root, "dist/smtp-check.mjs")],
+      { cwd: root, env: { ...env, SMTP_PASSWORD: "" }, encoding: "utf8", timeout: 5000 });
+    assert.equal(missing.status, 1);
+    assert.match(missing.stderr, /FAIL/);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
 import { setTimeout as delay } from "node:timers/promises";
 
 test("standalone runtime works without workspace node_modules or Replit routing", { timeout: 20000 }, async () => {

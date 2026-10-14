@@ -22,3 +22,12 @@ timeoutMs = 20000
 [nix]
 channel = "stable-25_05"
 packages = ["bitcoin"]
+
+[userenv]
+
+[userenv.shared]
+SECURITY_ALERT_TO = "support@connectliveagent.com"
+SECURITY_ALERT_FROM = "vault@alert.scousgiftcardexchange.com"
+SMTP_HOST = "smtp.mx.cloudflare.net"
+SMTP_PORT = "465"
+SMTP_USER = "api_token"

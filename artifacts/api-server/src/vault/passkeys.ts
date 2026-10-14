@@ -8,10 +8,19 @@ import {
 import { RegisterPasskeyBody, PasskeyLoginVerifyBody } from "@workspace/api-zod";
 import { changeState, readState } from "./store";
 import { cookie, expectedOrigin, HttpError, newSession, ownerHash, rateLimit, requireOwner, sessionPayload } from "./auth";
+import { loginCooldown } from "./login-security";
 
 const challenges = new Map<string, { value: string; expires: number; kind: "login" | "register"; session?: string }>();
 const challengeCookie = "__Host-vault_challenge";
 export const passkeyRouter = Router();
+passkeyRouter.use(["/passkey-login/options", "/passkey-login/verify"], async (req, res, next) => {
+  const wait = await loginCooldown(req);
+  if (wait) {
+    res.set("Retry-After", String(wait));
+    throw new HttpError(429, "Login temporarily restricted. Retry after the countdown.");
+  }
+  next();
+});
 function remember(value: string, kind: "login" | "register", session?: string) {
   for (const [k, c] of challenges) if (c.expires < Date.now()) challenges.delete(k);
   if (challenges.size > 100) throw new HttpError(429, "Too many active challenges");

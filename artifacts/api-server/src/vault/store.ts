@@ -2,6 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdirSync, chmodSync } from "node:fs";
 import path from "node:path";
 import type { WebAuthnCredential } from "@simplewebauthn/server";
+import type { LoginSecurity } from "./login-security";
 
 export type Alert = {
   id: string; name: string; kind: "below" | "percent_drop"; threshold: number;
@@ -12,6 +13,7 @@ export type SessionRecord = { hash: string; csrf: string; expiresAt: string; cre
 export type StoredPasskey = { id: string; name: string; createdAt: string; publicKey: string; counter: number; transports?: WebAuthnCredential["transports"] };
 export type State = {
   authVersion?: number;
+  loginSecurity?: LoginSecurity;
   credentialHash: string | null;
   sessions: SessionRecord[];
   passkeys: StoredPasskey[];

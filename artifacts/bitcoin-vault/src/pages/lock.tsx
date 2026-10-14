@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { startAuthentication } from '@simplewebauthn/browser';
 import { FileKey2, Fingerprint, KeyRound, Lock, ShieldOff, Terminal, Upload } from 'lucide-react';
@@ -24,7 +24,7 @@ export default function LockScreen({ session }: { session: Session }) {
             <span className="rounded-full bg-[hsl(232_24%_22%)] px-3 py-1 text-[11.5px] font-semibold">Locked</span>
           </div>
         </div>
-        <div className="rise rise-2 mt-7">{session.configured ? <UnlockCard /> : <SetupCard />}</div>
+        <div className="rise rise-2 mt-7">{session.configured ? <UnlockCard retryAfter={session.loginRetryAfterSeconds ?? 0} /> : <SetupCard />}</div>
         <p className="mt-auto pt-6 text-center text-[11.5px] text-muted-foreground">Mainnet is disabled. Test coins only.</p>
       </div>
     </div>
@@ -65,7 +65,7 @@ function SetupCard() {
   );
 }
 
-function UnlockCard() {
+function UnlockCard({ retryAfter }: { retryAfter: number }) {
   const qc = useQueryClient();
   const [mode, setMode] = useState<'file' | 'paste'>('file');
   const [secret, setSecret] = useState('');
@@ -76,6 +76,24 @@ function UnlockCard() {
   const pkOpts = usePasskeyLoginOptions();
   const pkVerify = usePasskeyLoginVerify();
   const [pkErr, setPkErr] = useState<unknown>(null);
+  const [until, setUntil] = useState(() => retryAfter > 0 ? Date.now() + retryAfter * 1000 : 0);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { setUntil(retryAfter > 0 ? Date.now() + retryAfter * 1000 : 0); }, [retryAfter]);
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const remaining = Math.max(0, Math.ceil((until - now) / 1000));
+  const onRejected = (error: unknown) => {
+    setSecret('');
+    const headers = (error as { headers?: Headers })?.headers;
+    const delay = Number(headers?.get('retry-after') ?? 0);
+    if (Number.isFinite(delay) && delay > 0) {
+      setUntil(Date.now() + delay * 1000);
+      setNow(Date.now());
+    }
+    void qc.invalidateQueries({ queryKey: getGetVaultSessionQueryKey() });
+  };
 
   const onSession = (s: Session) => {
     setSecret('');
@@ -86,9 +104,10 @@ function UnlockCard() {
   const valid = CREDENTIAL_RE.test(secret);
 
   const submit = () => {
+    if (remaining > 0 || unlock.isPending) return;
     if (!valid) { setLocalErr('Secret must be exactly 86 base64url characters.'); return; }
     setLocalErr(null);
-    unlock.mutate({ data: { credential: secret } }, { onSuccess: onSession, onError: () => setSecret('') });
+    unlock.mutate({ data: { credential: secret } }, { onSuccess: onSession, onError: onRejected });
   };
 
   const readFile = (f: File) => {
@@ -101,6 +120,7 @@ function UnlockCard() {
   };
 
   const passkey = async () => {
+    if (remaining > 0) return;
     setPkErr(null);
     try {
       const options = await pkOpts.mutateAsync();
@@ -108,7 +128,7 @@ function UnlockCard() {
       const response = await startAuthentication({ optionsJSON: options as any });
       const s = await pkVerify.mutateAsync({ data: { response: response as unknown as Record<string, unknown> } });
       onSession(s as Session);
-    } catch (e) { setPkErr(e); }
+    } catch (e) { setPkErr(e); onRejected(e); }
   };
 
   return (
@@ -151,13 +171,17 @@ function UnlockCard() {
       {localErr && <div className="mt-3 font-mono text-[11px] text-destructive" data-testid="text-local-error">{localErr}</div>}
       {unlock.isError && <div className="mt-3"><ErrorPanel error={unlock.error} title="Unlock rejected" /></div>}
 
-      <Button onClick={submit} disabled={!valid || unlock.isPending} data-testid="button-unlock"
+      {remaining > 0 && <p role="status" data-testid="login-countdown" className="mt-4 text-sm text-primary">
+        Login temporarily restricted. Retry in {Math.floor(remaining / 60)}:{String(remaining % 60).padStart(2, '0')}.
+      </p>}
+      <p className="mt-3 text-xs text-muted-foreground">Three invalid keys within an hour restrict this IP for one hour. You can retry after the countdown.</p>
+      <Button onClick={submit} disabled={!valid || unlock.isPending || remaining > 0} data-testid="button-unlock"
         className="mt-5 h-12 w-full gap-2 rounded-full bg-primary text-[15px] font-bold text-primary-foreground hover:bg-primary/90">
         <Lock className="h-4 w-4" /> {unlock.isPending ? 'Verifying' : 'Open vault'}
       </Button>
 
       <div className="my-5 flex items-center gap-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground/40"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
-      <button onClick={passkey} disabled={pkOpts.isPending || pkVerify.isPending} data-testid="button-passkey-login"
+      <button onClick={passkey} disabled={pkOpts.isPending || pkVerify.isPending || remaining > 0} data-testid="button-passkey-login"
         className="flex w-full items-center justify-center gap-2 rounded-full bg-muted px-4 py-3 text-[14px] font-semibold hover:border-primary hover:text-primary transition-colors disabled:opacity-50">
         <Fingerprint className="h-4 w-4" /> {pkOpts.isPending || pkVerify.isPending ? 'Waiting for authenticator' : 'Use enrolled passkey'}
       </button>

@@ -6,6 +6,7 @@ import { clearSessionCookie, credentialHash, equal, HttpError, newSession, owner
 import { engine, nodeStatus, operationalSettings } from "../vault/engine";
 import { passkeyRouter } from "../vault/passkeys";
 import { getMarket } from "../vault/market";
+import { checkCredential, loginCooldown } from "../vault/login-security";
 
 const router = Router();
 router.use((_req, res, next) => {
@@ -13,12 +14,12 @@ router.use((_req, res, next) => {
   next();
 });
 router.use(verifyOrigin);
-router.get("/session", async (req, res) => res.json(sessionPayload(await sessionFor(req), !!await ownerHash())));
-router.post("/login", rateLimit, async (req, res) => {
-  const { credential } = Z.UnlockVaultBody.parse(req.body);
-  const verifier = await ownerHash();
-  if (!verifier) throw new HttpError(503, "Owner not configured. Generate a keyfile offline and install only its verifier.");
-  if (!equal(credentialHash(credential), verifier)) throw new HttpError(401, "Credential not recognized");
+router.get("/session", async (req, res) => res.json({
+  ...sessionPayload(await sessionFor(req), !!await ownerHash()),
+  loginRetryAfterSeconds: await loginCooldown(req),
+}));
+router.post("/login", async (req, res) => {
+  await checkCredential(req, res);
   res.json(sessionPayload(await newSession(res)));
 });
 router.use(passkeyRouter);

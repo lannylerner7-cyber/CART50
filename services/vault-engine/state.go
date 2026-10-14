@@ -110,6 +110,9 @@ func loadState(file string) (State, error) {
 	return s, err
 }
 func saveState(file string, s State) error {
+return saveJSON(file, s)
+}
+func saveJSON(file string, s any) error {
 	raw, err := json.Marshal(s)
 	if err != nil {
 		return err

@@ -6,6 +6,11 @@
  */
 
 export interface Session {
+  /**
+     * Server-authoritative login cooldown remaining; absent on successful login.
+     * @minimum 0
+     */
+  loginRetryAfterSeconds?: number;
   authenticated: boolean;
   configured: boolean;
   /** @nullable */
