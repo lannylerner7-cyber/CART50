@@ -14,6 +14,15 @@ to the original build tree or workspace dependencies, with disposable state and
 no external network. Include the runtime modes actually being claimed as tested;
 successful host tests do not prove a relocated image runs.
 
+Match Coolify's repository-root `--project-directory` when testing nested Compose files.
+
+**Why:** A Compose check using only `-f deploy/...` resolved paths relative to the
+file's directory and passed, while Coolify resolved them from the repository root
+and failed before building. These are different execution environments.
+
+**How to apply:** Validate build contexts and Dockerfile existence with the exact
+project-directory convention used by the deployment host.
+
 Treat a failed toolchain-install callback as potentially state-changing.
 
 **Why:** The Go package installer rejected its language argument but still added

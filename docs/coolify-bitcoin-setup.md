@@ -48,7 +48,9 @@ Bitcoin Core; the operator must still verify their own recovery.
    `COOLIFY_NETWORK` to its exact name; the stack requires an existing network
    rather than silently creating the wrong one. Only the signer joins it.
    Ensure there is exactly one `vault-engine` hostname on this network.
-4. In the new resource's runtime variables, set:
+4. In the new resource's runtime variables, set (disable **Build Variable** /
+   build-time availability; these values are runtime configuration, not image
+   build arguments):
    - `VAULT_ENGINE_TOKEN`: a newly generated random token of at least 32 characters,
      distinct from the owner key. Save it in Coolify's secret settings.
    - `COLD_DESCRIPTOR`: the verified public receive descriptor.

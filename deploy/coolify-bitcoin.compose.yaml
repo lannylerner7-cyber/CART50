@@ -1,9 +1,11 @@
 # New, private resource; DO NOT replace the existing website deployment.
-# Repository root build context. No public domains or host port mappings.
+# Coolify supplies --project-directory at the repository root.
+# For manual commands also pass --project-directory . from the repository root.
+# No public domains or host port mappings.
 services:
   bitcoin-core:
     build:
-      context: ..
+      context: .
       dockerfile: deploy/bitcoin-core.Dockerfile
     platform: linux/amd64
     restart: unless-stopped
@@ -29,7 +31,7 @@ services:
 
   vault-engine:
     build:
-      context: ..
+      context: .
       dockerfile: deploy/vault-engine.Dockerfile
     platform: linux/amd64
     restart: unless-stopped

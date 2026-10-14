@@ -2,8 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
+import path from 'node:path';
 
 const compose = fileURLToPath(new URL('./coolify-bitcoin.compose.yaml', import.meta.url));
+const root = fileURLToPath(new URL('../', import.meta.url));
+const composeArgs = ['compose', '--project-directory', root, '-f', compose];
 const env = {
   PATH: process.env.PATH, HOME: process.env.HOME,
   VAULT_ENGINE_TOKEN: 'disposable-compose-validation-token-only',
@@ -14,9 +18,12 @@ const env = {
 const available = spawnSync('docker', ['compose', 'version'], { env }).status === 0;
 
 test('private Signet stack renders without published ports or secret build arguments', { skip: !available }, () => {
-  const config = JSON.parse(execFileSync('docker', ['compose', '-f', compose, 'config', '--format', 'json'], { env, encoding: 'utf8' }));
+  const config = JSON.parse(execFileSync('docker', [...composeArgs, 'config', '--format', 'json'], { env, encoding: 'utf8' }));
   const core = config.services['bitcoin-core'], signer = config.services['vault-engine'];
   for (const service of [core, signer]) {
+    assert.equal(path.resolve(service.build.context), path.resolve(root));
+    assert.ok(existsSync(path.join(service.build.context, service.build.dockerfile)), 'Dockerfile resolves inside repository');
+    assert.ok(existsSync(path.join(service.build.context, '.dockerignore')));
     assert.equal(service.ports, undefined);
     assert.equal(service.privileged, undefined);
     assert.equal(service.build.args, undefined);
@@ -40,7 +47,7 @@ test('missing operator inputs block compose rendering', { skip: !available }, ()
   for (const field of ['VAULT_ENGINE_TOKEN', 'COLD_DESCRIPTOR', 'COLD_DESCRIPTOR_SHA256', 'COOLIFY_NETWORK']) {
     const missing = { ...env };
     delete missing[field];
-    const result = spawnSync('docker', ['compose', '-f', compose, 'config', '--quiet'], { env: missing, encoding: 'utf8' });
+    const result = spawnSync('docker', [...composeArgs, 'config', '--quiet'], { env: missing, encoding: 'utf8' });
     assert.notEqual(result.status, 0, field);
     assert.ok(result.stderr.includes(field), field);
   }
