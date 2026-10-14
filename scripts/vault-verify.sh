@@ -8,6 +8,7 @@ pnpm run typecheck
 pnpm --filter @workspace/vault-cloudflare run typecheck
 pnpm --filter @workspace/api-server exec tsx --test src/vault/*.test.ts src/static.test.ts
 pnpm --filter @workspace/api-server exec tsx --test ../bitcoin-vault/src/lib/session-lock.test.ts
+pnpm --filter @workspace/api-server exec tsx --test ../bitcoin-vault/src/lib/ledger-keys.test.ts
 node --test deploy/app-config.test.mjs deploy/coolify-bitcoin.test.mjs deploy/mainnet.test.mjs scripts/vault-backup.test.mjs lib/vault-cloudflare/src/index.test.mjs
 node --test scripts/signet-setup-generator.test.mjs scripts/signet-generator-browser.test.mjs
 pnpm --filter @workspace/api-server run build
