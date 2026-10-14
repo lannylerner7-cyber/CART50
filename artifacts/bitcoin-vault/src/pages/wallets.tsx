@@ -49,14 +49,14 @@ export default function Wallets() {
 
   return (
     <div className="space-y-6">
-      <PageHeader kicker="Wallets" title="Wallets" desc="Cold reserve, hot spending, and the fleet of receiving wallets. Each temporary wallet expires 120 hours after creation."
+      <PageHeader kicker="Wallets" title="Wallets" desc="Your main vault, spending wallet and temporary receiving wallets. Server-held wallets are online custody. Temporary wallets expire after 120 hours."
         actions={<Button onClick={() => setOpen(true)} className="gap-1.5 rounded-full px-5 font-bold" data-testid="button-open-create"><Plus className="h-4 w-4" /> Batch create</Button>} />
       {q.isError && <ErrorPanel error={q.error} onRetry={() => q.refetch()} />}
       {q.isLoading ? <SkelRows rows={10} /> : q.data && (
         <DataTable testId="wallets" rows={rows} columns={cols} rowKey={(w) => w.id} search={(w) => `${w.label} ${w.address ?? ''} ${w.id} ${w.status}`}
           placeholder="Search label, address, id" initialSort={{ key: 'created', dir: 'desc' }} onRowClick={(w) => nav(`/wallets/${w.id}`)}
           toolbar={<>
-            <select className={sel} value={kind} onChange={(e) => setKind(e.target.value)} data-testid="select-kind"><option value="all">all kinds</option><option value="temporary">temporary</option><option value="cold">cold</option><option value="spending">spending</option></select>
+            <select className={sel} value={kind} onChange={(e) => setKind(e.target.value)} data-testid="select-kind"><option value="all">all kinds</option><option value="temporary">temporary</option><option value="reserve">main vault (server-held)</option><option value="cold">cold (watch-only)</option><option value="spending">spending</option></select>
             <select className={sel} value={status} onChange={(e) => setStatus(e.target.value)} data-testid="select-status"><option value="all">all status</option>{statuses.map((s) => <option key={s} value={s}>{s}</option>)}</select>
           </>}
           empty={<Empty icon={<Boxes className="h-5 w-5" />} title={q.data.length ? 'No matches' : 'No wallets yet'} body={q.data.length ? 'Adjust search or filters.' : 'Create a batch of receiving wallets to start accepting funds.'}

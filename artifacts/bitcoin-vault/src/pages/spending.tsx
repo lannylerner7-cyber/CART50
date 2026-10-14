@@ -19,6 +19,7 @@ export default function Spending() {
   const review = useReviewPayment(csrf);
   const send = useSendPayment(csrf);
   const [address, setAddress] = useState('');
+  const [walletId, setWalletId] = useState<'vault-spending' | 'vault-reserve'>('vault-spending');
   const [amount, setAmount] = useState('');
   const [unit, setUnit] = useState<'btc' | 'sats'>('btc');
   const [feeRate, setFeeRate] = useState('');
@@ -31,12 +32,14 @@ export default function Spending() {
   const sats = unit === 'btc' ? btcToSats(amount) : /^[0-9]+$/.test(amount) ? amount : null;
   const d = dash.data;
   const s = settings.data;
-  const hot = d ? d.wallets.filter((w) => w.kind === 'spending').reduce((a, w) => a + toBig(w.availableSats), 0n) : 0n;
+  const sources = d?.wallets.filter((w) => (w.kind === 'spending' || w.kind === 'reserve') && w.status === 'active') ?? [];
+  const source = sources.find((w) => w.id === walletId);
+  const hot = source ? toBig(source.availableSats) : 0n;
   const blocked = settings.isError ? 'Spending policy unavailable. Sending is disabled.' : !d ? 'Loading node status' : !d.node.connected ? 'Node disconnected. Spending is disabled.' : d.node.network === 'main' || d.node.network === 'mainnet' ? (d.mainnetEnabled ? null : 'Mainnet spending is disabled.') : null;
-  const valid = address.trim().length >= 14 && address.trim().length <= 100 && !!sats && toBig(sats) > 0n && /^[0-9]+(\.[0-9]{1,3})?$/.test(feeRate);
+  const valid = !!source && address.trim().length >= 14 && address.trim().length <= 100 && !!sats && toBig(sats) > 0n && /^[0-9]+(\.[0-9]{1,3})?$/.test(feeRate);
   const exp = rv ? remaining(rv.expiresAt) : null;
 
-  const doReview = () => review.mutate({ data: { address: address.trim(), amountSats: sats!, feeRate, ...(replacesTxid.trim() ? { replacesTxid: replacesTxid.trim() } : {}) } }, { onSuccess: (r) => { setRv(r); setAck(false); send.reset(); } });
+  const doReview = () => review.mutate({ data: { walletId, address: address.trim(), amountSats: sats!, feeRate, ...(replacesTxid.trim() ? { replacesTxid: replacesTxid.trim() } : {}) } }, { onSuccess: (r) => { setRv(r); setAck(false); send.reset(); } });
   const doSend = () => rv && send.mutate({ data: { reviewId: rv.id, confirmed: true } }, {
     onSuccess: (r) => {
       toast({ title: 'Payment broadcast', description: r.txid });
@@ -48,7 +51,7 @@ export default function Spending() {
 
   return (
     <div className="space-y-6">
-      <PageHeader kicker="Spending wallet" title="Send bitcoin" desc="Two steps, always: the vault prices the payment against your limits, then you confirm the exact figures before anything is signed." />
+      <PageHeader kicker="Server-held wallets" title="Send bitcoin" desc="Choose your main or spending wallet, review the payment, then confirm before anything is signed. Both hold keys on your server—not offline." />
       {dash.isError && <ErrorPanel error={dash.error} onRetry={() => dash.refetch()} title="Node status unavailable" />}
       {settings.isError && <PolicyError error={settings.error} onRetry={() => settings.refetch()} />}
 
@@ -57,6 +60,13 @@ export default function Spending() {
           <Panel title={<span className="flex items-center gap-2"><span className={rv ? 'text-muted-foreground' : 'text-primary'}>1 · Details</span><ArrowRight className="h-3 w-3" /><span className={rv ? 'text-primary' : ''}>2 · Confirm</span></span>}>
             {blocked && <div className="mb-4 rounded-sm border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn" data-testid="text-spend-blocked">{blocked}</div>}
             <fieldset disabled={!!blocked || !!rv} className="grid gap-4 disabled:opacity-60">
+              <div className="grid gap-1.5">
+                <Label htmlFor="payment-source">From wallet</Label>
+                <select id="payment-source" data-testid="select-payment-source" className="h-12 rounded-2xl border border-border bg-background px-3 text-sm" value={walletId} onChange={(e) => { setWalletId(e.target.value as typeof walletId); setReplacesTxid(''); review.reset(); }}>
+                  {sources.length === 0 && <option value="vault-spending">No spendable wallet available</option>}
+                  {sources.map((w) => <option key={w.id} value={w.id}>{w.label} · server-held</option>)}
+                </select>
+              </div>
               <details className="text-sm"><summary className="cursor-pointer text-muted-foreground">Replace a pending payment (RBF)</summary><div className="mt-3 space-y-2"><Label>Original spending transaction ID</Label><Input value={replacesTxid} onChange={(e) => setReplacesTxid(e.target.value)} placeholder="64-character transaction ID; leave blank for a new payment" className="font-mono" /><p className="text-xs text-muted-foreground">Enter the original recipient and amount below, with a higher fee rate. The engine preserves the recipient and amount. The review shows the replacement's total fee, not just its increase.</p></div></details>
               <div className="grid gap-1.5"><Label>Destination address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} className="h-12 rounded-2xl font-mono" placeholder="tb1q…" spellCheck={false} data-testid="input-address" /></div>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -78,6 +88,7 @@ export default function Spending() {
 
           {rv && (
             <Panel title="Check every character" className="border-primary/50" meta={<span className={`font-mono ${exp && exp.ms <= 0 ? 'text-destructive' : ''}`}>{exp?.ms && exp.ms > 0 ? `valid ${Math.ceil(exp.ms / 1000)}s` : 'expired'}</span>}>
+              <p className="mb-3 text-sm" data-testid="text-review-source">From: {d?.wallets.find((w) => w.id === (rv.walletId ?? 'vault-spending'))?.label ?? rv.walletId ?? 'Spending vault'}</p>
               <div className="rounded-sm bg-muted/60 p-3 font-mono text-sm break-all" data-testid="text-review-address">{rv.address}</div>
               <div className="mt-4 grid grid-cols-3 gap-4">
                 <Stat label="amount"><Btc sats={rv.amountSats} /></Stat>
@@ -108,7 +119,7 @@ export default function Spending() {
                 <Stat label="hot exposure limit"><Btc sats={s.hotExposureLimitSats} /></Stat>
                 <Stat label="total fee ceiling"><Btc sats={s.totalFeeCeilingSats} /></Stat>
                 <Stat label="fee rate ceiling"><span className="font-mono text-sm">{s.feeRateCeiling} sat/vB</span></Stat>
-                {s.sweepsPaused && <Pill tone="warn">sweeps paused</Pill>}
+                {s.sweepsPaused && <Pill tone="warn">sending and sweeps paused</Pill>}
               </div>
             ) : null}
           </Panel>

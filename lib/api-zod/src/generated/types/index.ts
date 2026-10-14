@@ -27,6 +27,7 @@ export * from './passkeyInput';
 export * from './passkeyInputResponse';
 export * from './paymentApproval';
 export * from './paymentInput';
+export * from './paymentInputWalletId';
 export * from './paymentReview';
 export * from './rotationInput';
 export * from './service';

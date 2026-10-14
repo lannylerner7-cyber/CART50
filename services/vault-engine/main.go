@@ -157,7 +157,11 @@ case r.Method == "POST" && r.URL.Path == "/settings":
 			}
 			if err == nil {
 				var i *Intent
-				i, err = e.prepare("vault-spending", input.Address, amount, input.FeeRate, nil, false)
+var walletID string
+walletID, err = e.paymentWallet(input.WalletID)
+if err == nil {
+i, err = e.prepare(walletID, input.Address, amount, input.FeeRate, nil, false)
+}
 				if err == nil {
 					result = reviewView(i, e.network)
 				}
@@ -173,7 +177,7 @@ case r.Method == "POST" && r.URL.Path == "/settings":
 			err = errors.New("approved review not found")
 			for n := range e.state.Intents {
 				i := &e.state.Intents[n]
-				if i.ID == input.ReviewID && input.Confirmed && i.Wallet == "vault-spending" {
+if i.ID == input.ReviewID && input.Confirmed && e.canSpendWallet(i.Wallet) {
 					err = e.send(i)
 					if err == nil {
 						result = transactionView(i)

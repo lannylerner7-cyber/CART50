@@ -4,8 +4,11 @@
  * Api
  * OpenAPI spec version: 0.1.0
  */
+import type { PaymentInputWalletId } from './paymentInputWalletId';
 
 export interface PaymentInput {
+  /** Server-held source wallet. Defaults to vault-spending for older clients. */
+  walletId?: PaymentInputWalletId;
   /**
      * @minLength 14
      * @maxLength 100

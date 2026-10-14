@@ -53,7 +53,7 @@ function Operational() {
             <Stat label="price provider"><span className="text-sm">{s.provider} · {s.priceCurrency}</span> <Pill tone={s.externalConfigured ? 'ok' : 'neutral'}>{s.externalConfigured ? 'configured' : 'unconfigured'}</Pill></Stat>
           </div>
           <label className="flex items-center justify-between gap-3 rounded-sm border border-border p-3">
-            <div><div className="text-sm font-medium">Pause sweeps</div><div className="text-xs text-muted-foreground">Stop automatic consolidation from receiving wallets to cold.</div></div>
+            <div><div className="text-sm font-medium">Pause sending and sweeps</div><div className="text-xs text-muted-foreground">Stop outgoing payments and automatic consolidation into your configured main or cold vault.</div></div>
             <Switch checked={f.sweepsPaused} onCheckedChange={(v) => setF({ ...f, sweepsPaused: v })} data-testid="switch-sweeps-paused" />
           </label>
           <div className="grid gap-1.5"><Label>Fee rate ceiling (sat/vB)</Label><Input value={f.feeRateCeiling} onChange={(e) => setF({ ...f, feeRateCeiling: e.target.value.trim() })} className="font-mono" data-testid="input-fee-ceiling" /></div>

@@ -44,11 +44,20 @@ test('private Signet stack renders without published ports or secret build argum
 });
 
 test('missing operator inputs block compose rendering', { skip: !available }, () => {
-  for (const field of ['VAULT_ENGINE_TOKEN', 'COLD_DESCRIPTOR', 'COLD_DESCRIPTOR_SHA256', 'COOLIFY_NETWORK']) {
+  for (const field of ['VAULT_ENGINE_TOKEN', 'COOLIFY_NETWORK']) {
     const missing = { ...env };
     delete missing[field];
     const result = spawnSync('docker', [...composeArgs, 'config', '--quiet'], { env: missing, encoding: 'utf8' });
     assert.notEqual(result.status, 0, field);
     assert.ok(result.stderr.includes(field), field);
   }
+});
+
+test('server custody renders without any external descriptor', { skip: !available }, () => {
+  const server = { ...env, VAULT_CUSTODY_MODE: 'server' };
+  delete server.COLD_DESCRIPTOR;
+  delete server.COLD_DESCRIPTOR_SHA256;
+  const config = JSON.parse(execFileSync('docker', [...composeArgs, 'config', '--format', 'json'], { env: server, encoding: 'utf8' }));
+  assert.equal(config.services['vault-engine'].environment.VAULT_CUSTODY_MODE, 'server');
+  assert.equal(config.services['vault-engine'].environment.COLD_DESCRIPTOR, '');
 });

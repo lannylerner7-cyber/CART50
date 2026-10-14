@@ -68,6 +68,15 @@ Bitcoin Core; the operator must still verify their own recovery.
 
 ## Connect the existing website afterward
 
+### Server-held custody alternative
+
+For the owner's self-held Main vault, use runtime `VAULT_CUSTODY_MODE=server`.
+The external descriptor and its hash are optional in this mode. Existing installs
+default to external/watch-only custody; this is not an automatic conversion.
+Follow [server-held custody](server-held-custody.md) for pause/reconciliation,
+preservation, backups and coordinated UI/signer rollout requirements. Keep Signet
+until the separate mainnet migration is completed.
+
 Only after private networking is verified, set these runtime variables on the
 **existing website** and redeploy it:
 

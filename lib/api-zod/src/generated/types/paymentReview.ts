@@ -6,6 +6,8 @@
  */
 
 export interface PaymentReview {
+  /** Source wallet pinned to this payment review. */
+  walletId?: string;
   id: string;
   address: string;
   amountSats: string;

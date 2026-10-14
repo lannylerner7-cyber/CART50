@@ -13,6 +13,15 @@ restrictions during the production transition.
 Core RPC/the private signer. Keep essential custody and transaction safeguards.
 Mainnet authorization is not evidence of deployment or payment readiness.
 
+The owner reconfirmed personal-vault-first scope when discussing 10,000 concurrent
+requests, horizontal scaling and uploads.
+
+**Why:** They selected the personal-vault option rather than multi-user expansion.
+
+**How to apply:** Do not add customer accounts, profile/gift-card uploads, sharding
+or public API work to the current custody milestone. Do not claim traffic capacity
+without measurement or use additional signers as general-purpose replicas.
+
 The owner clarified that the vault must itself hold spendable keys, receive/send
 through its own Core infrastructure, support multiple wallets/transfers and track
 failed/incomplete transactions for recovery. An external savings wallet must not

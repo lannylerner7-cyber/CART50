@@ -16,6 +16,7 @@ type UTXO struct {
 	Safe      bool        `json:"safe"`
 }
 type PaymentInput struct {
+WalletID     string `json:"walletId,omitempty"`
 	Address      string `json:"address"`
 	Amount       string `json:"amountSats"`
 	FeeRate      string `json:"feeRate"`
@@ -23,6 +24,10 @@ type PaymentInput struct {
 }
 
 func (e *Engine) prepareBump(input PaymentInput) (*Intent, error) {
+walletID, err := e.paymentWallet(input.WalletID)
+if err != nil {
+return nil, err
+}
 	if err := e.ready(); err != nil {
 		return nil, err
 	}
@@ -36,13 +41,13 @@ func (e *Engine) prepareBump(input PaymentInput) (*Intent, error) {
 	var old *Intent
 	for n := range e.state.Intents {
 		i := &e.state.Intents[n]
-		if i.TxID == input.ReplacesTxid && i.Wallet == "vault-spending" {
+if i.TxID == input.ReplacesTxid && i.Wallet == walletID {
 			old = i
 			break
 		}
 	}
 	if old == nil || old.Status != "broadcast" {
-		return nil, errors.New("only a pending spending-vault transaction can be replaced")
+return nil, errors.New("only a pending transaction from the selected wallet can be replaced")
 	}
 	if input.Address != old.Address || input.Amount != strconv.FormatInt(old.Amount, 10) {
 		return nil, errors.New("replacement must preserve the original recipient and amount")
@@ -223,7 +228,7 @@ func (e *Engine) prepare(wallet, address string, amount int64, rate string, inpu
 	return &e.state.Intents[len(e.state.Intents)-1], nil
 }
 func reviewView(i *Intent, network string) map[string]any {
-	return map[string]any{"id": i.ID, "address": i.Address, "amountSats": strconv.FormatInt(i.Amount, 10), "feeSats": strconv.FormatInt(i.Fee, 10), "totalSats": strconv.FormatInt(i.Amount+i.Fee, 10), "expiresAt": i.Expires, "network": network}
+return map[string]any{"id": i.ID, "walletId": i.Wallet, "address": i.Address, "amountSats": strconv.FormatInt(i.Amount, 10), "feeSats": strconv.FormatInt(i.Fee, 10), "totalSats": strconv.FormatInt(i.Amount+i.Fee, 10), "expiresAt": i.Expires, "network": network}
 }
 func transactionView(i *Intent) Transaction {
 	status := "pending"
@@ -415,7 +420,7 @@ func (e *Engine) reconcile() error {
 	return nil
 }
 func (e *Engine) sweep() error {
-	if e.state.Settings.Paused || e.descriptor == "" {
+if e.state.Settings.Paused || (e.state.CustodyMode != serverCustody && e.descriptor == "") {
 		return nil
 	}
 	if err := e.ready(); err != nil {
@@ -474,7 +479,7 @@ func (e *Engine) sweep() error {
 		if _, _, err = e.feeLimits(rate); err != nil {
 			return err
 		}
-		address, err := e.coldDestination()
+address, err := e.savingsDestination()
 		if err != nil {
 			return err
 		}

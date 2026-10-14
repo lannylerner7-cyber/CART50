@@ -67,11 +67,11 @@ export default function Overview() {
 
               <Panel title="My wallets" meta={<Link href="/wallets" className="font-semibold text-primary" data-testid="link-see-all-wallets">See all</Link>} bodyClass="p-2 pt-1">
                 <ul className="divide-y divide-border">
-                  {main.length === 0 && <li className="p-4 text-sm text-muted-foreground">No cold or spending wallets reported.</li>}
+                  {main.length === 0 && <li className="p-4 text-sm text-muted-foreground">No main or spending wallets reported.</li>}
                   {main.map((w) => (
                     <li key={w.id}><Link href={`/wallets/${w.id}`} className="flex items-center gap-3 rounded-2xl px-3 py-3 hover:bg-muted/60" data-testid={`row-main-wallet-${w.id}`}>
                       <span className={cn('grid h-10 w-10 place-items-center rounded-full', w.kind === 'cold' ? 'bg-primary/12 text-primary' : 'bg-accent/20 text-warn')}>{w.kind === 'cold' ? <Snowflake className="h-4 w-4" /> : <Flame className="h-4 w-4" />}</span>
-                      <div className="min-w-0 flex-1"><div className="truncate font-semibold">{w.label}</div><div className="text-xs capitalize text-muted-foreground">{w.kind === 'cold' ? 'Cold storage' : 'Spending'}</div></div>
+                      <div className="min-w-0 flex-1"><div className="truncate font-semibold">{w.label}</div><div className="text-xs capitalize text-muted-foreground">{w.kind === 'cold' ? 'Watch-only cold' : w.kind === 'reserve' ? 'Main vault · server-held' : 'Spending'}</div></div>
                       <div className="text-right">{hide ? <span className="text-sm">••••</span> : <Btc sats={w.confirmedSats} size="sm" className="font-semibold" />}</div>
                     </Link></li>
                   ))}
@@ -113,7 +113,7 @@ export default function Overview() {
                     const why = receiveBlock(w, fresh, online);
                     return (
                       <li key={w.id}><button disabled={!!why} onClick={() => { setPicker(false); setRecvId(w.id); }} className="flex w-full items-center gap-3 rounded-2xl bg-muted/60 px-4 py-3 text-left transition-colors hover:bg-muted disabled:opacity-50" data-testid={`button-receive-pick-${w.id}`}>
-                        <div className="min-w-0 flex-1"><div className="truncate font-semibold">{w.label}</div><div className="truncate text-xs text-muted-foreground">{why ?? (w.kind === 'temporary' ? `Temporary · ${remaining(w.expiresAt).label} left` : w.kind === 'cold' ? 'Cold storage' : 'Spending')}</div></div>
+                        <div className="min-w-0 flex-1"><div className="truncate font-semibold">{w.label}</div><div className="truncate text-xs text-muted-foreground">{why ?? (w.kind === 'temporary' ? `Temporary · ${remaining(w.expiresAt).label} left` : w.kind === 'cold' ? 'Watch-only cold' : w.kind === 'reserve' ? 'Main vault · server-held' : 'Spending')}</div></div>
                         <ArrowDownToLine className="h-4 w-4 shrink-0 text-muted-foreground" />
                       </button></li>
                     );

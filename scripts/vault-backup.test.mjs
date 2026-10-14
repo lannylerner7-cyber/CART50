@@ -11,7 +11,7 @@ test("backup roundtrip, tampering rejection and temporary-history exclusion", ()
   const run = (...args) => execFileSync(process.execPath, [script, ...args], {stdio:"pipe"});
   const key=join(dir,"key"), input=join(dir,"recovery.json"), encrypted=join(dir,"recovery.vault"), output=join(dir,"restored.json");
   try {
-    writeFileSync(input, JSON.stringify({version:1,coldDescriptor:"public-test-descriptor",coldIndex:10,createdAt:new Date().toISOString()}));
+    writeFileSync(input, JSON.stringify({version:1,coldDescriptor:"",coldIndex:0,createdAt:new Date().toISOString(),reserveWalletBackupBase64:Buffer.from("disposable reserve fixture, not a real wallet").toString("base64")}));
     run("key",key); run("encrypt",input,encrypted,key); run("decrypt",encrypted,output,key);
     assert.deepEqual(readFileSync(input),readFileSync(output));
     const tampered=readFileSync(encrypted);tampered[tampered.length-1]^=1;writeFileSync(encrypted,tampered);

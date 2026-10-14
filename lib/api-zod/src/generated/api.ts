@@ -88,7 +88,7 @@ export const GetVaultDashboardResponse = zod.object({
   "id": zod.string(),
   "label": zod.string(),
   "address": zod.string().nullable(),
-  "kind": zod.enum(['temporary', 'cold', 'spending']),
+  "kind": zod.enum(['temporary', 'cold', 'reserve', 'spending']),
   "createdAt": zod.string(),
   "expiresAt": zod.string().nullable(),
   "status": zod.string(),
@@ -135,7 +135,7 @@ export const ListWalletsResponseItem = zod.object({
   "id": zod.string(),
   "label": zod.string(),
   "address": zod.string().nullable(),
-  "kind": zod.enum(['temporary', 'cold', 'spending']),
+  "kind": zod.enum(['temporary', 'cold', 'reserve', 'spending']),
   "createdAt": zod.string(),
   "expiresAt": zod.string().nullable(),
   "status": zod.string(),
@@ -165,7 +165,7 @@ export const CreateWalletsResponseItem = zod.object({
   "id": zod.string(),
   "label": zod.string(),
   "address": zod.string().nullable(),
-  "kind": zod.enum(['temporary', 'cold', 'spending']),
+  "kind": zod.enum(['temporary', 'cold', 'reserve', 'spending']),
   "createdAt": zod.string(),
   "expiresAt": zod.string().nullable(),
   "status": zod.string(),
@@ -188,7 +188,7 @@ export const CreateWalletReceiveAddressResponse = zod.object({
   "id": zod.string(),
   "label": zod.string(),
   "address": zod.string().nullable(),
-  "kind": zod.enum(['temporary', 'cold', 'spending']),
+  "kind": zod.enum(['temporary', 'cold', 'reserve', 'spending']),
   "createdAt": zod.string(),
   "expiresAt": zod.string().nullable(),
   "status": zod.string(),
@@ -210,7 +210,7 @@ export const GetWalletResponse = zod.object({
   "id": zod.string(),
   "label": zod.string(),
   "address": zod.string().nullable(),
-  "kind": zod.enum(['temporary', 'cold', 'spending']),
+  "kind": zod.enum(['temporary', 'cold', 'reserve', 'spending']),
   "createdAt": zod.string(),
   "expiresAt": zod.string().nullable(),
   "status": zod.string(),
@@ -240,7 +240,7 @@ export const UpdateWalletResponse = zod.object({
   "id": zod.string(),
   "label": zod.string(),
   "address": zod.string().nullable(),
-  "kind": zod.enum(['temporary', 'cold', 'spending']),
+  "kind": zod.enum(['temporary', 'cold', 'reserve', 'spending']),
   "createdAt": zod.string(),
   "expiresAt": zod.string().nullable(),
   "status": zod.string(),
@@ -480,7 +480,7 @@ export const ExploreVaultResponse = zod.object({
   "id": zod.string(),
   "label": zod.string(),
   "address": zod.string().nullable(),
-  "kind": zod.enum(['temporary', 'cold', 'spending']),
+  "kind": zod.enum(['temporary', 'cold', 'reserve', 'spending']),
   "createdAt": zod.string(),
   "expiresAt": zod.string().nullable(),
   "status": zod.string(),
@@ -505,6 +505,7 @@ export const reviewPaymentBodyReplacesTxidRegExp = new RegExp('^[a-fA-F0-9]{64}$
 
 
 export const ReviewPaymentBody = zod.object({
+  "walletId": zod.enum(['vault-spending', 'vault-reserve']).optional().describe('Server-held source wallet. Defaults to vault-spending for older clients.'),
   "address": zod.string().min(reviewPaymentBodyAddressMin).max(reviewPaymentBodyAddressMax),
   "amountSats": zod.string().regex(reviewPaymentBodyAmountSatsRegExp),
   "feeRate": zod.string().regex(reviewPaymentBodyFeeRateRegExp),
@@ -512,6 +513,7 @@ export const ReviewPaymentBody = zod.object({
 })
 
 export const ReviewPaymentResponse = zod.object({
+  "walletId": zod.string().optional().describe('Source wallet pinned to this payment review.'),
   "id": zod.string(),
   "address": zod.string(),
   "amountSats": zod.string(),

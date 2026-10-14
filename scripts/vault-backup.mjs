@@ -5,9 +5,14 @@ import { readFileSync, writeFileSync } from "node:fs";
 const [mode, input, output, keyPath] = process.argv.slice(2);
 function writeNew(file, value) { writeFileSync(file, value, { mode: 0o600, flag: "wx" }); }
 function validate(data) {
-  const allowed = new Set(["version", "createdAt", "coldDescriptor", "coldIndex", "spendingWalletBackupBase64"]);
+  const allowed = new Set(["version", "createdAt", "coldDescriptor", "coldIndex", "spendingWalletBackupBase64", "reserveWalletBackupBase64"]);
   if (!data || typeof data !== "object" || Object.keys(data).some(k => !allowed.has(k)) || data.version !== 1 || !Number.isSafeInteger(data.coldIndex) || data.coldIndex < 0 || typeof data.coldDescriptor !== "string" || /[tx]prv/.test(data.coldDescriptor)) {
-    throw new Error("Backup accepts only version, createdAt, public coldDescriptor, coldIndex and a spending-wallet backup. Temporary wallet keys/history are prohibited.");
+    throw new Error("Backup accepts only version, createdAt, public coldDescriptor, coldIndex and spending/reserve wallet backups. Temporary wallet keys/history are prohibited.");
+  }
+  for (const key of ["spendingWalletBackupBase64", "reserveWalletBackupBase64"]) {
+    if (key in data && (typeof data[key] !== "string" || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(data[key]) || data[key].length === 0)) {
+      throw new Error("Wallet backups must be nonempty base64 strings");
+    }
   }
   return data;
 }

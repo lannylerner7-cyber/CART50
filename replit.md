@@ -37,6 +37,8 @@ the explicitly unfinished production safeguards.
 ## Architecture decisions
 
 - Keep the user's explicit secret-based owner access; do not replace it with username/password.
+- Personal server-held custody is opt-in with signer `VAULT_CUSTODY_MODE=server`;
+  see `docs/server-held-custody.md`. Main/reserve keys are online, not cold storage.
 - Metadata availability must not control Bitcoin signing correctness; one local signer is authoritative.
 - Expiration is not destruction. Unsettled-fund policy and verifiable storage erasure need owner approval before destructive scheduling.
 - No fake balances, fake transactions or preview infrastructure presented as live production.

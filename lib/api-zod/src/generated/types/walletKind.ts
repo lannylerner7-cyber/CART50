@@ -11,5 +11,6 @@ export type WalletKind = typeof WalletKind[keyof typeof WalletKind];
 export const WalletKind = {
   temporary: 'temporary',
   cold: 'cold',
+  reserve: 'reserve',
   spending: 'spending',
 } as const;

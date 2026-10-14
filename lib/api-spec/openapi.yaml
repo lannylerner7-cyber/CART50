@@ -1884,6 +1884,7 @@
             "enum": [
               "temporary",
               "cold",
+              "reserve",
               "spending"
             ]
           },
@@ -2485,6 +2486,11 @@
       "PaymentInput": {
         "type": "object",
         "properties": {
+          "walletId": {
+            "type": "string",
+            "enum": ["vault-spending", "vault-reserve"],
+            "description": "Server-held source wallet. Defaults to vault-spending for older clients."
+          },
           "address": {
             "type": "string",
             "minLength": 14,
@@ -2513,6 +2519,10 @@
       "PaymentReview": {
         "type": "object",
         "properties": {
+          "walletId": {
+            "type": "string",
+            "description": "Source wallet pinned to this payment review."
+          },
           "id": {
             "type": "string"
           },

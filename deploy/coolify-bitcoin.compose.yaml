@@ -47,13 +47,14 @@ services:
         condition: service_healthy
     environment:
       BITCOIN_NETWORK: signet
+      VAULT_CUSTODY_MODE: ${VAULT_CUSTODY_MODE:-external}
       ENGINE_LISTEN: 0.0.0.0:9090
       ENGINE_DATA_DIR: /var/lib/personal-vault
       VAULT_ENGINE_TOKEN: ${VAULT_ENGINE_TOKEN:?}
       BTC_RPC_URL: http://bitcoin-core:38332
       BTC_RPC_COOKIE_FILE: /run/bitcoin/.cookie
-      COLD_DESCRIPTOR: ${COLD_DESCRIPTOR:?}
-      COLD_DESCRIPTOR_SHA256: ${COLD_DESCRIPTOR_SHA256:?}
+      COLD_DESCRIPTOR: ${COLD_DESCRIPTOR:-}
+      COLD_DESCRIPTOR_SHA256: ${COLD_DESCRIPTOR_SHA256:-}
     volumes:
       - signer-data:/var/lib/personal-vault
       - bitcoin-cookie:/run/bitcoin:ro

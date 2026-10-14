@@ -51,6 +51,7 @@ export type WalletKind = typeof WalletKind[keyof typeof WalletKind];
 export const WalletKind = {
   temporary: 'temporary',
   cold: 'cold',
+  reserve: 'reserve',
   spending: 'spending',
 } as const;
 
@@ -264,7 +265,20 @@ export interface Explorer {
   details: ExplorerDetails;
 }
 
+/**
+ * Server-held source wallet. Defaults to vault-spending for older clients.
+ */
+export type PaymentInputWalletId = typeof PaymentInputWalletId[keyof typeof PaymentInputWalletId];
+
+
+export const PaymentInputWalletId = {
+  'vault-spending': 'vault-spending',
+  'vault-reserve': 'vault-reserve',
+} as const;
+
 export interface PaymentInput {
+  /** Server-held source wallet. Defaults to vault-spending for older clients. */
+  walletId?: PaymentInputWalletId;
   /**
      * @minLength 14
      * @maxLength 100
@@ -282,6 +296,8 @@ export interface PaymentInput {
 }
 
 export interface PaymentReview {
+  /** Source wallet pinned to this payment review. */
+  walletId?: string;
   id: string;
   address: string;
   amountSats: string;

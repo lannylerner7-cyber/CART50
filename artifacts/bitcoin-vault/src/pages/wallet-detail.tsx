@@ -53,7 +53,7 @@ export default function WalletDetail() {
       {q.isLoading && <div className="grid gap-4 md:grid-cols-[320px_1fr]"><Skel className="h-80" /><Skel className="h-80" /></div>}
       {w && (
         <>
-          <PageHeader kicker={`${w.kind === 'temporary' ? 'Temporary receiving' : w.kind === 'cold' ? 'Cold storage' : 'Spending'} wallet`} title={w.label}
+          <PageHeader kicker={`${w.kind === 'temporary' ? 'Temporary receiving' : w.kind === 'cold' ? 'Watch-only cold' : w.kind === 'reserve' ? 'Server-held main' : 'Spending'} wallet`} title={w.label}
             actions={<>
               <Pill tone={statusTone(w.status)} dot testId="status-wallet">{w.status}</Pill>
               <Pill tone={statusTone(w.destructionStatus)} testId="status-destruction">destruction {w.destructionStatus}</Pill>

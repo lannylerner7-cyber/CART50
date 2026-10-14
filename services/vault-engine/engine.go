@@ -76,6 +76,11 @@ func (e *Engine) initialize() error {
 	if err := e.ready(); err != nil {
 		return err
 	}
+if e.state.CustodyMode == serverCustody {
+if err := e.ensureReserve(); err != nil {
+return err
+}
+}
 	for _, p := range []struct {
 		id, label, kind string
 		watch           bool
@@ -83,6 +88,9 @@ func (e *Engine) initialize() error {
 		if p.watch && e.descriptor == "" {
 			continue
 		}
+if p.watch && e.state.CustodyMode == serverCustody {
+continue // Preserve existing watch-only records, but do not create another.
+}
 		found := false
 		for _, w := range e.state.Wallets {
 			if w.ID == p.id {
@@ -441,5 +449,9 @@ func newEngine() (*Engine, error) {
 	if rpcURL == "" {
 		rpcURL = "http://127.0.0.1:38332"
 	}
-	return &Engine{rpc: &RPC{URL: rpcURL, CookieFile: os.Getenv("BTC_RPC_COOKIE_FILE"), Client: &http.Client{Timeout: 50 * time.Second}}, file: file, state: s, network: network, descriptor: descriptor}, nil
+e := &Engine{rpc: &RPC{URL: rpcURL, CookieFile: os.Getenv("BTC_RPC_COOKIE_FILE"), Client: &http.Client{Timeout: 50 * time.Second}}, file: file, state: s, network: network, descriptor: descriptor}
+if err := e.configureCustody(); err != nil {
+return nil, err
+}
+return e, nil
 }
