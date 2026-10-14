@@ -52,11 +52,11 @@ and the connection/reconnection forms could not be opened.
 if the managed connection flow fails, ask the owner to connect through the Git pane
 rather than requesting a token in chat.
 
-Try the managed GitHub connection using an HTTPS remote before replacing a missing
-SSH deploy key.
+Successful HTTPS reads do not establish GitHub write access.
 
-**Why:** The managed connection successfully authenticated HTTPS Git access even
-when the previously generated private SSH key was absent.
+**Why:** HTTPS `ls-remote` and fetch succeeded, but the subsequent push failed with
+an invalid-credential response despite the managed connection reporting active.
+Public repository reads may succeed without authentication.
 
-**How to apply:** Verify HTTPS access with `git ls-remote`, fetch and check ancestry,
-then use a normal push. An active connection still requires a live access check.
+**How to apply:** Do not describe fetch success as verified authentication or
+write permission. Follow the connection reauthorization flow after push rejection.
