@@ -34,6 +34,8 @@
 !deploy/app-entrypoint.mjs
 !deploy/app-config.mjs
 !deploy/vault-engine.Dockerfile
+!deploy/bitcoin-core.Dockerfile
+!deploy/bitcoin-signet.conf
 !services/
 !services/vault-engine/
 !services/vault-engine/*.go
