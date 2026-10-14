@@ -34,15 +34,45 @@ export function testWallet(seed) {
 if (typeof document !== 'undefined') {
   const byId = id => document.getElementById(id);
   let backup;
+  let variables = '';
   const hex = bytes => Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  const supported = (location.protocol === 'file:' || location.protocol === 'https:') && !!globalThis.crypto?.subtle;
+  byId('generate').disabled = !supported;
+  byId('status').textContent = supported
+    ? 'Ready. Generation stays in this browser. Save the private backup before revealing the variables.'
+    : 'Blocked: open this page over HTTPS in Safari/Chrome, or as a local file in a supported computer browser.';
+  byId('saved').onchange = () => {
+    const ready = !!backup && byId('saved').checked;
+    byId('result').value = ready ? variables : '';
+    byId('copy').disabled = !ready;
+  };
+  byId('copy').onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(byId('result').value);
+      byId('status').textContent = 'Variables copied. Paste only into secure Coolify settings.';
+    } catch {
+      byId('result').focus(); byId('result').select();
+      byId('status').textContent = 'Automatic copy is unavailable. Select and copy the variables manually.';
+    }
+  };
+  byId('clear').onclick = () => {
+    backup = undefined; variables = '';
+    byId('result').value = ''; byId('private-backup').value = '';
+    byId('saved').checked = false; byId('saved').disabled = true;
+    byId('download').disabled = true; byId('share').disabled = true; byId('copy').disabled = true;
+    byId('generate').disabled = !supported;
+    byId('status').textContent = 'Screen cleared. Your downloaded backup and clipboard are not erased. Generating again creates a different wallet.';
+  };
   byId('generate').onclick = async () => {
     try {
-      if (location.protocol !== 'file:') throw new Error('Save this HTML file and open it locally first. Generation is disabled on websites.');
+      if (!supported) throw new Error('Use HTTPS or a supported local-file browser.');
+      if (backup || byId('generate').disabled) return;
       if (!byId('understand').checked) throw new Error('Confirm this is for Signet test coins only.');
       const network = byId('network').value.trim();
       if (!/^[a-zA-Z0-9][a-zA-Z0-9_.-]*$/.test(network)) throw new Error('Enter the actual Docker network name from your server.');
       byId('result').value = '';
       byId('download').disabled = true;
+      byId('generate').disabled = true;
       const seed = crypto.getRandomValues(new Uint8Array(32));
       const wallet = testWallet(seed);
       seed.fill(0);
@@ -55,10 +85,23 @@ if (typeof document !== 'undefined') {
         derivation: "m/84'/1'/0'/0/*",
         recovery: 'Import the private receive descriptor into a separate trusted Signet Bitcoin Core descriptor wallet using importdescriptors, timestamp 0 and the used address range. A pruned node may need old blocks downloaded again for a rescan. This file is unencrypted; keep it offline. This is not a seed phrase or a mainnet wallet.',
       };
-      byId('result').value = `VAULT_ENGINE_TOKEN=${token}\nCOLD_DESCRIPTOR=${wallet.descriptor}\nCOLD_DESCRIPTOR_SHA256=${fingerprint}\nCOOLIFY_NETWORK=${network}`;
+      variables = `VAULT_ENGINE_TOKEN=${token}\nCOLD_DESCRIPTOR=${wallet.descriptor}\nCOLD_DESCRIPTOR_SHA256=${fingerprint}\nCOOLIFY_NETWORK=${network}`;
+      byId('private-backup').value = JSON.stringify(backup, null, 2);
       byId('download').disabled = false;
+      byId('share').disabled = typeof navigator.share !== 'function';
+      byId('saved').disabled = false;
       byId('status').textContent = 'Generated locally. Download and securely save the PRIVATE test-wallet backup before deploying. No values have been sent anywhere.';
-    } catch (e) { byId('status').textContent = e.message; }
+    } catch (e) { byId('generate').disabled = !supported || !!backup; byId('status').textContent = e.message; }
+  };
+  byId('share').onclick = async () => {
+    if (!backup) return;
+    const file = new File([JSON.stringify(backup, null, 2)], 'PRIVATE-signet-test-wallet-backup.json', { type: 'application/json' });
+    try {
+      if (!navigator.canShare?.({ files: [file] })) throw new Error('File sharing is unavailable. Use Download or the manual backup below.');
+      await navigator.share({ files: [file], title: 'PRIVATE Signet test-wallet backup' });
+    } catch (e) {
+      byId('status').textContent = e.name === 'AbortError' ? 'Save cancelled. Save your backup before continuing.' : e.message;
+    }
   };
   byId('download').onclick = () => {
     if (!backup) return;

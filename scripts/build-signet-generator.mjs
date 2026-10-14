@@ -8,5 +8,7 @@ const bundled = await build({
 const template = await readFile(new URL('./signet-setup-generator.template.html', import.meta.url), 'utf8');
 const output = new URL('../generated-artifacts/signet-setup.html', import.meta.url);
 await mkdir(new URL('.', output), { recursive: true });
-await writeFile(output, template.replace('/* BUNDLE */', () => bundled.outputFiles[0].text.replace(/<\/script/gi, '<\\/script')));
-console.log('Created generated-artifacts/signet-setup.html (contains no generated keys).');
+const html = template.replace('/* BUNDLE */', () => bundled.outputFiles[0].text.replace(/<\/script/gi, '<\\/script'));
+await writeFile(output, html);
+await writeFile(new URL('../artifacts/bitcoin-vault/public/signet-setup.html', import.meta.url), html);
+console.log('Created downloadable and HTTPS Signet setup pages (contain no generated keys).');

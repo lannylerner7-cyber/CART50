@@ -3,34 +3,40 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; base-uri 'none'; form-action 'none'">
-<title>Offline Signet setup</title>
+<meta name="referrer" content="no-referrer">
+<title>On-device Signet setup</title>
 <style>
 body{max-width:760px;margin:35px auto;padding:20px;font:16px/1.6 system-ui;background:#f4f5fa;color:#181b2e}
-section{padding:24px;background:white;border-radius:20px;margin:20px 0}input[type=text],textarea{box-sizing:border-box;width:100%;padding:12px;font:14px monospace;border:1px solid #bbc0d0;border-radius:8px}
+section{padding:24px;background:white;border-radius:20px;margin:20px 0}input[type=text],textarea{box-sizing:border-box;width:100%;padding:12px;font:16px monospace;border:1px solid #bbc0d0;border-radius:8px}
 textarea{height:250px}button{padding:14px 20px;margin:12px 8px 12px 0;background:#4055ce;color:white;border:0;border-radius:10px;font:inherit}button:disabled{opacity:.5}
 .warning{background:#fff0cf;padding:16px;border-radius:12px}code{overflow-wrap:anywhere}label{display:block;margin:14px 0}
 </style>
-<h1>Offline Signet setup</h1>
+<h1>On-device Signet setup</h1>
 <p>Creates a new signer token and a disposable public test-wallet descriptor. Does not change your owner login key or configure Coolify.</p>
-<p class="warning"><strong>Test coins only.</strong> This is not a hardware wallet or a production cold wallet. Never send real BTC. Generation works only from a downloaded local HTML file, not this page's web preview.</p>
+<p class="warning"><strong>Test coins only.</strong> This is not a hardware wallet or production cold storage. Never send real BTC. On HTTPS, you are trusting the website that delivers this tool. Generated values stay in this page's memory; the generator has no network requests, analytics or browser-storage writes. Downloads and clipboard copies remain your responsibility.</p>
 <section>
-<h2>1. Find your website's network</h2>
-<p>In the server terminal, run <code>docker network ls --format '{{.Name}}'</code>. Inspect your website container's networks to identify the shared network; do not guess:</p>
-<p><code>docker inspect --format '{{json .NetworkSettings.Networks}}' YOUR_WEBSITE_CONTAINER</code></p>
-<label for="network">Exact shared Docker network name</label><input id="network" type="text" autocomplete="off" spellcheck="false">
+<h2>1. Generate your test setup</h2>
+<p>Your Coolify website's Servers screen showed <strong>coolify</strong> as its network. It is filled in below.</p>
+<label for="network">Exact shared Docker network name</label><input id="network" type="text" value="coolify" autocomplete="off" spellcheck="false">
 <label><input id="understand" type="checkbox"> I will use only Signet test coins and keep the private backup offline.</label>
-<button id="generate">Generate test setup</button>
-<p id="status" role="status"></p>
+<button id="generate" disabled>Generate test setup</button>
+<p id="status" role="status">This viewer has not started the generator. Open the HTTPS page in Safari or Chrome, not an iPhone Files/download preview.</p>
 </section>
 <section>
 <h2>2. Save the private recovery backup</h2>
 <p>This download contains an <strong>unencrypted private test-wallet descriptor</strong>. Keep it offline; never paste it into Coolify, GitHub or chat. Losing it means losing access to test coins received by this wallet. Each click of Generate creates a different wallet and token—do not regenerate an existing deployment's values.</p>
 <button id="download" disabled>Download PRIVATE test-wallet backup</button>
+<button id="share" disabled>Save backup on iPhone</button>
+<p>On iPhone, choose Save to Files. Do not select a chat or send the backup to another person. If file saving is unavailable, use the manual backup below.</p>
+<details><summary>Show PRIVATE backup for manual saving</summary><p>Never include this section in screenshots.</p><textarea id="private-backup" readonly aria-label="Private test-wallet recovery backup" spellcheck="false"></textarea></details>
+<label><input id="saved" type="checkbox" disabled> I have saved the private backup securely. Reveal my deployment variables.</label>
 </section>
 <section>
 <h2>3. Enter the four variables in Coolify</h2>
 <p>Use HTTPS or a secure SSH tunnel. Store the token as a runtime secret, not a build argument. Use the same signer token in the website later. Do not share screenshots containing these values.</p>
 <textarea id="result" readonly aria-label="Generated private deployment variables" autocomplete="off" spellcheck="false"></textarea>
+<button id="copy" disabled>Copy deployment variables</button>
+<button id="clear">Clear screen</button>
 <p>Generating values does not deploy the services or verify recovery. Save the backup, then verify the receiving address and recovery before using this test wallet.</p>
 </section>
 <script>/* BUNDLE */</script>

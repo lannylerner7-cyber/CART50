@@ -25,9 +25,11 @@ migration, production wallet deletion or automatic deploy is part of this setup.
 ## Coolify resource
 
 For a disposable Signet test wallet only, `node scripts/build-signet-generator.mjs`
-builds a self-contained offline HTML generator in
-`generated-artifacts/signet-setup.html`. Download it, disconnect and open locally
-on a computer. It generates a separate signer token, public ranged descriptor,
+builds self-contained downloadable and HTTPS HTML generators at
+`generated-artifacts/signet-setup.html` and the website's `/signet-setup.html`.
+The HTTPS version supports phone browsers and explicitly requires trust in the
+delivering website; it is not offline cold storage. Local generation is also
+available in supported computer browsers. Both generate a separate signer token, public ranged descriptor,
 its SHA-256 fingerprint, and an **unencrypted private test-wallet backup** kept
 only on the operator's device. Save that backup offline and never upload it to
 Coolify. This is not a production cold-wallet setup. Enter the actual website
