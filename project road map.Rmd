@@ -294,21 +294,26 @@ network, authentication, transaction-integrity and readiness safeguards.
 A public API with rate limiting is explicitly deferred until the owner has
 confirmed real-Bitcoin receiving and sending work. The owner will explain its
 operating model later. Do not expose the private signer or Core RPC as that API.
-Mainnet cold-wallet custody/export compatibility must be established before
-choosing the migration configuration; never request a seed or private key in chat.
+**Custody clarification — 2026-10-15:** The owner wants the vault itself to hold
+spendable keys, receive and send using its own Bitcoin Core infrastructure,
+support multiple wallets/transfers and track failed/incomplete transfers for
+recovery. An external wallet address is not a prerequisite. This supersedes the
+earlier Trust Wallet fixed-destination choice; do not implement that superseded
+direction merely because it was previously approved.
 
-The owner selected **Trust Wallet** for mainnet savings. Its official receiving
-guide documents selecting the asset and copying its receive address/QR:
-<https://support.trustwallet.com/en/articles/717107-how-to-receive-cryptocurrency-in-trust-wallet-a-step-by-step-guide>.
-An official public-descriptor/xpub export procedure has not been established by
-this review. The owner has approved a fixed native-Bitcoin savings destination
-after explanation of the address-reuse tradeoff. The adaptation is not yet
-implemented; the actual receiving address is still required for configuration.
-It reuses an address, reducing privacy; Trust Wallet
-on a connected phone is not offline cold storage. Keep control of its private
-keys in Trust Wallet rather than importing them into the vault server.
-Temporary receiving addresses remain separate. Returning funds from Trust Wallet
-requires the owner to sign in Trust Wallet; this application will not hold its keys.
+The target is a server-held main/reserve wallet, spending wallet and independent
+temporary receiving wallets. These are online/hot custody, not offline cold
+storage. The existing watch-only cold wallet is current implementation, not this
+new target. Changes to custody, backups, destination allocation and labels remain
+to be implemented and validated. Do not import or overwrite existing wallet state
+silently; separate mainnet storage and preserve the current Signet environment.
+
+“Multiple threads” means concurrent wallet activity with coordinated coin selection
+and signing, not uncontrolled parallel spending of the same UTXOs. Transaction
+utilities must distinguish pending, confirmed, failed, unknown broadcast, evicted,
+replaced and conflicted states as applicable. Reconcile known signed transactions
+before retrying; fee increases need controlled review. Recovery cannot reverse a
+confirmed payment, guarantee mining, or restore destroyed private keys.
 
 ## 1. Finish hosted Signet commissioning
 
@@ -334,8 +339,10 @@ requires the owner to sign in Trust Wallet; this application will not hold its k
 
 - Review custody/security assumptions and maintained dependency/Core versions.
 - Introduce consistent mainnet configuration across API, signer, UI and validators.
-- Provision separate mainnet storage and a verified receiving descriptor from the
-  owner's backed-up wallet, preferably hardware-backed for cold custody.
+- Provision separate mainnet storage and server-held main/reserve and spending
+  wallets, with independent temporary wallets and verified recovery backups.
+- Replace the mandatory external cold-descriptor dependency for this custody mode;
+  accurately label server-held reserves as online custody.
 - Never reuse the disposable web-generated Signet private backup for mainnet custody.
 - Synchronize mainnet and validate readiness; do not bypass syncing gates.
 - Verify small controlled receive/send/recovery behavior before meaningful funds.
@@ -412,7 +419,7 @@ to publish: review repository assets before release.
 | `.agents/memory/health-replication.md` | 1196 | `a960703d098ebe5dabcd92a0cb3b5d01b5cef3c1e5ed1328e9d326b642f30471` | Durable project decision/lesson: health-replication. |
 | `.agents/memory/hosting-scope.md` | 2997 | `50f6d147b664dc3c3a631aae74b25a96fde98a05d0222eafba7b252300ad06fb` | Durable project decision/lesson: hosting-scope. |
 | `.agents/memory/owner-access.md` | 1808 | `159d57009f9e05cc3a71f1adaf0eb452995a20aa1fe57e837629feb5d9d29088` | Durable project decision/lesson: owner-access. |
-| `.agents/memory/production-scope.md` | 1435 | `2c34be69a7891fe64d0491b0b38f7d6a732c771c67dbf0a0d30940f5f35b2af6` | Durable project decision/lesson: production-scope. |
+| `.agents/memory/production-scope.md` | 1593 | `36f402860f917f715bf8908c259a53e016e276aea22dd12f5ce5c7c84273c735` | Durable project decision/lesson: production-scope. |
 | `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
 | `.agents/memory/temporary-wallet-destruction.md` | 2255 | `308fab6c2e98bb62dc6f2cdc25c5f5716eb296a98b7f81af7c4e57bca7a4c538` | Durable project decision/lesson: temporary-wallet-destruction. |
 | `.agents/memory/wallet-presentation.md` | 693 | `05cd9feef50fb7e88957f063678ffa928715f8cfe3c0e0185edf241d92a3bb27` | Durable project decision/lesson: wallet-presentation. |
@@ -723,7 +730,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 22150 | `588fbcfac57ee9997cf5ded3df793bc9357cb4e1c67d896c81edd62306ba52a8` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 22597 | `85c79e1660cde577c60c06b2cb0645d91fda19939b0dea6892b9b86c9d15095d` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3469 | `a8f5a09a8a5128ddad4919887a84041ee4bc60eff97a29ba3cd20951dc70d609` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |

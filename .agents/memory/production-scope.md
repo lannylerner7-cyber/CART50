@@ -13,17 +13,16 @@ restrictions during the production transition.
 Core RPC/the private signer. Keep essential custody and transaction safeguards.
 Mainnet authorization is not evidence of deployment or payment readiness.
 
-The owner selected Trust Wallet for mainnet savings.
+The owner clarified that the vault must itself hold spendable keys, receive/send
+through its own Core infrastructure, support multiple wallets/transfers and track
+failed/incomplete transactions for recovery. An external savings wallet must not
+be a prerequisite. This supersedes the earlier fixed Trust Wallet destination choice.
 
-**Why:** Explicit wallet choice during mainnet setup.
+**Why:** The owner corrected the external-wallet assumption: they are building
+their own self-held, spendable and receivable infrastructure.
 
-The owner approved a fixed Trust Wallet native-Bitcoin savings address after
-being told that address reuse makes transfers easier to link.
-
-**Why:** Explicit approval of the fixed-address option during mainnet setup.
-
-**How to apply:** Keep its private keys/seed out of the server and chat. Implement
-the fixed savings destination without replacing separate temporary receiving
-addresses. Trust Wallet on a phone must not be described as offline cold custody.
-Approval of this design does not prove address ownership or authorize an arbitrary
-payment; confirm the actual receiving destination before enabling transfers.
+**How to apply:** Plan server-held main/reserve and spending custody, label it hot
+custody rather than cold storage, and keep private RPC/signing boundaries. Recovery
+must reconcile durable transaction identity before retrying; concurrent activity
+must not double-spend the same UTXOs. Do not promise to reverse confirmed payments
+or recover erased keys. Do not request an external address to unblock this design.
