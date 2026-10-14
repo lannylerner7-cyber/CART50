@@ -4,7 +4,7 @@ import { ListTree } from 'lucide-react';
 import { useListTransactions, getListTransactionsQueryKey, type Transaction } from '@workspace/api-client-react';
 import { DataTable, type Column } from '@/components/data-table';
 import { Btc, CopyText, Empty, ErrorPanel, PageHeader, Pill, SkelRows, statusTone } from '@/components/kit';
-import { POLL_MS, short, stamp, toBig } from '@/lib/vault';
+import { POLL_MS, short, stamp, toBig, ago } from '@/lib/vault';
 
 export default function Transactions() {
   const q = useListTransactions({ query: { queryKey: getListTransactionsQueryKey(), refetchInterval: POLL_MS } });
@@ -20,8 +20,8 @@ export default function Transactions() {
     { key: 'direction', label: 'Dir', render: (t) => <Pill tone={/in/.test(t.direction) ? 'ok' : 'ember'}>{t.direction}</Pill>, sort: (t) => t.direction },
     { key: 'amount', label: 'Amount', align: 'right', render: (t) => <Btc sats={t.amountSats} size="sm" />, sort: (t) => toBig(t.amountSats) },
     { key: 'fee', label: 'Fee', align: 'right', render: (t) => (t.feeSats ? <Btc sats={t.feeSats} size="sm" className="text-muted-foreground" /> : '—'), sort: (t) => toBig(t.feeSats), hidden: true },
-    { key: 'conf', label: 'Conf', align: 'right', render: (t) => <span className="font-mono text-xs">{t.confirmations}</span>, sort: (t) => t.confirmations },
-    { key: 'status', label: 'Status', render: (t) => <Pill tone={statusTone(t.status)}>{t.status}</Pill>, sort: (t) => t.status },
+    { key: 'conf', label: 'Confirmations', align: 'right', render: (t) => <span className="font-mono text-xs">{t.confirmations < 0 ? 'Conflicted' : `${Math.min(t.confirmations, 3)} / 3`}{t.confirmations > 3 && <span className="block text-muted-foreground">{t.confirmations} total</span>}</span>, sort: (t) => t.confirmations },
+    { key: 'status', label: 'Status', render: (t) => <Pill tone={statusTone(t.status)}>{t.status === 'confirmed' ? 'Complete' : t.status === 'confirming' ? 'Processing' : t.status === 'pending' ? 'Unconfirmed' : t.status}</Pill>, sort: (t) => t.status },
     { key: 'wallet', label: 'Wallet', render: (t) => <Link href={`/wallets/${t.walletId}`} className="font-mono text-xs hover:text-primary" data-testid={`link-wallet-${t.walletId}`}>{short(t.walletId, 6)}</Link>, sort: (t) => t.walletId },
     { key: 'address', label: 'Address', render: (t) => (t.address ? <CopyText value={t.address} display={short(t.address, 8)} /> : '—'), hidden: true },
     { key: 'replaced', label: 'Replaced by', render: (t) => (t.replacedBy ? <CopyText value={t.replacedBy} display={short(t.replacedBy, 6)} /> : '—'), hidden: true },
@@ -32,6 +32,10 @@ export default function Transactions() {
   return (
     <div className="space-y-6">
       <PageHeader kicker="Ledger" title="Transactions" desc="Every movement your node has observed for vault wallets, including replaced and unconfirmed spends." />
+      <p className="text-sm text-muted-foreground" role="status">
+        {q.isError ? 'Live updates unavailable. Displayed transactions may be out of date.' : q.dataUpdatedAt ? `Last refreshed ${ago(new Date(q.dataUpdatedAt).toISOString())}. Refreshes every ${POLL_MS / 1000} seconds.` : 'Waiting for node transaction history.'}
+        {' '}Complete means at least 3 confirmations—not irreversible finality. A chain reorganization can change the status.
+      </p>
       {q.isError && <ErrorPanel error={q.error} onRetry={() => q.refetch()} />}
       {q.isLoading ? <SkelRows rows={10} /> : q.data && (
         <DataTable testId="transactions" rows={rows} columns={cols} rowKey={(t) => `${t.txid}-${t.walletId}`} search={(t) => `${t.txid} ${t.walletId} ${t.address ?? ''}`}

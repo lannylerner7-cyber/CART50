@@ -271,6 +271,20 @@ Never remove persistent wallet volumes as a casual rollback strategy.
 
 # Current readiness — 2026-10-14
 
+## Incoming confirmation audit — 2026-10-15
+
+Extended the real Core regtest to assert incoming history at each confirmation:
+0 = pending, 1–2 = confirming, 3 = confirmed. The test passed alongside its
+existing duplicate-send, fee-replacement and reorg assertions.
+History now displays Unconfirmed / Processing / Complete with 0–3 progress,
+actual totals above three, 15-second polling and an explicit stale-update warning.
+“Complete” is the application's three-confirmation threshold, not irreversible
+finality. This remains local evidence, not hosted mainnet receipt verification.
+
+Outgoing fee control is currently manual sat/vB plus reviewed RBF replacement.
+Fast/Slow fee presets and token exchange are not implemented and must not be
+presented as working. Exchange/provider scope needs separate clarification.
+
 ## Mainnet configuration and burst handling — 2026-10-15
 
 Source now supports exact network `main` with `ALLOW_MAINNET=true` on the website
@@ -602,7 +616,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/pages/overview.tsx` | 14157 | `ac9e88e0e53deabeddee3984ece46bba48ec16f48aed305a25cf85296d30d341` | overview wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/settings.tsx` | 13397 | `0ff351b2944f03f932844c55b7810888b5f7f953c56e814e049e56a907d83009` | settings wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/spending.tsx` | 10915 | `4f7984706c2dd2de063a80905a58aed76d242826f548d7615520689652445183` | spending wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 4245 | `c5b543fa5209f0f24ce962cd3f16734d3aafe7677a90fc3119a4c90db6add2a1` | transactions wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 5012 | `c2baeeec98e510a9fe6252ec78a1a48eb2b9fafb5bfdbdee384897a3e733e220` | transactions wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallet-detail.tsx` | 10175 | `d87ea8d6f0f6815a290136641cbee91204c33c57f3b5ff060cf308af140010a4` | wallet detail wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallets.tsx` | 9598 | `ccdcf0a80728ec23bc9a147c2394e8d919a9c9c14d2714b1b7f7ba98f0f12284` | wallets wallet screen. |
 | `artifacts/bitcoin-vault/tsconfig.json` | 520 | `e0a2fd8a7f3bfc860ccab5623b1881e754eb02336612708ff8b59215e8c256c9` | TypeScript compilation/project-reference configuration. |
@@ -798,7 +812,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 26239 | `880d6e17554fc770fbb80aa2530aeb7c7319b407c12c1cb0ff20df091e6fe43a` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 27065 | `db5571c2c7d0b815f32a20746c5fcf572aa0ed3dd9c1868666ec2cabcd400706` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
@@ -827,7 +841,7 @@ to publish: review repository assets before release.
 | `services/vault-engine/destruction.go` | 4951 | `562d2aa5ba2f659f43ba8f679b7c1037c569d0d8c3fee4e99bf5fe33a3ebd824` | Read-only destruction-readiness checks; no verified key erasure. |
 | `services/vault-engine/destruction_test.go` | 5421 | `1f74cb7a6e098607c70d68ec3d46676e225781d3ac67db2663eee5a546d40733` | Regression tests for destruction; local checks, not hosted evidence. |
 | `services/vault-engine/engine.go` | 13119 | `f1532ac538e99dd04efa7170662823cc33a62207f8fa45a867b6e13e549adcab` | Core readiness, wallet initialization, reconciliation and engine persistence. |
-| `services/vault-engine/engine_test.go` | 9826 | `85c3db68b01f134ef931a1aa0683ce8935d34bfc82bf065530d30a3acbeb7de3` | Regression tests for engine; local checks, not hosted evidence. |
+| `services/vault-engine/engine_test.go` | 10514 | `e1dff12d56d883927fa3c059e49f9d87ca7b894776340a6d342743fb345a3044` | Regression tests for engine; local checks, not hosted evidence. |
 | `services/vault-engine/go.mod` | 38 | `f121f796cf6ed79edf948f45b9aa64e63c43ef4a7579b2a9ceee803743150272` | Go engine module and language version. |
 | `services/vault-engine/main.go` | 10329 | `926e482bcbf9106617809d788baa0f73ce469b99912fe2b3e51344f7b4b611e8` | Private HTTP service, authenticated routes and engine startup. |
 | `services/vault-engine/network.go` | 493 | `74a76289cca402cceb7c8909a184218e747b3771f576bbb850b62b8c753b5ff1` | network.go module in services/vault-engine; see the owning subsystem above. |

@@ -200,11 +200,28 @@ e.connected = true
 			t.Fatalf("wrong unconfirmed %s", w.Unconfirmed)
 		}
 	}
-	call("", "generatetoaddress", []any{3, mining}, nil)
-	if err = e.sync(); err != nil {
-		t.Fatal(err)
-	}
-	i, err := e.prepare("vault-spending", mining, 50000, "2", nil, false)
+for confirmations := 0; confirmations <= 3; confirmations++ {
+if confirmations > 0 {
+call("", "generatetoaddress", []any{1, mining}, nil)
+}
+if err = e.sync(); err != nil { t.Fatal(err) }
+history, historyErr := e.transactions()
+if historyErr != nil { t.Fatal(historyErr) }
+found := false
+expected := "pending"
+if confirmations > 0 { expected = "confirming" }
+if confirmations == 3 { expected = "confirmed" }
+for _, tx := range history {
+if tx.WalletID == wallets[0].ID && tx.Direction == "incoming" {
+found = true
+if tx.Confirmations != confirmations || tx.Status != expected {
+t.Fatalf("incoming lifecycle at %d: confirmations=%d status=%s", confirmations, tx.Confirmations, tx.Status)
+}
+}
+}
+if !found { t.Fatalf("incoming transfer missing from history at %d confirmations", confirmations) }
+}
+i, err := e.prepare("vault-spending", mining, 50000, "2", nil, false)
 	if err != nil {
 		t.Fatal(err)
 	}
