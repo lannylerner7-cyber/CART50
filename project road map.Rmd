@@ -283,6 +283,20 @@ Likewise the newer connection screenshots do not prove pending payment/recovery 
 
 # Roadmap and acceptance criteria
 
+## Owner's current release order
+
+The owner has now requested the mainnet/production transition. Real Bitcoin
+receiving and sending are the immediate goal; this is authorization to prepare
+that transition, not evidence that mainnet is enabled or verified.
+Keep this phase focused without adding unrelated access friction. Retain essential
+network, authentication, transaction-integrity and readiness safeguards.
+
+A public API with rate limiting is explicitly deferred until the owner has
+confirmed real-Bitcoin receiving and sending work. The owner will explain its
+operating model later. Do not expose the private signer or Core RPC as that API.
+Mainnet cold-wallet custody/export compatibility must be established before
+choosing the migration configuration; never request a seed or private key in chat.
+
 ## 1. Finish hosted Signet commissioning
 
 - Demonstrate temporary-wallet creation and persistence across a controlled restart.
@@ -375,16 +389,17 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-353 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+354 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
 | `.agents/agent_assets_metadata.toml` | 3000 | `c4e96a25aac94d4c82b5086ad7486ac497e3f93536d99a6288ca75b7736df5eb` | Workspace asset metadata; not application logic. |
-| `.agents/memory/MEMORY.md` | 984 | `42ba984959dd22461ba55d84b819c0b812c157cd000821a464b828bb8e0b940c` | Durable project decision/lesson: MEMORY. |
+| `.agents/memory/MEMORY.md` | 1107 | `17ebd117e219b2c26238ac386ba7c1c22483c431598a44401c332d7b3d20e440` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/health-replication.md` | 1196 | `a960703d098ebe5dabcd92a0cb3b5d01b5cef3c1e5ed1328e9d326b642f30471` | Durable project decision/lesson: health-replication. |
 | `.agents/memory/hosting-scope.md` | 2997 | `50f6d147b664dc3c3a631aae74b25a96fde98a05d0222eafba7b252300ad06fb` | Durable project decision/lesson: hosting-scope. |
 | `.agents/memory/owner-access.md` | 1808 | `159d57009f9e05cc3a71f1adaf0eb452995a20aa1fe57e837629feb5d9d29088` | Durable project decision/lesson: owner-access. |
+| `.agents/memory/production-scope.md` | 705 | `b93e413aad9b81264d82336a4a17900c83af10e6c98aae8ac94d2da0e37d95ad` | Durable project decision/lesson: production-scope. |
 | `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
 | `.agents/memory/temporary-wallet-destruction.md` | 2255 | `308fab6c2e98bb62dc6f2cdc25c5f5716eb296a98b7f81af7c4e57bca7a4c538` | Durable project decision/lesson: temporary-wallet-destruction. |
 | `.agents/memory/wallet-presentation.md` | 693 | `05cd9feef50fb7e88957f063678ffa928715f8cfe3c0e0185edf241d92a3bb27` | Durable project decision/lesson: wallet-presentation. |
@@ -695,7 +710,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 20388 | `058a68c818a41a842fca1ed2bcd3c7de8bbdc995a30ec904db7cb0edda58e3fa` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 21195 | `299f0131efe884748acf773c2ccacac2330abc1b0d043bf98c077f58f9804159` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3469 | `a8f5a09a8a5128ddad4919887a84041ee4bc60eff97a29ba3cd20951dc70d609` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
