@@ -25,7 +25,7 @@ export default function LockScreen({ session }: { session: Session }) {
           </div>
         </div>
         <div className="rise rise-2 mt-7">{session.configured ? <UnlockCard retryAfter={session.loginRetryAfterSeconds ?? 0} /> : <SetupCard />}</div>
-        <p className="mt-auto pt-6 text-center text-[11.5px] text-muted-foreground">Mainnet is disabled. Test coins only.</p>
+        <p className="mt-auto pt-6 text-center text-[11.5px] text-muted-foreground">{session.network === 'main' ? 'Bitcoin mainnet · real funds. Verify network and destination before sending.' : 'Test network only. Do not send real Bitcoin.'}</p>
       </div>
     </div>
   );

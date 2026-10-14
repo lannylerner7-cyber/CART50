@@ -68,7 +68,7 @@ export default function Spending() {
                 </select>
               </div>
               <details className="text-sm"><summary className="cursor-pointer text-muted-foreground">Replace a pending payment (RBF)</summary><div className="mt-3 space-y-2"><Label>Original spending transaction ID</Label><Input value={replacesTxid} onChange={(e) => setReplacesTxid(e.target.value)} placeholder="64-character transaction ID; leave blank for a new payment" className="font-mono" /><p className="text-xs text-muted-foreground">Enter the original recipient and amount below, with a higher fee rate. The engine preserves the recipient and amount. The review shows the replacement's total fee, not just its increase.</p></div></details>
-              <div className="grid gap-1.5"><Label>Destination address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} className="h-12 rounded-2xl font-mono" placeholder="tb1q…" spellCheck={false} data-testid="input-address" /></div>
+              <div className="grid gap-1.5"><Label>Destination address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} className="h-12 rounded-2xl font-mono" placeholder={d?.node.network === 'main' ? 'bc1q…' : d?.node.network === 'regtest' ? 'bcrt1q…' : 'tb1q…'} spellCheck={false} data-testid="input-address" /></div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label>Amount</Label>

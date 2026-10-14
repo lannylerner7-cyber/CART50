@@ -22,6 +22,14 @@ requests, horizontal scaling and uploads.
 or public API work to the current custody milestone. Do not claim traffic capacity
 without measurement or use additional signers as general-purpose replicas.
 
+Treat overload handling and completed-work throughput as separate claims.
+
+**Why:** The owner requested 10,000-request capacity, but shedding a burst is not
+equivalent to completing 10,000 payments or sustaining that rate on the live host.
+
+**How to apply:** Report accepted/rejected counts, concurrency and test scope.
+Require separate network-pinned wallet storage during the mainnet transition.
+
 The owner clarified that the vault must itself hold spendable keys, receive/send
 through its own Core infrastructure, support multiple wallets/transfers and track
 failed/incomplete transactions for recovery. An external savings wallet must not

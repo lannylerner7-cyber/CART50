@@ -1,6 +1,7 @@
 # Personal Bitcoin Vault
 
-Single-owner Bitcoin control room. **Test networks only; not ready for real funds.**
+Single-owner Bitcoin control room. **Existing deployment is Signet; mainnet support
+is explicit opt-in and not yet commissioned for real funds.**
 See `docs/vault-operations.md` for setup, deployment boundaries, verification and
 the explicitly unfinished production safeguards.
 
@@ -39,6 +40,9 @@ the explicitly unfinished production safeguards.
 - Keep the user's explicit secret-based owner access; do not replace it with username/password.
 - Personal server-held custody is opt-in with signer `VAULT_CUSTODY_MODE=server`;
   see `docs/server-held-custody.md`. Main/reserve keys are online, not cold storage.
+- Mainnet deployment, burst measurements and pending gates:
+  `docs/mainnet-and-capacity.md`. Never reuse Signet volumes or infer production
+  capacity from local load-shedding fixtures.
 - Metadata availability must not control Bitcoin signing correctness; one local signer is authoritative.
 - Expiration is not destruction. Unsettled-fund policy and verifiable storage erasure need owner approval before destructive scheduling.
 - No fake balances, fake transactions or preview infrastructure presented as live production.

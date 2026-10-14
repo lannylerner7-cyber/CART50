@@ -60,6 +60,7 @@ type Intent struct {
 	Replaces string           `json:"replaces,omitempty"`
 }
 type State struct {
+Network string `json:"network,omitempty"`
 CustodyMode string `json:"custodyMode,omitempty"`
 	Wallets    []Wallet `json:"wallets"`
 	Intents    []Intent `json:"intents"`

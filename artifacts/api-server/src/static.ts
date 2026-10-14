@@ -14,6 +14,17 @@ export function mountDashboard(app: Express, directory?: string) {
   app.use((_req, res, next) => {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
+    next();
+  });
+  app.use((req, res, next) => {
+    let decodedPath: string;
+    try { decodedPath = path.posix.normalize(decodeURIComponent(req.path)); }
+    catch { res.sendStatus(400); return; }
+    if (process.env.NODE_ENV === "production" && ["/offline-keygen.html", "/signet-setup.html"].includes(decodedPath)) {
+      res.sendStatus(404);
+      return;
+    }
     next();
   });
   app.use(express.static(root, { index: false, dotfiles: "deny", cacheControl: false }));

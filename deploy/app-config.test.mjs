@@ -12,6 +12,12 @@ const valid = {
   SECURITY_ALERT_TO: "owner@example.test",
 };
 test("valid disconnected test-network deployment", () => assert.deepEqual(validateConfig(valid), []));
+test("mainnet is explicit and requires a configured private signer", () => {
+  const main = { ...valid, BITCOIN_NETWORK:"main", VAULT_ENGINE_URL:"http://vault-mainnet-engine:9090", VAULT_ENGINE_TOKEN:"disposable".repeat(4) };
+  assert.ok(validateConfig(main).some(e=>e.includes("ALLOW_MAINNET")));
+  assert.deepEqual(validateConfig({...main,ALLOW_MAINNET:"true"}),[]);
+  assert.ok(validateConfig({...valid,BITCOIN_NETWORK:"main",ALLOW_MAINNET:"true"}).some(e=>e.includes("VAULT_ENGINE_URL")));
+});
 test("Coolify app template is complete after filling only its three required secret fields", () => {
   const template = Object.fromEntries(readFileSync(new URL("./coolify.env.example", import.meta.url), "utf8")
     .split("\n").filter(line => /^[A-Z][A-Z0-9_]*=/.test(line))

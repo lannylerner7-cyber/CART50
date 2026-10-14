@@ -3,6 +3,7 @@ import { mkdirSync, chmodSync } from "node:fs";
 import path from "node:path";
 import type { WebAuthnCredential } from "@simplewebauthn/server";
 import type { LoginSecurity } from "./login-security";
+import { ReadFlight } from "./read-flight";
 
 export type Alert = {
   id: string; name: string; kind: "below" | "percent_drop"; threshold: number;
@@ -64,7 +65,11 @@ function resetLegacyAccess(state: State) {
   state.passkeys = [];
   state.authVersion = 2;
 }
-export async function readState(): Promise<State> {
+const stateReads = new ReadFlight<State>();
+export function readState(): Promise<State> {
+  return stateReads.read(readCurrentState);
+}
+async function readCurrentState(): Promise<State> {
   const { state } = await readVersion();
   if (state.authVersion === 2) return state;
   await changeState(resetLegacyAccess);
@@ -72,6 +77,8 @@ export async function readState(): Promise<State> {
 }
 // Optimistic CAS is also enforced in D1, not just in this process.
 export async function changeState<T>(fn: (state: State) => T): Promise<T> {
+  stateReads.clear();
+  try {
   for (let attempt = 0; attempt < 8; attempt++) {
     const { version, state } = await readVersion();
     resetLegacyAccess(state);
@@ -80,4 +87,7 @@ export async function changeState<T>(fn: (state: State) => T): Promise<T> {
     if (changed.length) return result;
   }
   throw new Error("Concurrent metadata update; please retry");
+  } finally {
+    stateReads.clear();
+  }
 }

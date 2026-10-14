@@ -28,6 +28,7 @@ func body(r *http.Request, v any) error {
 func (e *Engine) handler(w http.ResponseWriter, r *http.Request) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+if r.Context().Err() != nil { return }
 	var result any
 	var err error
 	switch {
@@ -308,19 +309,20 @@ go replica.run(e)
 			}
 		}
 	}()
-	mux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+admitted := boundedHandler(http.HandlerFunc(e.handler), 32)
+mux := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		supplied := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 		if len(supplied) != len(token) || subtle.ConstantTimeCompare([]byte(supplied), []byte(token)) != 1 {
 			jsonResponse(w, 401, map[string]string{"error": "unauthorized"})
 			return
 		}
-		e.handler(w, r)
+admitted.ServeHTTP(w, r)
 	})
 	listen := os.Getenv("ENGINE_LISTEN")
 	if listen == "" {
 		listen = "127.0.0.1:9090"
 	}
 	server := http.Server{Addr: listen, Handler: mux, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, WriteTimeout: 180 * time.Second, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 8192}
-	log.Printf("test-network vault engine listening on %s", listen)
+log.Printf("vault engine on network %s listening on %s", e.network, listen)
 	log.Fatal(server.ListenAndServe())
 }

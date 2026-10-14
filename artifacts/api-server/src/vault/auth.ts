@@ -1,6 +1,7 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import type { Request, Response, NextFunction } from "express";
 import { changeState, readState, type SessionRecord } from "./store";
+import { configuredNetwork } from "./network";
 
 export class HttpError extends Error {
   constructor(public status: number, message: string) { super(message); }
@@ -43,7 +44,7 @@ export function clearSessionCookie(res: Response) {
 }
 export const sessionPayload = (session?: SessionRecord, configured = true) => ({
   authenticated: !!session, configured, csrfToken: session?.csrf ?? null, expiresAt: session?.expiresAt ?? null,
-  network: process.env.BITCOIN_NETWORK === "regtest" ? "regtest" : "signet",
+  network: configuredNetwork(),
 });
 export function expectedOrigin(req: Request) {
   // Pin PUBLIC_ORIGIN in production. Host fallback is for same-origin development only.

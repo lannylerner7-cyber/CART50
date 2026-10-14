@@ -7,7 +7,7 @@ interface Env {
   REPLICA_TOKEN: string;
   MARKET_ENABLED: string;
 }
-type Checkpoint = { id: "engine-health"; sequence: number; data: { network: "signet" | "regtest"; blocks: number; recoveryStatus: string; lastSync: string } };
+type Checkpoint = { id: "engine-health"; sequence: number; data: { network: "main" | "signet" | "regtest"; blocks: number; recoveryStatus: string; lastSync: string } };
 async function boundedText(req: Request): Promise<string | null> {
   if (!req.body) return "";
   const reader = req.body.getReader();
@@ -28,7 +28,7 @@ async function boundedText(req: Request): Promise<string | null> {
 function validateCheckpoint(v: unknown): Checkpoint {
   if (!v || typeof v !== "object") throw new Error("Invalid checkpoint");
   const x = v as Checkpoint;
-  if (x.id !== "engine-health" || !Number.isSafeInteger(x.sequence) || x.sequence < 1 || !x.data || !["signet", "regtest"].includes(x.data.network) || !Number.isSafeInteger(x.data.blocks) || x.data.blocks < 0 || !["starting", "healthy", "retrying", "sweep_blocked"].includes(x.data.recoveryStatus) || typeof x.data.lastSync !== "string" || (x.data.lastSync !== "" && !Number.isFinite(Date.parse(x.data.lastSync)))) throw new Error("Invalid checkpoint");
+  if (x.id !== "engine-health" || !Number.isSafeInteger(x.sequence) || x.sequence < 1 || !x.data || !["main", "signet", "regtest"].includes(x.data.network) || !Number.isSafeInteger(x.data.blocks) || x.data.blocks < 0 || !["starting", "healthy", "retrying", "sweep_blocked"].includes(x.data.recoveryStatus) || typeof x.data.lastSync !== "string" || (x.data.lastSync !== "" && !Number.isFinite(Date.parse(x.data.lastSync)))) throw new Error("Invalid checkpoint");
   // Whitelist only operational metadata: no keys, addresses, balances or tx history.
   return { id: "engine-health", sequence: x.sequence, data: { network: x.data.network, blocks: x.data.blocks, recoveryStatus: x.data.recoveryStatus, lastSync: x.data.lastSync } };
 }

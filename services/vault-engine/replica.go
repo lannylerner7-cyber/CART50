@@ -39,7 +39,7 @@ type healthReplica struct {
 
 func validHealth(h HostHealth) bool {
 	_, err := time.Parse(time.RFC3339, h.LastSync)
-	return (h.Network == "signet" || h.Network == "regtest") && h.Blocks >= 0 &&
+return (h.Network == "signet" || h.Network == "regtest" || h.Network == "main") && h.Blocks >= 0 &&
 		(h.RecoveryStatus == "starting" || h.RecoveryStatus == "healthy" ||
 			h.RecoveryStatus == "retrying" || h.RecoveryStatus == "sweep_blocked") &&
 		(h.LastSync == "" || err == nil)

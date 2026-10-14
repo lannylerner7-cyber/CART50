@@ -36,6 +36,8 @@
 !deploy/vault-engine.Dockerfile
 !deploy/bitcoin-core.Dockerfile
 !deploy/bitcoin-signet.conf
+!deploy/bitcoin-mainnet.Dockerfile
+!deploy/bitcoin-mainnet.conf
 !services/
 !services/vault-engine/
 !services/vault-engine/*.go

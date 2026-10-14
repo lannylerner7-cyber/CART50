@@ -21,6 +21,7 @@ ENV NODE_ENV=production PORT=3000 BITCOIN_NETWORK=signet \
 WORKDIR /app
 COPY --from=build --chown=node:node /build/artifacts/api-server/dist ./dist
 COPY --from=build --chown=node:node /build/artifacts/bitcoin-vault/dist/public ./public
+RUN rm -f /app/public/offline-keygen.html /app/public/signet-setup.html
 COPY --chown=node:node deploy/app-entrypoint.mjs deploy/app-config.mjs ./
 USER node
 EXPOSE 3000

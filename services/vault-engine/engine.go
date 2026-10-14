@@ -38,8 +38,8 @@ func (e *Engine) chain() (Chain, error) {
 	if err != nil {
 		return c, err
 	}
-	if c.Chain != e.network || (c.Chain != "regtest" && c.Chain != "signet") {
-		return c, errors.New("network mismatch: mainnet is disabled")
+if c.Chain != e.network || (c.Chain != "regtest" && c.Chain != "signet" && c.Chain != "main") {
+return c, errors.New("Bitcoin Core network mismatch")
 	}
 	return c, nil
 }
@@ -423,8 +423,11 @@ func newEngine() (*Engine, error) {
 	if network == "" {
 		network = "signet"
 	}
-	if network != "signet" && network != "regtest" {
-		return nil, errors.New("only signet and regtest are permitted")
+if network != "signet" && network != "regtest" && network != "main" {
+return nil, errors.New("BITCOIN_NETWORK must be main, signet or regtest")
+}
+if network == "main" && os.Getenv("ALLOW_MAINNET") != "true" {
+return nil, errors.New("mainnet requires explicit ALLOW_MAINNET=true")
 	}
 	dir := os.Getenv("ENGINE_DATA_DIR")
 	if dir == "" {
@@ -435,6 +438,9 @@ func newEngine() (*Engine, error) {
 	if err != nil {
 		return nil, err
 	}
+if err := bindNetwork(&s, network); err != nil {
+return nil, err
+}
 	descriptor := os.Getenv("COLD_DESCRIPTOR")
 	if descriptor != "" {
 		h := sha256.Sum256([]byte(descriptor))
@@ -448,10 +454,16 @@ func newEngine() (*Engine, error) {
 	rpcURL := os.Getenv("BTC_RPC_URL")
 	if rpcURL == "" {
 		rpcURL = "http://127.0.0.1:38332"
+if network == "main" {
+rpcURL = "http://127.0.0.1:8332"
+}
 	}
 e := &Engine{rpc: &RPC{URL: rpcURL, CookieFile: os.Getenv("BTC_RPC_COOKIE_FILE"), Client: &http.Client{Timeout: 50 * time.Second}}, file: file, state: s, network: network, descriptor: descriptor}
 if err := e.configureCustody(); err != nil {
 return nil, err
+}
+if network == "main" && e.state.CustodyMode != serverCustody {
+return nil, errors.New("this mainnet release requires server custody")
 }
 return e, nil
 }

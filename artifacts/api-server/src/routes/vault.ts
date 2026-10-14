@@ -58,14 +58,14 @@ router.get("/dashboard", async (_req, res) => {
     node, wallets, transactions: transactions.slice(0, 10),
     confirmedSats: wallets.reduce((sum, w) => sum + BigInt(w.confirmedSats), 0n).toString(),
     unconfirmedSats: wallets.reduce((sum, w) => sum + BigInt(w.unconfirmedSats), 0n).toString(),
-    destructionEnabled: false, mainnetEnabled: false,
+    destructionEnabled: false, mainnetEnabled: process.env.BITCOIN_NETWORK === "main" && process.env.ALLOW_MAINNET === "true",
     services: [
       { name: "Bitcoin Core", status: node.connected ? "connected" : "disconnected", message: node.message },
       { name: "Metadata", status: externalConfigured() ? "connected" : "development", message: externalConfigured() ? "Cloudflare D1" : "Local development metadata; Cloudflare is not connected" },
       { name: "Market feed", status: getMarket().available ? "connected" : "disconnected", message: getMarket().message },
       { name: "Destruction scheduler", status: "blocked", message: "120-hour expiry; wait for verified drainage. Existing storage retained by owner choice: key destruction and history deletion remain blocked because storage erasure is unverified." },
     ],
-    activity: [{ id: "safety", title: "Test-network safety boundary", message: "Mainnet and automatic key destruction are disabled.", createdAt: new Date().toISOString(), severity: "info" }],
+    activity: [{ id: "safety", title: node.network === "main" ? "Mainnet custody boundary" : "Test-network safety boundary", message: node.network === "main" ? "Real Bitcoin network. Server-held keys are online; automatic key destruction remains disabled." : "Test coins only. Automatic key destruction remains disabled.", createdAt: new Date().toISOString(), severity: "info" }],
   }));
 });
 router.get("/wallets", async (_req, res) => res.json(Z.ListWalletsResponse.parse(await engine("/wallets"))));
@@ -81,7 +81,7 @@ router.get("/wallets/:id", async (req, res) => {
 router.post("/wallets/:id/receive", async (req, res) => {
   const { id } = Z.CreateWalletReceiveAddressParams.parse(req.params);
   const node = await nodeStatus();
-  const network = process.env.BITCOIN_NETWORK === "regtest" ? "regtest" : "signet";
+  const network = process.env.BITCOIN_NETWORK === "main" ? "main" : process.env.BITCOIN_NETWORK === "regtest" ? "regtest" : "signet";
   if (!node.connected || node.network !== network) throw new HttpError(503, "Node disconnected or network mismatch; receiving is unavailable");
   res.json(Z.CreateWalletReceiveAddressResponse.parse(await engine(`/wallets/${encodeURIComponent(id)}/receive`, {})));
 });

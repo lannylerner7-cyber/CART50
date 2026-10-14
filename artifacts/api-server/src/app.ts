@@ -7,8 +7,11 @@ import { HttpError } from "./vault/auth";
 import { ZodError } from "zod";
 import { mountDashboard } from "./static";
 import { configureTrustedProxies } from "./vault/login-security";
+import { admission } from "./middlewares/admission";
+import { configuredNetwork } from "./vault/network";
 
 const app: Express = express();
+configuredNetwork();
 configureTrustedProxies(app);
 
 app.use(
@@ -31,6 +34,11 @@ app.use(
   }),
 );
 app.disable("x-powered-by");
+app.use((_req, res, next) => {
+  res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
+  next();
+});
+app.use("/api/vault", admission());
 app.use(express.json({ limit: "64kb" }));
 
 app.use("/api/vault", vault);

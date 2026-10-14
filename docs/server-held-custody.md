@@ -3,7 +3,11 @@
 The owner confirmed personal-vault scope: no customer accounts, public API,
 gift-card uploads, Redis or database sharding in this milestone.
 
-## Implemented mode (still test-network only)
+## Implemented mode
+
+The original milestone was test-network only. Explicit mainnet support and a
+separate resource are now prepared; see [mainnet and capacity](mainnet-and-capacity.md).
+The existing live environment has not been switched by this work.
 
 Set `VAULT_CUSTODY_MODE=server` on the **signer** runtime. It creates an independent
 Core descriptor wallet named `vault-reserve` with private keys, displayed as

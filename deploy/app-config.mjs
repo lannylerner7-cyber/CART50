@@ -4,7 +4,9 @@ import { isIP } from "node:net";
 export function validateConfig(env) {
   const errors = [];
   if (env.NODE_ENV !== "production") errors.push("NODE_ENV must be production");
-  if (!["signet", "regtest"].includes(env.BITCOIN_NETWORK)) errors.push("BITCOIN_NETWORK must be signet or regtest; mainnet is disabled");
+  if (!["main", "signet", "regtest"].includes(env.BITCOIN_NETWORK)) errors.push("BITCOIN_NETWORK must be main, signet or regtest");
+  if (env.BITCOIN_NETWORK === "main" && env.ALLOW_MAINNET !== "true") errors.push("ALLOW_MAINNET=true is required for explicit mainnet operation");
+  if (env.BITCOIN_NETWORK === "main" && (!env.VAULT_ENGINE_URL || !env.VAULT_ENGINE_TOKEN)) errors.push("VAULT_ENGINE_URL and VAULT_ENGINE_TOKEN are required for mainnet");
   const port = Number(env.PORT);
   if (!Number.isInteger(port) || port < 1 || port > 65535) errors.push("PORT must be 1–65535");
   try {
@@ -19,7 +21,7 @@ export function validateConfig(env) {
     try {
       const url = new URL(env.VAULT_ENGINE_URL);
       if (url.username || url.password || url.search || url.hash || url.pathname !== "/") throw new Error();
-      if (url.protocol !== "https:" && !(url.protocol === "http:" && ["127.0.0.1", "localhost", "vault-engine"].includes(url.hostname))) throw new Error();
+      if (url.protocol !== "https:" && !(url.protocol === "http:" && ["127.0.0.1", "localhost", "vault-engine", "vault-mainnet-engine"].includes(url.hostname))) throw new Error();
     } catch { errors.push("VAULT_ENGINE_URL must use HTTPS or the local private vault-engine service"); }
     if ((env.VAULT_ENGINE_TOKEN?.length ?? 0) < 32) errors.push("VAULT_ENGINE_TOKEN must contain at least 32 characters");
   }

@@ -24,6 +24,7 @@ test("single-origin container routing keeps API and missing assets out of SPA fa
       const response = await fetch(base + route);
       assert.equal(response.status, 200);
       assert.equal(response.headers.get("cache-control"), "no-store");
+      assert.match(response.headers.get("x-robots-tag") ?? "", /noindex/);
       assert.match(await response.text(), /vault-test/);
     }
     assert.deepEqual(await (await fetch(base + "/api/healthz")).json(), { status: "ok" });
@@ -36,5 +37,27 @@ test("single-origin container routing keeps API and missing assets out of SPA fa
   } finally {
     await new Promise<void>((resolve, reject) => server.close(e => e ? reject(e) : resolve()));
     rmSync(dir, { recursive: true });
+  }
+});
+
+test("production blocks setup HTML while keeping index and SPA routes available", async () => {
+  const dir=mkdtempSync(path.join(tmpdir(),"vault-public-"));
+  const old=process.env.NODE_ENV;
+  process.env.NODE_ENV="production";
+  for(const f of ["index.html","offline-keygen.html","signet-setup.html"]) writeFileSync(path.join(dir,f),"<html>fixture</html>");
+  const app=express(); mountDashboard(app,dir);
+  const server=app.listen(0,"127.0.0.1");
+  await new Promise<void>(resolve=>server.once("listening",resolve));
+  const addr=server.address(); assert.ok(addr && typeof addr!=="string");
+  try {
+    const base=`http://127.0.0.1:${addr.port}`;
+    for(const url of ["/offline-keygen.html","/signet-setup.html","/%73ignet-setup.html","/.env","/.git/config","/engine.json","/missing.js"]) {
+      assert.equal((await fetch(base+url)).status,404,url);
+    }
+    for(const url of ["/","/index.html","/spending"]) assert.equal((await fetch(base+url)).status,200,url);
+  } finally {
+    if(old===undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV=old;
+    await new Promise<void>(resolve=>server.close(()=>resolve()));
+    rmSync(dir,{recursive:true});
   }
 });
