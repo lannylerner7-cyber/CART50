@@ -23,11 +23,15 @@ router.post("/login", async (req, res) => {
   res.json(sessionPayload(await newSession(res)));
 });
 router.use(passkeyRouter);
-router.use(requireOwner);
-router.post("/logout", async (_req, res) => {
-  await changeState(s => { s.sessions = s.sessions.filter(x => x.hash !== res.locals.session.hash); });
+router.post("/logout", async (req, res) => {
+  const session = await sessionFor(req);
+  if (session) {
+    if (!equal(req.get("x-csrf-token") ?? "", session.csrf)) throw new HttpError(403, "Session verification failed");
+    await changeState(s => { s.sessions = s.sessions.filter(x => x.hash !== session.hash); });
+  }
   clearSessionCookie(res); res.json({ ok: true, message: "Vault locked" });
 });
+router.use(requireOwner);
 router.post("/security/revoke", async (_req, res) => {
   await changeState(s => { s.sessions = []; }); clearSessionCookie(res);
   res.json({ ok: true, message: "All sessions revoked" });

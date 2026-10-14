@@ -18,10 +18,11 @@ import Spending from '@/pages/spending';
 import Explorer from '@/pages/explorer';
 import Market from '@/pages/market';
 import SettingsPage from '@/pages/settings';
+import { lockClient, LOCK_EVENT } from '@/lib/session-lock';
 
 const SESSION_KEY = getGetVaultSessionQueryKey();
 const on401 = (e: unknown) => {
-  if (errStatus(e) === 401) queryClient.invalidateQueries({ queryKey: SESSION_KEY });
+  if (errStatus(e) === 401 && queryClient.getQueryData<{ authenticated: boolean }>(SESSION_KEY)?.authenticated) lockClient(queryClient);
 };
 const queryClient: QueryClient = new QueryClient({
   queryCache: new QueryCache({ onError: on401 }),
@@ -53,10 +54,25 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 function Gate() {
-  const s = useGetVaultSession({ query: { queryKey: SESSION_KEY, refetchInterval: 30000 } });
+  const s = useGetVaultSession({ query: { queryKey: SESSION_KEY, refetchInterval: 30000, refetchOnWindowFocus: true, refetchOnReconnect: true } });
   const session = s.data;
   const authed = !!session?.authenticated;
   const token = session?.csrfToken ?? null;
+
+  useEffect(() => {
+    const listener = (event: StorageEvent) => {
+      if (event.key === LOCK_EVENT && event.newValue) lockClient(queryClient, false);
+    };
+    window.addEventListener('storage', listener);
+    return () => window.removeEventListener('storage', listener);
+  }, []);
+
+  useEffect(() => {
+    if (!authed || !session?.expiresAt) return;
+    const remaining = Date.parse(session.expiresAt) - Date.now();
+    const timer = setTimeout(() => lockClient(queryClient), Number.isFinite(remaining) ? Math.max(0, remaining) : 0);
+    return () => clearTimeout(timer);
+  }, [authed, session?.expiresAt]);
 
   useEffect(() => {
     setCsrfToken(authed ? token : null);
@@ -65,6 +81,7 @@ function Gate() {
   useEffect(() => {
     if (session && !session.authenticated) {
       // Drop any protected data left in cache after expiry or lock.
+      void queryClient.cancelQueries({ predicate: (q) => q.queryKey[0] !== SESSION_KEY[0] });
       queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== SESSION_KEY[0] });
     }
   }, [session]);

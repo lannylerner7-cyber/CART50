@@ -5,6 +5,7 @@ cd "$(dirname "$0")/.."
 pnpm run typecheck
 pnpm --filter @workspace/vault-cloudflare run typecheck
 pnpm --filter @workspace/api-server exec tsx --test src/vault/*.test.ts src/static.test.ts
+pnpm --filter @workspace/api-server exec tsx --test ../bitcoin-vault/src/lib/session-lock.test.ts
 node --test deploy/app-config.test.mjs scripts/vault-backup.test.mjs lib/vault-cloudflare/src/index.test.mjs
 pnpm --filter @workspace/api-server run build
 NODE_ENV=production PORT=3000 BASE_PATH=/ pnpm --filter @workspace/bitcoin-vault run build

@@ -2,8 +2,9 @@ import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
 import { Activity, ArrowUpRight, Wallet as WalletIcon, Home, Lock, Menu, ScanSearch, Settings2, LineChart, X, History } from 'lucide-react';
-import { useLockVault, setCsrfToken } from '@workspace/api-client-react';
-import { useCsrf, useSession, remaining, errMsg } from '@/lib/vault';
+import { useLockVault } from '@workspace/api-client-react';
+import { useCsrf, useSession, remaining, errMsg, errStatus } from '@/lib/vault';
+import { lockClient } from '@/lib/session-lock';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { NetworkBadge } from '@/components/receive';
@@ -40,11 +41,13 @@ export function Shell({ children }: { children: ReactNode }) {
   const doLock = () =>
     lock.mutate(undefined, {
       onSuccess: () => {
-        setCsrfToken(null);
-        qc.clear();
+        lockClient(qc);
         setOpen(false);
       },
-      onError: (e) => toast({ title: 'Logout failed — please retry', description: errMsg(e), variant: 'destructive' }),
+      onError: (e) => {
+        if (errStatus(e) === 401) { lockClient(qc); setOpen(false); return; }
+        toast({ title: 'Logout not confirmed — please retry', description: errMsg(e), variant: 'destructive' });
+      },
     });
 
   const isActive = (href: string) => (href === '/' ? location === '/' : location.startsWith(href));

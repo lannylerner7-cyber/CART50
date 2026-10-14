@@ -53,13 +53,15 @@ test("owner unlock, origin/CSRF defenses, alert persistence and revocation", asy
       ["POST", "/node/reconnect"], ["GET", "/market"], ["GET", "/alerts"],
       ["POST", "/alerts"], ["PUT", "/alerts/test"], ["DELETE", "/alerts/test"],
       ["GET", "/notifications"], ["POST", "/notifications/test/read"], ["GET", "/explorer"],
-      ["POST", "/payments/review"], ["POST", "/payments/send"], ["POST", "/logout"],
+      ["POST", "/payments/review"], ["POST", "/payments/send"],
       ["POST", "/security/revoke"], ["POST", "/security/rotate"], ["GET", "/passkeys"],
       ["POST", "/passkeys/options"], ["POST", "/passkeys/verify"], ["DELETE", "/passkeys/test"],
     ];
     for (const [method, path] of protectedRoutes) {
       assert.equal((await call(path!, method!, method === "GET" ? undefined : {})).status, 401, `${method} ${path}`);
     }
+    assert.equal((await call("/logout", "POST", {})).status, 200);
+    assert.equal((await call("/logout", "POST", {}, {Origin: "https://untrusted.test"})).status, 403);
     const login = await call("/login", "POST", {credential: bytes.toString("base64url")});
     assert.equal(login.status, 200);
     const setCookie = login.headers.get("set-cookie")!;
@@ -67,6 +69,8 @@ test("owner unlock, origin/CSRF defenses, alert persistence and revocation", asy
     cookie = setCookie.split(";")[0]!;
     const session = await login.json() as { csrfToken: string };
     csrf = session.csrfToken;
+    assert.equal((await call("/logout", "POST", {}, {"X-CSRF-Token": "wrong"})).status, 403);
+    assert.equal((await (await call("/session")).json() as {authenticated:boolean}).authenticated, true);
     assert.equal((await call("/alerts", "POST", {}, {Origin: "https://untrusted.test"})).status, 403);
     assert.equal((await call("/alerts", "POST", {}, {"X-CSRF-Token": "wrong"})).status, 403);
     const created = await call("/alerts", "POST", {name: "Test threshold",kind:"below",threshold:100,windowMinutes:60,cooldownMinutes:60,enabled:true});
@@ -80,12 +84,23 @@ test("owner unlock, origin/CSRF defenses, alert persistence and revocation", asy
     assert.match(logout.headers.get("set-cookie") ?? "", /__Host-vault_session=;/);
     assert.equal((await call("/dashboard")).status, 401);
     assert.equal((await readState()).sessions.length, 0);
+    assert.equal((await call("/logout", "POST", {})).status, 200);
     const relogin = await call("/login", "POST", {credential: bytes.toString("base64url")});
     assert.equal(relogin.status, 200);
     cookie = relogin.headers.get("set-cookie")!.split(";")[0]!;
     csrf = (await relogin.json() as {csrfToken:string}).csrfToken;
     assert.equal((await call("/security/revoke", "POST", {})).status, 200);
     assert.equal((await call("/dashboard")).status, 401);
+    assert.equal((await call("/logout", "POST", {})).status, 200);
+    const expiredLogin = await call("/login", "POST", {credential: bytes.toString("base64url")});
+    cookie = expiredLogin.headers.get("set-cookie")!.split(";")[0]!;
+    csrf = (await expiredLogin.json() as {csrfToken:string}).csrfToken;
+    const { changeState } = await import("./store");
+    await changeState(s => { for (const record of s.sessions) record.expiresAt = new Date(0).toISOString(); });
+    assert.equal((await call("/dashboard")).status, 401);
+    const expiredLogout = await call("/logout", "POST", {});
+    assert.equal(expiredLogout.status, 200);
+    assert.match(expiredLogout.headers.get("set-cookie") ?? "", /__Host-vault_session=;/);
   } finally {
     await new Promise<void>((resolve, reject) => server.close(err => err ? reject(err) : resolve()));
     rmSync(temporary, {recursive:true,force:true});
