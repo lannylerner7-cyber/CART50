@@ -9,7 +9,6 @@ import { ErrorPanel } from '@/components/kit';
 import { VaultMark } from '@/components/shell';
 import { CREDENTIAL_RE } from '@/lib/vault';
 import { cn } from '@/lib/utils';
-import { SignetSetupLink } from '@/components/signet-setup-link';
 
 export default function LockScreen({ session }: { session: Session }) {
   return (
@@ -188,7 +187,6 @@ function UnlockCard({ retryAfter }: { retryAfter: number }) {
       </button>
       {pkErr != null && <div className="mt-3"><ErrorPanel error={pkErr} title="Passkey sign-in failed" /></div>}
       <p className="mt-5 text-center text-[11.5px] text-muted-foreground">Lost the keyfile? There is no reset link. Restore from your offline backup.</p>
-      <div className="mt-5"><SignetSetupLink /></div>
     </div>
   );
 }
