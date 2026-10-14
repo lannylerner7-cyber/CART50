@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { startAuthentication } from '@simplewebauthn/browser';
-import { Download, FileKey2, Fingerprint, KeyRound, Lock, ShieldOff, Terminal, Upload } from 'lucide-react';
+import { FileKey2, Fingerprint, KeyRound, Lock, ShieldOff, Terminal, Upload } from 'lucide-react';
 import { getGetVaultSessionQueryKey, setCsrfToken, useUnlockVault, usePasskeyLoginOptions, usePasskeyLoginVerify, type Session } from '@workspace/api-client-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,8 +9,6 @@ import { ErrorPanel, Pill } from '@/components/kit';
 import { NAV, VaultMark } from '@/components/shell';
 import { CREDENTIAL_RE } from '@/lib/vault';
 import { cn } from '@/lib/utils';
-
-const KEYGEN = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/offline-keygen.html`;
 
 export default function LockScreen({ session }: { session: Session }) {
   return (
@@ -59,7 +57,7 @@ export default function LockScreen({ session }: { session: Session }) {
 
 function SetupCard() {
   const steps = [
-    { t: 'Go offline', d: 'Download the generator below, move it to an air-gapped machine, then disconnect networking.' },
+    { t: 'Go offline', d: 'Use your saved offline generator on an air-gapped machine with networking disconnected.' },
     { t: 'Generate the secret', d: 'Open offline-keygen.html in a browser. It draws 64 random bytes and emits an 86-character base64url keyfile plus its verifier.' },
     { t: 'Store the keyfile', d: 'Save the keyfile to removable media. Keep at least two copies in separate physical locations.' },
     { t: 'Install the verifier', d: 'Hand only the verifier (never the secret) to the server operator, who sets it in the server environment and restarts.' },
@@ -87,9 +85,6 @@ function SetupCard() {
         <div className="flex gap-2"><ShieldOff className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sidebar-primary" /> Setup sends only the verifier to the server. Unlocking later sends the credential over HTTPS; protect your device and check the site address.</div>
         <div className="flex gap-2"><ShieldOff className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sidebar-primary" /> No protected data is requested while unconfigured. Nothing you see here is fabricated.</div>
       </div>
-      <a href={KEYGEN} download data-testid="link-offline-keygen" className="mt-6 flex items-center justify-center gap-2 rounded-sm bg-sidebar-primary px-4 py-3 font-mono text-xs font-medium uppercase tracking-wider text-sidebar-primary-foreground hover:brightness-110 transition">
-        <Download className="h-4 w-4" /> Download offline key generator
-      </a>
     </div>
   );
 }
@@ -191,7 +186,7 @@ function UnlockCard() {
         <Fingerprint className="h-4 w-4" /> {pkOpts.isPending || pkVerify.isPending ? 'Waiting for authenticator' : 'Use enrolled passkey'}
       </button>
       {pkErr != null && <div className="mt-3"><ErrorPanel error={pkErr} title="Passkey sign-in failed" /></div>}
-      <p className="mt-5 text-center text-[11.5px] text-sidebar-foreground/45">Lost the keyfile? There is no reset link. Restore from your offline backup. <a href={KEYGEN} className="underline hover:text-sidebar-primary" data-testid="link-keygen-footer">Key generator</a></p>
+      <p className="mt-5 text-center text-[11.5px] text-sidebar-foreground/45">Lost the keyfile? There is no reset link. Restore from your offline backup.</p>
     </div>
   );
 }
