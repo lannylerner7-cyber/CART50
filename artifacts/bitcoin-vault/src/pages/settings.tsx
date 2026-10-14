@@ -104,7 +104,7 @@ function SecretField({ label, value, onChange, testId }: { label: string; value:
         <Button type="button" variant="outline" size="sm" className="h-9" onClick={() => ref.current?.click()} data-testid={`button-file-${testId}`}>File</Button>
         <input ref={ref} type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) f.text().then((t) => onChange(t.trim())); e.target.value = ''; }} />
       </div>
-      <span className={`font-mono text-[10px] ${CREDENTIAL_RE.test(value) ? 'text-ok' : 'text-muted-foreground'}`}>{value.length} / 219</span>
+      <span className={`font-mono text-[10px] ${CREDENTIAL_RE.test(value) ? 'text-ok' : 'text-muted-foreground'}`}>{value.length} / 86</span>
     </div>
   );
 }

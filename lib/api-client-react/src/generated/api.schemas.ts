@@ -29,8 +29,8 @@ export interface Session {
 
 export interface CredentialInput {
   /**
-     * @minLength 219
-     * @maxLength 219
+     * @minLength 86
+     * @maxLength 86
      */
   credential: string;
 }

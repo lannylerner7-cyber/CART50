@@ -5,9 +5,10 @@ import { credentialHash, equal } from "./auth";
 import { randomBytes, createHash } from "node:crypto";
 
 test("offline credential encoding and verifier match exactly", () => {
-  const bytes = randomBytes(164);
+  const bytes = randomBytes(64);
   assert.equal(credentialHash(bytes.toString("base64url")), createHash("sha256").update(bytes).digest("hex"));
   assert.throws(() => credentialHash("short"));
+  assert.throws(() => credentialHash(randomBytes(164).toString("base64url")));
   assert.equal(equal("x", "y"), false);
 });
 test("price alerts need a complete fresh reference window", () => {

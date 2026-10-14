@@ -11,6 +11,7 @@ export type Alert = {
 export type SessionRecord = { hash: string; csrf: string; expiresAt: string; createdAt: string };
 export type StoredPasskey = { id: string; name: string; createdAt: string; publicKey: string; counter: number; transports?: WebAuthnCredential["transports"] };
 export type State = {
+  authVersion?: number;
   credentialHash: string | null;
   sessions: SessionRecord[];
   passkeys: StoredPasskey[];
@@ -19,7 +20,7 @@ export type State = {
   settings: { sweepsPaused: boolean; feeRateCeiling: string; totalFeeCeilingSats: string; hotExposureLimitSats: string };
 };
 const initial = (): State => ({
-  credentialHash: null, sessions: [], passkeys: [], alerts: [], notifications: [],
+  authVersion: 2, credentialHash: null, sessions: [], passkeys: [], alerts: [], notifications: [],
   settings: { sweepsPaused: true, feeRateCeiling: "0", totalFeeCeilingSats: "0", hotExposureLimitSats: "0" },
 });
 let local: DatabaseSync | undefined;
@@ -52,11 +53,26 @@ async function readVersion(): Promise<{ version: number; state: State }> {
   if (!rows[0]) throw new Error("Metadata state missing");
   return { version: Number(rows[0].version), state: JSON.parse(String(rows[0].data)) };
 }
-export async function readState(): Promise<State> { return (await readVersion()).state; }
+function resetLegacyAccess(state: State) {
+  if (state.authVersion === 2) return;
+  // The old owner credential was exposed. Do not preserve sessions, rotated
+  // verifiers or passkeys that could have been enrolled using that credential.
+  state.credentialHash = null;
+  state.sessions = [];
+  state.passkeys = [];
+  state.authVersion = 2;
+}
+export async function readState(): Promise<State> {
+  const { state } = await readVersion();
+  if (state.authVersion === 2) return state;
+  await changeState(resetLegacyAccess);
+  return (await readVersion()).state;
+}
 // Optimistic CAS is also enforced in D1, not just in this process.
 export async function changeState<T>(fn: (state: State) => T): Promise<T> {
   for (let attempt = 0; attempt < 8; attempt++) {
     const { version, state } = await readVersion();
+    resetLegacyAccess(state);
     const result = fn(state);
     const changed = await query("UPDATE vault_state SET data=?,version=version+1 WHERE id=1 AND version=? RETURNING version", [JSON.stringify(state), version]);
     if (changed.length) return result;

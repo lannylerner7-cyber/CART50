@@ -3,7 +3,8 @@
 <title>Vault — Offline credential generator</title>
 <style>body{max-width:740px;margin:60px auto;padding:24px;background:#101712;color:#edf5ed;font:17px/1.6 system-ui}h1{font-size:36px}button,a{background:#c6f385;border:0;padding:14px 20px;border-radius:8px;color:#152311;font:inherit;cursor:pointer}textarea{display:block;width:100%;box-sizing:border-box;background:#202b24;color:inherit;padding:16px;min-height:100px;margin:20px 0;overflow-wrap:anywhere}small{color:#bbc8bb}section{border:1px solid #37463a;padding:24px;margin:24px 0;border-radius:12px}</style>
 <h1>Your vault. Your access key.</h1>
-<p>This tool generates <strong>164 cryptographically random bytes</strong>, encoded as 219 base64url characters. This is an access credential, not an AES encryption key or a Bitcoin seed.</p>
+<p>This tool generates <strong>64 cryptographically random bytes</strong>, encoded as 86 base64url characters. This is an access credential, not an AES encryption key or a Bitcoin seed.</p>
+<p>Replacing an exposed key: install this new verifier in Coolify and deploy the updated application. The updated app rejects old 164-byte keys and clears legacy sessions and passkeys on first access. Generating this file alone does not revoke anything on your server.</p>
 <section><h2>Use this file offline</h2><ol><li>Save this HTML file to your computer and disconnect from the internet.</li><li>Open the saved file locally. Generation is blocked on web-hosted copies.</li><li>Generate your key and save the keyfile manually in secure offline storage.</li><li>Install only the SHA-256 verifier in <code>VAULT_OWNER_VERIFIER</code> through your server's secrets manager. Never paste the key into chat.</li></ol>
 <button id="generate">Generate offline access key</button><p id="status" role="status"></p></section>
 <section id="output" hidden><h2>Save before closing</h2><p>No recovery email or password reset exists. Losing all access keys and passkeys can lock you out of the dashboard.</p><button id="download">Save private keyfile</button><label>Public verifier — install this on your server<textarea id="verifier" readonly></textarea></label><small>The key stays in this page's memory only. Closing the page discards it. Your verifier is not a login credential. Keep Bitcoin seeds and backup encryption keys separate.</small></section>
@@ -13,7 +14,7 @@ document.getElementById("generate").onclick=async()=>{
 const status=document.getElementById("status");
 if(location.protocol!=="file:"){status.textContent="Save this page as an HTML file, disconnect, and open it locally before generating.";return}
 if(!crypto?.getRandomValues||!crypto?.subtle){status.textContent="Use an up-to-date browser with local Web Crypto support.";return}
-const bytes=crypto.getRandomValues(new Uint8Array(164));
+const bytes=crypto.getRandomValues(new Uint8Array(64));
 secret=btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const hash=await crypto.subtle.digest("SHA-256",bytes);
 document.getElementById("verifier").value=Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,"0")).join("");

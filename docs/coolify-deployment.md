@@ -69,7 +69,7 @@ Never paste a login key, seed, RPC cookie or backup key in chat or commit it.
 | `PORT` | `3000` (image default) |
 | `BITCOIN_NETWORK` | `signet` (default); `regtest` only for isolated local tests |
 | `PUBLIC_ORIGIN` | `https://coin.scousgiftcardexchange.com` — no trailing slash |
-| `VAULT_OWNER_VERIFIER` | 64-character lowercase SHA-256 verifier from the offline generator; **not the 219-character login credential** |
+| `VAULT_OWNER_VERIFIER` | 64-character lowercase SHA-256 verifier from the offline generator; **not the 86-character login credential** |
 | `CF_ACCOUNT_ID` | Actual Cloudflare account ID |
 | `CF_D1_DATABASE_ID` | Actual dedicated D1 database UUID |
 | `CF_API_TOKEN` | Least-privilege runtime D1 API token |

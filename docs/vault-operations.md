@@ -28,7 +28,7 @@ are retained for reconciliation, not replaced automatically.
 ## Owner provisioning
 
 1. Download `/offline-keygen.html`, take it offline and open the saved file.
-2. Generate and manually save the 164-byte credential (219 base64url characters).
+2. Generate and manually save the 64-byte credential (86 base64url characters).
 3. Install **only its SHA-256 verifier** as `VAULT_OWNER_VERIFIER` through the
    deployment's secret manager. Never put the credential in source or chat.
 4. Set `PUBLIC_ORIGIN` to the exact HTTPS application origin. Restart the API.

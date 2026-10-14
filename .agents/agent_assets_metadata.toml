@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "rvFP054FGt1YQtN1JGzBi"
+uri = "file://artifacts/bitcoin-vault/public/offline-keygen.html"
+type = "html"
+title = "64-byte offline login-key generator"
+description = "Download and open offline to generate your new 86-character login key and its SHA-256 verifier. No secret is included in this file."
+logical_id = "9dd7a1ee-f759-4998-bd1b-3d4f4775b40a"
+content_hash = "sha256:1102ffcdc57e9ed88ed53a7ea10f9e1b5acf5cee09c85cf466ed2e4ff5289c09"
+size = 3706
+mtime_ms = 1791970039952
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/9dd7a1ee-f759-4998-bd1b-3d4f4775b40a/ae15de1f-302a-4481-81a4-8f6a790560a1"
+storage_version_token = "1791970144450518"
+content_type = "text/html"

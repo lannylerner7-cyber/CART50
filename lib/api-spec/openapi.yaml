@@ -1812,8 +1812,8 @@
         "properties": {
           "credential": {
             "type": "string",
-            "minLength": 219,
-            "maxLength": 219
+            "minLength": 86,
+            "maxLength": 86
           }
         },
         "required": [

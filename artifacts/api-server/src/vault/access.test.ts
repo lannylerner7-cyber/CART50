@@ -5,13 +5,26 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { AddressInfo } from "node:net";
+import { DatabaseSync } from "node:sqlite";
 
 test("owner unlock, origin/CSRF defenses, alert persistence and revocation", async () => {
   const temporary = mkdtempSync(join(tmpdir(), "vault-access-test-"));
-  const bytes = randomBytes(164);
+  const bytes = randomBytes(64);
+  // Never allow this test to touch the configured live D1 store.
+  delete process.env.CF_API_TOKEN;
+  delete process.env.CF_ACCOUNT_ID;
+  delete process.env.CF_D1_DATABASE_ID;
   process.env.VAULT_DATA_DIR = temporary;
   process.env.VAULT_OWNER_VERIFIER = createHash("sha256").update(bytes).digest("hex");
   process.env.PUBLIC_ORIGIN = "https://vault.test";
+  const seed = new DatabaseSync(join(temporary, "metadata.sqlite"));
+  seed.exec("CREATE TABLE vault_state (id INTEGER PRIMARY KEY, version INTEGER NOT NULL, data TEXT NOT NULL)");
+  seed.prepare("INSERT INTO vault_state VALUES(1,0,?)").run(JSON.stringify({
+    credentialHash: "legacy-verifier", sessions: [{ hash: "legacy-session" }],
+    passkeys: [{ id: "legacy-passkey" }], alerts: [], notifications: [],
+    settings: { sweepsPaused: true, feeRateCeiling: "42", totalFeeCeilingSats: "0", hotExposureLimitSats: "0" },
+  }));
+  seed.close();
   const { default: app } = await import("../app");
   const server = app.listen(0, "127.0.0.1");
   await new Promise<void>(r => server.once("listening", r));
@@ -23,8 +36,16 @@ test("owner unlock, origin/CSRF defenses, alert persistence and revocation", asy
   });
   try {
     assert.equal((await call("/dashboard")).status, 401);
+    const { readState } = await import("./store");
+    const migrated = await readState();
+    assert.equal(migrated.authVersion, 2);
+    assert.equal(migrated.credentialHash, null);
+    assert.deepEqual(migrated.sessions, []);
+    assert.deepEqual(migrated.passkeys, []);
+    assert.equal(migrated.settings.feeRateCeiling, "42");
     assert.equal((await call("/passkeys/options", "POST", {})).status, 401);
-    assert.equal((await call("/login", "POST", {credential: randomBytes(164).toString("base64url")})).status, 401);
+    assert.equal((await call("/login", "POST", {credential: randomBytes(164).toString("base64url")})).status, 400);
+    assert.equal((await call("/login", "POST", {credential: randomBytes(64).toString("base64url")})).status, 401);
     const login = await call("/login", "POST", {credential: bytes.toString("base64url")});
     assert.equal(login.status, 200);
     const setCookie = login.headers.get("set-cookie")!;

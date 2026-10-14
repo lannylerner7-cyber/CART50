@@ -21,8 +21,8 @@ export const GetVaultSessionResponse = zod.object({
 })
 
 
-export const unlockVaultBodyCredentialMin = 219;
-export const unlockVaultBodyCredentialMax = 219;
+export const unlockVaultBodyCredentialMin = 86;
+export const unlockVaultBodyCredentialMax = 86;
 
 
 

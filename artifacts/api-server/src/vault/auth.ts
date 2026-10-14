@@ -7,9 +7,9 @@ export class HttpError extends Error {
 }
 export const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 export function credentialHash(value: string): string {
-  if (!/^[A-Za-z0-9_-]{219}$/.test(value)) throw new HttpError(400, "Use the 219-character credential from your offline keyfile");
+  if (!/^[A-Za-z0-9_-]{86}$/.test(value)) throw new HttpError(400, "Use the 86-character credential from your new offline keyfile");
   const bytes = Buffer.from(value, "base64url");
-  if (bytes.length !== 164 || bytes.toString("base64url") !== value) throw new HttpError(400, "Invalid keyfile encoding");
+  if (bytes.length !== 64 || bytes.toString("base64url") !== value) throw new HttpError(400, "Invalid keyfile encoding");
   return createHash("sha256").update(bytes).digest("hex");
 }
 export function equal(a: string, b: string): boolean {

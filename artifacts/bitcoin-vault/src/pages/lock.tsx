@@ -29,7 +29,7 @@ export default function LockScreen({ session }: { session: Session }) {
           </h1>
           <p className="mt-6 max-w-md text-[15px] leading-relaxed text-sidebar-foreground/70">
             {session.configured
-              ? 'Present the 164-byte offline secret to open this control room. The secret is checked once, never stored in this browser, and exchanged for a short-lived session.'
+              ? 'Present the 64-byte offline secret to open this control room. The secret is checked once, never stored in this browser, and exchanged for a short-lived session.'
               : 'This vault has not been bound to an owner. Setup happens offline and server-side: there is no public enrollment, and nothing behind this screen will load until the operator installs your verifier.'}
           </p>
           <div className="mt-8 flex flex-wrap gap-2 font-mono text-[10.5px] uppercase tracking-wider">
@@ -60,7 +60,7 @@ export default function LockScreen({ session }: { session: Session }) {
 function SetupCard() {
   const steps = [
     { t: 'Go offline', d: 'Download the generator below, move it to an air-gapped machine, then disconnect networking.' },
-    { t: 'Generate the secret', d: 'Open offline-keygen.html in a browser. It draws 164 random bytes and emits a 219-character base64url keyfile plus its verifier.' },
+    { t: 'Generate the secret', d: 'Open offline-keygen.html in a browser. It draws 64 random bytes and emits an 86-character base64url keyfile plus its verifier.' },
     { t: 'Store the keyfile', d: 'Save the keyfile to removable media. Keep at least two copies in separate physical locations.' },
     { t: 'Install the verifier', d: 'Hand only the verifier (never the secret) to the server operator, who sets it in the server environment and restarts.' },
   ];
@@ -115,7 +115,7 @@ function UnlockCard() {
   const valid = CREDENTIAL_RE.test(secret);
 
   const submit = () => {
-    if (!valid) { setLocalErr('Secret must be exactly 219 base64url characters.'); return; }
+    if (!valid) { setLocalErr('Secret must be exactly 86 base64url characters.'); return; }
     setLocalErr(null);
     unlock.mutate({ data: { credential: secret } }, { onSuccess: onSession, onError: () => setSecret('') });
   };
@@ -125,7 +125,7 @@ function UnlockCard() {
     f.text().then((t) => {
       const v = t.trim();
       setSecret(v);
-      setLocalErr(CREDENTIAL_RE.test(v) ? null : `Keyfile content is ${v.length} characters; expected 219 base64url characters.`);
+      setLocalErr(CREDENTIAL_RE.test(v) ? null : `Keyfile content is ${v.length} characters; expected 86 base64url characters.`);
     });
   };
 
@@ -162,17 +162,17 @@ function UnlockCard() {
         >
           {fileName ? <FileKey2 className="h-6 w-6" /> : <Upload className="h-6 w-6" />}
           <span className="font-mono text-xs">{fileName ?? 'Drop keyfile or click to choose'}</span>
-          {fileName && <span className="font-mono text-[10px] opacity-70">{secret.length} / 219 chars {valid ? 'valid' : ''}</span>}
+          {fileName && <span className="font-mono text-[10px] opacity-70">{secret.length} / 86 chars {valid ? 'valid' : ''}</span>}
           <input ref={fileRef} type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) readFile(f); e.target.value = ''; }} />
         </button>
       ) : (
         <div className="mt-4">
           <Input type="password" autoComplete="off" spellCheck={false} value={secret} onChange={(e) => setSecret(e.target.value.trim())}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
-            placeholder="219-character base64url secret" data-testid="input-secret"
+            placeholder="86-character base64url secret" data-testid="input-secret"
             className="h-11 border-sidebar-border bg-sidebar font-mono text-sm text-sidebar-accent-foreground placeholder:text-sidebar-foreground/30" />
           <div className="mt-1.5 flex justify-between font-mono text-[10px] text-sidebar-foreground/50">
-            <span>held in memory only</span><span className={valid ? 'text-ok' : ''}>{secret.length} / 219</span>
+            <span>held in memory only</span><span className={valid ? 'text-ok' : ''}>{secret.length} / 86</span>
           </div>
         </div>
       )}

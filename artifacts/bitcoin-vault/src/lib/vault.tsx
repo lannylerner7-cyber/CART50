@@ -97,7 +97,7 @@ export function remaining(iso: string | null | undefined): { label: string; ms: 
   return { label: `${h}h ${String(m).padStart(2, '0')}m`, ms };
 }
 
-export const CREDENTIAL_RE = /^[A-Za-z0-9_-]{219}$/;
+export const CREDENTIAL_RE = /^[A-Za-z0-9_-]{86}$/;
 
 export function short(s: string | null | undefined, n = 8): string {
   if (!s) return '—';
