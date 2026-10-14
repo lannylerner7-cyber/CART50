@@ -1,0 +1,94 @@
+2026-Oct-14 17:27:45
+Docker 29.8.1 with BuildKit and Buildx detected on deployment server (localhost).
+2026-Oct-14 17:27:45
+Starting deployment of c-a-r-t50:main-je5fsvwg7dsmcahtscu8wel0 to localhost.
+2026-Oct-14 17:27:46
+Preparing container with helper image: docker.io/coollabsio/coolify-helper:1.0.17
+2026-Oct-14 17:27:46
+[CMD]: docker stop --timeout=30 'dszj3nebmncgu1juox9dznyv'
+2026-Oct-14 17:27:46
+Error response from daemon: No such container: dszj3nebmncgu1juox9dznyv
+2026-Oct-14 17:27:46
+[CMD]: docker run -d --network 'coolify' --name dszj3nebmncgu1juox9dznyv  --rm -v /root/.docker/buildx:/root/.docker/buildx -v /var/run/docker.sock:/var/run/docker.sock docker.io/coollabsio/coolify-helper:1.0.17
+2026-Oct-14 17:27:46
+6b889661f26b96c1481999a6c99c9d1f5f4dfa0f8d45bf8ef37666d659625d48
+2026-Oct-14 17:27:47
+[CMD]: docker exec dszj3nebmncgu1juox9dznyv bash -c 'GIT_SSH_COMMAND="ssh -o ConnectTimeout=30 -p 22 -o Port=22 -o LogLevel=ERROR -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" git ls-remote '\''https://github.com/lannylerner7-cyber/CART50'\'' '\''refs/heads/main'\'''
+2026-Oct-14 17:27:47
+6fd30bf6ea4e3b27b2d7b18da320fb292dfd0939	refs/heads/main
+2026-Oct-14 17:27:47
+----------------------------------------
+2026-Oct-14 17:27:47
+Importing lannylerner7-cyber/CART50:main (commit sha 6fd30bf6ea4e3b27b2d7b18da320fb292dfd0939) to /artifacts/dszj3nebmncgu1juox9dznyv.
+2026-Oct-14 17:27:47
+[CMD]: docker exec dszj3nebmncgu1juox9dznyv bash -c 'git clone --depth=1 --recurse-submodules --shallow-submodules -b '\''main'\'' '\''https://github.com/lannylerner7-cyber/CART50'\'' '\''/artifacts/dszj3nebmncgu1juox9dznyv'\'' && cd '\''/artifacts/dszj3nebmncgu1juox9dznyv'\'' && GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" git fetch --depth=1 origin '\''6fd30bf6ea4e3b27b2d7b18da320fb292dfd0939'\'' && git -c advice.detachedHead=false checkout '\''6fd30bf6ea4e3b27b2d7b18da320fb292dfd0939'\'' >/dev/null 2>&1 && cd '\''/artifacts/dszj3nebmncgu1juox9dznyv'\'' && if [ -f .gitmodules ]; then sed -i "s#[A-Za-z0-9._-]*@\(.*\):#https://\1/#g" '\''/artifacts/dszj3nebmncgu1juox9dznyv'\''/.gitmodules || true && git submodule sync && GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" git submodule update --init --recursive --depth=1; fi && cd '\''/artifacts/dszj3nebmncgu1juox9dznyv'\'' && GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" git lfs pull'
+2026-Oct-14 17:27:47
+Cloning into '/artifacts/dszj3nebmncgu1juox9dznyv'...
+2026-Oct-14 17:27:47
+From https://github.com/lannylerner7-cyber/CART50
+2026-Oct-14 17:27:47
+* branch            6fd30bf6ea4e3b27b2d7b18da320fb292dfd0939 -> FETCH_HEAD
+2026-Oct-14 17:27:48
+[CMD]: docker exec dszj3nebmncgu1juox9dznyv bash -c 'cd /artifacts/dszj3nebmncgu1juox9dznyv && git log -1 '\''6fd30bf6ea4e3b27b2d7b18da320fb292dfd0939'\'' --pretty=%B'
+2026-Oct-14 17:27:48
+Remove temporary Signet setup shortcuts after owner setup
+2026-Oct-14 17:27:50
+Dockerfile not found for service bitcoin-core at ../deploy/bitcoin-core.Dockerfile, skipping ARG injection.
+2026-Oct-14 17:27:50
+Dockerfile not found for service vault-engine at ../deploy/vault-engine.Dockerfile, skipping ARG injection.
+2026-Oct-14 17:27:50
+Pulling & building required images.
+2026-Oct-14 17:27:50
+Creating build-time .env file in /artifacts (outside Docker context).
+2026-Oct-14 17:27:50
+Adding build arguments to Docker Compose build command.
+2026-Oct-14 17:27:50
+[CMD]: docker exec dszj3nebmncgu1juox9dznyv bash -c 'DOCKER_BUILDKIT=1 COOLIFY_BRANCH='\''main'\'' COOLIFY_RESOURCE_UUID='\''fxiay1wq40jj4qatcnkk4lyl'\''  docker compose --env-file /artifacts/build-time.env --project-name fxiay1wq40jj4qatcnkk4lyl --project-directory /artifacts/dszj3nebmncgu1juox9dznyv -f /artifacts/dszj3nebmncgu1juox9dznyv/deploy/coolify-bitcoin.compose.yaml build --pull --build-arg '\''COOLIFY_FQDN'\'' --build-arg '\''COOLIFY_NETWORK'\'' --build-arg '\''COLD_DESCRIPTOR_SHA256'\'' --build-arg '\''COLD_DESCRIPTOR'\'' --build-arg '\''VAULT_ENGINE_TOKEN'\'' --build-arg '\''COOLIFY_BUILD_SECRETS_HASH=60d2add663211059bc5e62e0f0f10a2e1f0e897ccd6c8d8193a65796a7cdd6ba'\'''
+2026-Oct-14 17:27:50
+Image fxiay1wq40jj4qatcnkk4lyl_vault-engine:6fd30bf6ea4e3b27b2d7b18da320fb292dfd0939 Building
+2026-Oct-14 17:27:50
+Image fxiay1wq40jj4qatcnkk4lyl_bitcoin-core:6fd30bf6ea4e3b27b2d7b18da320fb292dfd0939 Building
+2026-Oct-14 17:27:50
+#1 [internal] load local bake definitions
+2026-Oct-14 17:27:51
+#1 reading from stdin 2.35kB done
+2026-Oct-14 17:27:51
+#1 DONE 0.0s
+2026-Oct-14 17:27:51
+resolve : lstat /artifacts/deploy: no such file or directory
+2026-Oct-14 17:27:51
+========================================
+2026-Oct-14 17:27:51
+Deployment failed: Command execution failed (exit code 1): docker exec dszj3nebmncgu1juox9dznyv bash -c 'DOCKER_BUILDKIT=1 COOLIFY_BRANCH='\''main'\'' COOLIFY_RESOURCE_UUID='\''fxiay1wq40jj4qatcnkk4lyl'\''  docker compose --env-file /artifacts/build-time.env --project-name fxiay1wq40jj4qatcnkk4lyl --project-directory /artifacts/dszj3nebmncgu1juox9dznyv -f /artifacts/dszj3nebmncgu1juox9dznyv/deploy/coolify-bitcoin.compose.yaml build --pull --build-arg '\''COOLIFY_FQDN'\'' --build-arg '\''COOLIFY_NETWORK'\'' --build-arg '\''COLD_DESCRIPTOR_SHA256'\'' --build-arg '\''COLD_DESCRIPTOR'\'' --build-arg '\''VAULT_ENGINE_TOKEN'\'' --build-arg '\''COOLIFY_BUILD_SECRETS_HASH=60d2add663211059bc5e62e0f0f10a2e1f0e897ccd6c8d8193a65796a7cdd6ba'\'''
+2026-Oct-14 17:27:51
+Error:  Image fxiay1wq40jj4qatcnkk4lyl_vault-engine:6fd30bf6ea4e3b27b2d7b18da320fb292dfd0939 Building
+2026-Oct-14 17:27:51
+Image fxiay1wq40jj4qatcnkk4lyl_bitcoin-core:6fd30bf6ea4e3b27b2d7b18da320fb292dfd0939 Building
+2026-Oct-14 17:27:51
+resolve : lstat /artifacts/deploy: no such file or directory
+2026-Oct-14 17:27:51
+Error type: App\Exceptions\DeploymentException
+2026-Oct-14 17:27:51
+Error code: 1
+2026-Oct-14 17:27:51
+Location: /var/www/html/app/Traits/ExecuteRemoteCommand.php:251
+2026-Oct-14 17:27:51
+Stack trace (first 5 lines):
+2026-Oct-14 17:27:51
+#0 /var/www/html/app/Traits/ExecuteRemoteCommand.php(123): App\Jobs\ApplicationDeploymentJob->executeCommandWithProcess()
+2026-Oct-14 17:27:51
+#1 /var/www/html/vendor/laravel/framework/src/Illuminate/Collections/Traits/EnumeratesValues.php(275): App\Jobs\ApplicationDeploymentJob->{closure:App\Traits\ExecuteRemoteCommand::execute_remote_command():87}()
+2026-Oct-14 17:27:51
+#2 /var/www/html/app/Traits/ExecuteRemoteCommand.php(87): Illuminate\Support\Collection->each()
+2026-Oct-14 17:27:51
+#3 /var/www/html/app/Jobs/ApplicationDeploymentJob.php(923): App\Jobs\ApplicationDeploymentJob->execute_remote_command()
+2026-Oct-14 17:27:51
+#4 /var/www/html/app/Jobs/ApplicationDeploymentJob.php(598): App\Jobs\ApplicationDeploymentJob->deploy_docker_compose_buildpack()
+2026-Oct-14 17:27:51
+========================================
+2026-Oct-14 17:27:51
+Gracefully shutting down build container: dszj3nebmncgu1juox9dznyv
+2026-Oct-14 17:27:51
+[CMD]: docker stop --timeout=30 'dszj3nebmncgu1juox9dznyv'
+2026-Oct-14 17:27:51
+dszj3nebmncgu1juox9dznyv
