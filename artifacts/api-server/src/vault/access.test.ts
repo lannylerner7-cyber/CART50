@@ -61,6 +61,15 @@ test("owner unlock, origin/CSRF defenses, alert persistence and revocation", asy
     assert.equal((await (await call("/alerts")).json() as unknown[]).length, 1);
     assert.equal((await call(`/alerts/${alert.id}`, "DELETE")).status, 200);
     assert.equal((await (await call("/alerts")).json() as unknown[]).length, 0);
+    const logout = await call("/logout", "POST", {});
+    assert.equal(logout.status, 200);
+    assert.match(logout.headers.get("set-cookie") ?? "", /__Host-vault_session=;/);
+    assert.equal((await call("/dashboard")).status, 401);
+    assert.equal((await readState()).sessions.length, 0);
+    const relogin = await call("/login", "POST", {credential: bytes.toString("base64url")});
+    assert.equal(relogin.status, 200);
+    cookie = relogin.headers.get("set-cookie")!.split(";")[0]!;
+    csrf = (await relogin.json() as {csrfToken:string}).csrfToken;
     assert.equal((await call("/security/revoke", "POST", {})).status, 200);
     assert.equal((await call("/dashboard")).status, 401);
   } finally {

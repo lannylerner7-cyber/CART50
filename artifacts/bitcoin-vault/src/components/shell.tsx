@@ -39,11 +39,12 @@ export function Shell({ children }: { children: ReactNode }) {
 
   const doLock = () =>
     lock.mutate(undefined, {
-      onSettled: (_d, e) => {
-        if (e) toast({ title: 'Lock request failed', description: errMsg(e), variant: 'destructive' });
+      onSuccess: () => {
         setCsrfToken(null);
         qc.clear();
+        setOpen(false);
       },
+      onError: (e) => toast({ title: 'Logout failed — please retry', description: errMsg(e), variant: 'destructive' }),
     });
 
   const isActive = (href: string) => (href === '/' ? location === '/' : location.startsWith(href));
@@ -84,7 +85,7 @@ export function Shell({ children }: { children: ReactNode }) {
         data-testid="button-lock"
         className="flex w-full items-center justify-center gap-2 rounded-full bg-card px-3 py-2.5 text-[13px] font-bold shadow-sm transition-transform active:scale-[0.98] disabled:opacity-50"
       >
-        <Lock className="h-4 w-4" /> {lock.isPending ? 'Locking' : 'Lock vault'}
+        <Lock className="h-4 w-4" /> {lock.isPending ? 'Logging out…' : 'Logout'}
       </button>
     </div>
   );
@@ -104,7 +105,7 @@ export function Shell({ children }: { children: ReactNode }) {
         <Brand />
         <div className="flex items-center gap-2">
           <NetworkBadge network={session.network} className="text-[10px]" />
-          <button onClick={doLock} disabled={lock.isPending} aria-label="Lock vault" data-testid="button-lock-mobile" className="grid h-9 w-9 place-items-center rounded-full bg-card shadow-sm"><Lock className="h-4 w-4" /></button>
+          <button onClick={doLock} disabled={lock.isPending} aria-label="Logout" data-testid="button-lock-mobile" className="flex min-h-10 items-center gap-1 rounded-full bg-card px-3 text-xs font-semibold shadow-sm"><Lock className="h-4 w-4" />{lock.isPending ? 'Logging out…' : 'Logout'}</button>
         </div>
       </div>
 
