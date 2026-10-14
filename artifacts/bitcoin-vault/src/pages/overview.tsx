@@ -8,6 +8,7 @@ import { useGetVaultDashboard, getGetVaultDashboardQueryKey, type Wallet } from 
 import { Btc, Empty, ErrorPanel, Panel, Pill, Skel, Stat, statusTone } from '@/components/kit';
 import { POLL_MS, ago, remaining, short, toBig } from '@/lib/vault';
 import { cn } from '@/lib/utils';
+import { SignetSetupLink } from '@/components/signet-setup-link';
 
 function sumKind(ws: Wallet[], kind: string) {
   return ws.filter((w) => w.kind === kind).reduce((a, w) => a + toBig(w.confirmedSats), 0n);
@@ -26,6 +27,7 @@ export default function Overview() {
 
   return (
     <div className="space-y-6">
+      <SignetSetupLink />
       {q.isError && <ErrorPanel error={q.error} onRetry={() => q.refetch()} title="Dashboard unavailable" />}
       {q.isLoading && <div className="grid gap-4"><Skel className="h-72" /><Skel className="h-64" /></div>}
 
