@@ -1,0 +1,73 @@
+# New, private resource; DO NOT replace the existing website deployment.
+# Repository root build context. No public domains or host port mappings.
+services:
+  bitcoin-core:
+    build:
+      context: ..
+      dockerfile: deploy/bitcoin-core.Dockerfile
+    platform: linux/amd64
+    restart: unless-stopped
+    stop_grace_period: 2m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    labels:
+      traefik.enable: "false"
+    volumes:
+      - bitcoin-data:/var/lib/bitcoin
+      - bitcoin-cookie:/run/bitcoin
+    networks:
+      - rpc
+      - core-egress
+    healthcheck:
+      test: ["CMD-SHELL", "bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf getblockchaininfo >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  vault-engine:
+    build:
+      context: ..
+      dockerfile: deploy/vault-engine.Dockerfile
+    platform: linux/amd64
+    restart: unless-stopped
+    stop_grace_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    labels:
+      traefik.enable: "false"
+    depends_on:
+      bitcoin-core:
+        condition: service_healthy
+    environment:
+      BITCOIN_NETWORK: signet
+      ENGINE_LISTEN: 0.0.0.0:9090
+      ENGINE_DATA_DIR: /var/lib/personal-vault
+      VAULT_ENGINE_TOKEN: ${VAULT_ENGINE_TOKEN:?}
+      BTC_RPC_URL: http://bitcoin-core:38332
+      BTC_RPC_COOKIE_FILE: /run/bitcoin/.cookie
+      COLD_DESCRIPTOR: ${COLD_DESCRIPTOR:?}
+      COLD_DESCRIPTOR_SHA256: ${COLD_DESCRIPTOR_SHA256:?}
+    volumes:
+      - signer-data:/var/lib/personal-vault
+      - bitcoin-cookie:/run/bitcoin:ro
+    networks:
+      - rpc
+      - app-network
+
+volumes:
+  bitcoin-data:
+  bitcoin-cookie:
+  signer-data:
+
+networks:
+  rpc:
+    internal: true
+  core-egress:
+  app-network:
+    external: true
+    name: ${COOLIFY_NETWORK:?}

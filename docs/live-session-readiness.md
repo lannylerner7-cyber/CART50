@@ -19,6 +19,10 @@
   revoked logout, cookie clearing, and origin/CSRF rejection.
 - Client cache regression passed: delayed successful session/wallet responses
   cannot restore unlocked state after cancellation.
+- The new Bitcoin Core container built successfully and passed an isolated,
+  network-disabled startup check: non-root UID 10001, Signet chain, cookie
+  authentication at the configured shared path, and graceful shutdown. It did
+  not synchronize with peers or commission the user's host.
 - Authenticated browser checks are pending until the commissioning scope is ready
   for its single final test pass. No owner credential was used in these tests.
 - No new GitHub push or Coolify rollout has been performed.
@@ -28,8 +32,10 @@
 The public Coolify domain responds and advertises configured owner access on
 Signet. This proves web/API availability, not node, signing or recovery readiness.
 No signer URL/token, market Worker URL or Coolify management connection is
-configured in the current workspace. This does not prove those services are
-absent on the user's server; their inventory and authorized access remain needed.
+configured in the current workspace. The operator subsequently reported no
+Bitcoin services deployed. A private-service compose configuration and setup
+guide are now prepared in `docs/coolify-bitcoin-setup.md`; host deployment and
+authorized access remain outstanding.
 
 Required operator inventory:
 
