@@ -8,7 +8,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
+    "@scure/bip32": "2.4.0",
     "@types/node": "catalog:",
+    "esbuild": "0.25.12",
     "tsx": "catalog:"
   }
 }

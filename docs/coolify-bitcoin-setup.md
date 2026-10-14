@@ -24,6 +24,17 @@ migration, production wallet deletion or automatic deploy is part of this setup.
 
 ## Coolify resource
 
+For a disposable Signet test wallet only, `node scripts/build-signet-generator.mjs`
+builds a self-contained offline HTML generator in
+`generated-artifacts/signet-setup.html`. Download it, disconnect and open locally
+on a computer. It generates a separate signer token, public ranged descriptor,
+its SHA-256 fingerprint, and an **unencrypted private test-wallet backup** kept
+only on the operator's device. Save that backup offline and never upload it to
+Coolify. This is not a production cold-wallet setup. Enter the actual website
+Docker network name; the generator cannot discover a remote server's network.
+Only public deterministic test vectors were used to verify its descriptors with
+Bitcoin Core; the operator must still verify their own recovery.
+
 1. Add a **new Git-based Docker Compose application** using the existing repo.
    Base directory: repository root. Compose file:
    `/deploy/coolify-bitcoin.compose.yaml`.

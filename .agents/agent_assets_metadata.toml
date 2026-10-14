@@ -14,6 +14,7 @@ mtime_ms = 1791970039952
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/9dd7a1ee-f759-4998-bd1b-3d4f4775b40a/ae15de1f-302a-4481-81a4-8f6a790560a1"
 storage_version_token = "1791970144450518"
 content_type = "text/html"
+
 [[outputs]]
 id = "JfF5zxKalV-FNsj6YrV39"
 uri = "file://docs/vault-completion-plan.md"
@@ -27,3 +28,17 @@ mtime_ms = 1791870992244
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/26dcffe8-7a3b-441b-9aeb-ee259ee55361/a9d2d5f7-d864-49fd-990a-e7ab9eb95e7b"
 storage_version_token = "1791871005978678"
 content_type = "text/markdown"
+
+[[outputs]]
+id = "dFdrVcLhafiUDftSMvDYj"
+uri = "file://generated-artifacts/signet-setup.html"
+type = "html"
+title = "Offline Signet deployment-variable generator"
+description = "Download and open locally on a computer. Generates the signer token, test-wallet public descriptor and fingerprint. Requires your actual Docker network name. Signet test coins only; save the private backup offline."
+logical_id = "e58a71d7-099a-46dd-89ad-86bf467147a8"
+content_hash = "sha256:fa62ff80925fef706515294508e9c5098890c68a67934dc5d7f19b64d10a3f2a"
+size = 64349
+mtime_ms = 1791984376165
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/e58a71d7-099a-46dd-89ad-86bf467147a8/e552725f-f152-4ec3-81d0-547b1e7b2d77"
+storage_version_token = "1791984413698456"
+content_type = "text/html"
