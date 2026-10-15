@@ -54,9 +54,11 @@ the signer's 32 admitted requests. These are protection limits, not performance 
 
 The inspected host root volume and pre-expansion snapshot are unencrypted.
 Its expansion to 100 GiB resolves immediate space pressure, not encryption.
-The Compose file binds the prepared encrypted disk's `bitcoin`, `signer` and
-`cookie` directories under `/mnt/vault-mainnet`. All bind mounts explicitly set
-`create_host_path: false`; the signer's cookie mount is read-only. Docker does not
+The Compose file uses local-driver named volumes with `type: none`, `o: bind`,
+and explicit devices pointing to the prepared encrypted disk's `bitcoin`,
+`signer` and `cookie` directories under `/mnt/vault-mainnet`. These are bind views
+of existing data, not new wallet storage. The signer's cookie reference ends
+in `:ro`. Docker does not
 add encryption: verify the EBS volume encryption and mounted filesystem UUID
 before deploying, and retain independently encrypted offline backups before
 commissioning real funds. Moving existing storage or replacing a root
@@ -66,6 +68,10 @@ or attach Signet wallet volumes to mainnet.
 Create a **separate** Coolify Compose resource using:
 
 - Base directory `/`, file `/deploy/coolify-mainnet.compose.yaml`.
+- **Advanced → Raw Compose Deployment enabled.** Normal parsing can discard
+  long-form bind options and rewrite volume definitions. Raw mode also attempts
+  to create service-level bind directories, which is why this file deliberately
+  uses local-driver named volumes rather than service-level host binds.
 - Runtime `ALLOW_MAINNET=true` only after reviewing custody/recovery requirements.
 - Runtime `MAINNET_ENGINE_TOKEN`: independently generated mainnet service token.
 - Runtime `COOLIFY_NETWORK`: verified existing website network.
@@ -76,12 +82,23 @@ host directories and a distinct private `vault-mainnet-engine` hostname.
 The owner verified the filesystem mount and prepared all three directories with
 owner/group 10001:10001 and mode 0700. Keep the underlying root-disk mountpoint
 empty: never create these directories while the encrypted disk is unmounted.
-Without the mounted disk, the missing bind sources prevent container startup;
-there is no named-volume or automatic-directory fallback. This is not an
+Without the mounted disk, the local driver fails to mount the missing source
+directories; it does not create them or fall back to ordinary named-volume data.
+This is not an
 encryption detector: manually placing substitute directories on the root disk
 would defeat the missing-path check. A missing disk at boot may require manually
 starting the stack after restoring the mount. Do not unmount a live wallet disk.
 No host reboot or hosted missing-disk drill has yet been performed.
+
+When moving an existing parsed-mode deployment to raw mode, first stop ONLY the
+mainnet resource (do not delete it or remove volumes), enable raw mode, reload
+the current repository Compose file, then deploy. This avoids leaving an old
+signer running against the same data. The same encrypted host paths are reused,
+so synchronization resumes from saved blocks after the brief interruption.
+Keep domains and published ports empty. Verify the signer cookie Mounts entry
+reports RW=false, and inspect each named volume's Options.device to confirm its
+encrypted host path; its Docker Mountpoint alone may look like root-disk storage.
+Do not prune/delete these volumes or the underlying host directories.
 The signer pins its network in the journal; mismatches and legacy populated
 journals proposed for mainnet are rejected.
 

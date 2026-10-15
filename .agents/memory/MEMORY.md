@@ -6,3 +6,4 @@
 - [Health replication](health-replication.md) — bounded snapshot semantics, durable acknowledgement and connector upload limitation.
 - [Container verification](container-verification.md) — isolated run-based probes avoid workspace exec restrictions and hidden build-tree dependencies.
 - [Production scope](production-scope.md) — real-BTC receiving/sending first; public API and rate limits only afterward.
+- [Coolify mount parsing](coolify-mount-parsing.md) — normal parsing lost bind safeguards; raw mode also creates host paths, so verify live Docker mounts.

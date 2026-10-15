@@ -1,5 +1,7 @@
 # NEW resource only. Never replace or attach the Signet wallet volumes.
 # Repository root is the Coolify --project-directory.
+# REQUIRED: enable Raw Compose Deployment in Coolify.
+# Local-driver bind volumes avoid Coolify creating missing host bind directories.
 services:
   bitcoin-mainnet:
     build:
@@ -11,18 +13,10 @@ services:
     security_opt: ["no-new-privileges:true"]
     cap_drop: ["ALL"]
     labels:
-      traefik.enable: "false"
+      - traefik.enable=false
     volumes:
-      - type: bind
-        source: /mnt/vault-mainnet/bitcoin
-        target: /var/lib/bitcoin
-        bind:
-          create_host_path: false
-      - type: bind
-        source: /mnt/vault-mainnet/cookie
-        target: /run/bitcoin
-        bind:
-          create_host_path: false
+      - mainnet-encrypted-bitcoin:/var/lib/bitcoin
+      - mainnet-encrypted-cookie:/run/bitcoin
     networks: [mainnet-rpc, mainnet-egress]
     healthcheck:
       test: ["CMD-SHELL", "bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf getblockchaininfo >/dev/null 2>&1"]
@@ -40,7 +34,7 @@ services:
     security_opt: ["no-new-privileges:true"]
     cap_drop: ["ALL"]
     labels:
-      traefik.enable: "false"
+      - traefik.enable=false
     depends_on:
       bitcoin-mainnet:
         condition: service_healthy
@@ -54,18 +48,28 @@ services:
       BTC_RPC_URL: http://bitcoin-mainnet:8332
       BTC_RPC_COOKIE_FILE: /run/bitcoin/.cookie
     volumes:
-      - type: bind
-        source: /mnt/vault-mainnet/signer
-        target: /var/lib/personal-vault
-        bind:
-          create_host_path: false
-      - type: bind
-        source: /mnt/vault-mainnet/cookie
-        target: /run/bitcoin
-        read_only: true
-        bind:
-          create_host_path: false
+      - mainnet-encrypted-signer:/var/lib/personal-vault
+      - mainnet-encrypted-cookie:/run/bitcoin:ro
     networks: [mainnet-rpc, app-network]
+volumes:
+  mainnet-encrypted-bitcoin:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/vault-mainnet/bitcoin
+  mainnet-encrypted-cookie:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/vault-mainnet/cookie
+  mainnet-encrypted-signer:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /mnt/vault-mainnet/signer
 networks:
   mainnet-rpc:
     internal: true
