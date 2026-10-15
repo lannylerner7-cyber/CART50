@@ -13,8 +13,16 @@ services:
     labels:
       traefik.enable: "false"
     volumes:
-      - mainnet-bitcoin-data:/var/lib/bitcoin
-      - mainnet-bitcoin-cookie:/run/bitcoin
+      - type: bind
+        source: /mnt/vault-mainnet/bitcoin
+        target: /var/lib/bitcoin
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /mnt/vault-mainnet/cookie
+        target: /run/bitcoin
+        bind:
+          create_host_path: false
     networks: [mainnet-rpc, mainnet-egress]
     healthcheck:
       test: ["CMD-SHELL", "bitcoin-cli -conf=/etc/bitcoin/bitcoin.conf getblockchaininfo >/dev/null 2>&1"]
@@ -46,13 +54,18 @@ services:
       BTC_RPC_URL: http://bitcoin-mainnet:8332
       BTC_RPC_COOKIE_FILE: /run/bitcoin/.cookie
     volumes:
-      - mainnet-signer-data:/var/lib/personal-vault
-      - mainnet-bitcoin-cookie:/run/bitcoin:ro
+      - type: bind
+        source: /mnt/vault-mainnet/signer
+        target: /var/lib/personal-vault
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /mnt/vault-mainnet/cookie
+        target: /run/bitcoin
+        read_only: true
+        bind:
+          create_host_path: false
     networks: [mainnet-rpc, app-network]
-volumes:
-  mainnet-bitcoin-data:
-  mainnet-bitcoin-cookie:
-  mainnet-signer-data:
 networks:
   mainnet-rpc:
     internal: true

@@ -278,14 +278,21 @@ existing root disk. Owner screenshots now verify the new 100 GiB gp3 volume is
 encrypted with aws/ebs, attached as /dev/xvdf, formatted as ext4 and mounted at
 /mnt/vault-mainnet. UUID-based fstab validation after systemd reload reports no
 errors or warnings. Mount output confirms /dev/xvdf and ext4; approximately 93 GiB
-is available. Reboot persistence has not been exercised. Mainnet data directories
-and container mounts are the next unverified steps.
+is available. Reboot persistence has not been exercised. Owner output verifies
+bitcoin, signer and cookie directories each have numeric owner/group 10001:10001
+and mode 0700. The initial install command rejected the owner argument; separate
+mkdir, explicitly numeric chown and chmod commands succeeded.
 
-The already-pushed mainnet Compose file still uses default local named volumes.
-Do not deploy funded wallets with those defaults: explicit encrypted-storage
-mounts and their startup behavior must be configured and verified first. Existing
-root storage and Signet data remain unchanged. This choice does not encrypt the
-root disk or the previous snapshot, and it does not replace independent backups.
+Mainnet Compose now uses explicit bind mounts for those encrypted-disk
+directories, all with create_host_path=false, and a read-only signer cookie
+mount. Compose configuration regression passes, including private networking and
+approval checks. A disposable local Core-image bind probe rejected a nonexistent
+source without creating it. This is local missing-path verification, not a hosted
+reboot or disk-loss drill. Keep the underlying root-disk mountpoint empty; do not
+create substitute directories while the encrypted disk is absent. Mainnet is
+not deployed yet. Existing root storage and Signet data remain unchanged. This
+choice does not encrypt the root disk or previous snapshot, and does not replace
+independent backups.
 
 ## Mainnet source release and Signet acceptance — 2026-10-15
 
@@ -673,7 +680,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-426 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+428 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -930,6 +937,8 @@ to publish: review repository assets before release.
 | `attached_assets/IMG_2350_1792039037920.jpeg` | 239109 | `18c022b9a887d4ba45b3dad3ff941d7666edfcd17ef411491ef90224f7be2401` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2352_1792039037920.jpeg` | 228869 | `2bea81c742ac18eb7fce8026bf974debd23a4d1fb66da35713ae1e59d52b69f8` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2354_1792039037920.jpeg` | 249332 | `35bd1db32bcbd5073ae501538f241b0b47e6ad70f04df21a3af65b47d2298a3b` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2355_1792039368289.png` | 442407 | `4c30e5a70683466cdfc5d30456a1db7bbdfc0cc81c9210af32526f61a40de3da` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2356_1792039504367.png` | 393846 | `488002c8df36347e3beb24cc3d37321cf13734ca21c0483e699dcedb2ddc8e35` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Instance_details_EC2_us-east-1_1792026579263.jpeg` | 771370 | `b7448325b7cb709434e0939b0ec2d3052b1936d0e960472a6d83bf1c117ab57e` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Instance_details_EC2_us-east-1_1792027022480.jpeg` | 860135 | `39e51bc750872489a9eca4e9ead22aa8cc0687a60ff41b166ddea4a29fa7b048` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Modify_volume_EC2_us-east-1_1792033601063.jpeg` | 871430 | `64508cec1eb103ab7f50bf18b5f0ecf16a6d28ab9530b91688808574dd50df7a` | Uploaded reference/evidence asset; content not reproduced here. |
@@ -973,10 +982,10 @@ to publish: review repository assets before release.
 | `deploy/bitcoin-signet.conf` | 418 | `68fa71b0d1ae399365ec61955a4589683d9231df43f5a4006108cd1469c4977c` | Deployment configuration/tool: bitcoin-signet.conf; see deployment chapter and runbooks. |
 | `deploy/coolify-bitcoin.compose.yaml` | 2008 | `69372838179d672e609b67110723081196d389e596ff06d704791d1debb58d67` | Deployment configuration/tool: coolify-bitcoin.compose.yaml; see deployment chapter and runbooks. |
 | `deploy/coolify-bitcoin.test.mjs` | 3434 | `684aeec347e045db6c8770eb336f36e17f4a9077d99de070847fe8c179090f13` | Regression tests for coolify-bitcoin; local checks, not hosted evidence. |
-| `deploy/coolify-mainnet.compose.yaml` | 1919 | `c8c24213c54c3b9e640d0a4e703751ce8865cd02f8077d7ab2f04c7a78d8291c` | Deployment configuration/tool: coolify-mainnet.compose.yaml; see deployment chapter and runbooks. |
+| `deploy/coolify-mainnet.compose.yaml` | 2240 | `b0510c150f3b065acad3192ecd82ec6eb6ca873392adb176c7ffb35f03c1dcc0` | Deployment configuration/tool: coolify-mainnet.compose.yaml; see deployment chapter and runbooks. |
 | `deploy/coolify-signer.env.example` | 1076 | `791c6f78f950f4f1d929bb9a0af2153bf990254479e8b64e84e748094da592a8` | Configuration variable template; placeholders only, not installed secrets. |
 | `deploy/coolify.env.example` | 1767 | `0e845779565197feabb5613f996c6500f24463f08fa8df2268552de59b701c2e` | Configuration variable template; placeholders only, not installed secrets. |
-| `deploy/mainnet.test.mjs` | 1556 | `957d2b00e4e568d789faa67284306b3b111db8f9410799d67f30620675eb1179` | Regression tests for mainnet; local checks, not hosted evidence. |
+| `deploy/mainnet.test.mjs` | 2174 | `ea750f6b8acb6f71da8dfcd267487d449a473cbd68cb4407c1bf95b2bd770738` | Regression tests for mainnet; local checks, not hosted evidence. |
 | `deploy/vault-engine.Dockerfile` | 928 | `4ae9c083ac18886196b9a90f56bf1f7bb859bca581e2cfcc8d88a985d3479acb` | Deployment configuration/tool: vault-engine.Dockerfile; see deployment chapter and runbooks. |
 | `deploy/vault-engine.service` | 606 | `c05c133b8fe8fd2a1f2391f24bbdc825470a9290e8e7399ab34e06308a6487dd` | Deployment configuration/tool: vault-engine.service; see deployment chapter and runbooks. |
 | `deploy/vault-regtest.Dockerfile` | 768 | `556ac4df33192ce5b22af6fc3948f367b4b7096141f8b6e4a5df2a5a308c3e41` | Deployment configuration/tool: vault-regtest.Dockerfile; see deployment chapter and runbooks. |
@@ -986,7 +995,7 @@ to publish: review repository assets before release.
 | `docs/github-readiness.md` | 11521 | `10908f86e6a211ff20ae51d92f6e0c11938d131426fdfa100a3c4f1979d82c65` | Detailed github readiness runbook/status reference; respect dated evidence. |
 | `docs/live-session-readiness.md` | 3430 | `ef1e8eecf530e98a45c922f3af036cc4febd62117e59edaab5d447c7b75384a5` | Detailed live session readiness runbook/status reference; respect dated evidence. |
 | `docs/login-security.md` | 6803 | `3759d7aa17f02836e9f4ca921a06b0e964fc0f04e246c6368b3ce4c0385c9abf` | Detailed login security runbook/status reference; respect dated evidence. |
-| `docs/mainnet-and-capacity.md` | 7208 | `ff3689c4c0512e31e46ae607a82223f9fc57995f5c17fc3306d350bc572e0a23` | Detailed mainnet and capacity runbook/status reference; respect dated evidence. |
+| `docs/mainnet-and-capacity.md` | 8003 | `2c8ab63d355367b77028e4964012cdfdde8877d0ddd1e841984b8dd94da4a2ae` | Detailed mainnet and capacity runbook/status reference; respect dated evidence. |
 | `docs/receive-readiness.md` | 2926 | `ed851ccc6e98853b4468a3e82ef5c363fc1fcfc5205118aeea128b6606350b8d` | Detailed receive readiness runbook/status reference; respect dated evidence. |
 | `docs/server-held-custody.md` | 4265 | `d9785925e1ccf930279868dbcd503e7ce0b69391870463504e8c2f3421ce3f4a` | Detailed server held custody runbook/status reference; respect dated evidence. |
 | `docs/temporary-wallet-storage.md` | 8254 | `4158aea070887d148cba974cb9fbfe97ba2bc5a85fcb85799c6ba5d219c03b23` | Detailed temporary wallet storage runbook/status reference; respect dated evidence. |
@@ -1061,7 +1070,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 38887 | `15b817269ed3ea74f7930a0416e4c6cc426cddc4c3aa490640c2230103d7f5db` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 39387 | `c35a7b34ef568d12759812bc9a6ba039ab63be3d4e138dc8e07de7f913095c26` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |

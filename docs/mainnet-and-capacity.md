@@ -54,10 +54,12 @@ the signer's 32 admitted requests. These are protection limits, not performance 
 
 The inspected host root volume and pre-expansion snapshot are unencrypted.
 Its expansion to 100 GiB resolves immediate space pressure, not encryption.
-The Compose file uses local named volumes; Docker does not add encryption.
-Provision encrypted storage for Core wallet data and the signer journal, verify
-the actual volume mounts, and retain independently encrypted offline backups
-before commissioning real funds. Moving existing storage or replacing a root
+The Compose file binds the prepared encrypted disk's `bitcoin`, `signer` and
+`cookie` directories under `/mnt/vault-mainnet`. All bind mounts explicitly set
+`create_host_path: false`; the signer's cookie mount is read-only. Docker does not
+add encryption: verify the EBS volume encryption and mounted filesystem UUID
+before deploying, and retain independently encrypted offline backups before
+commissioning real funds. Moving existing storage or replacing a root
 volume is a separate operator-approved procedure; never format the current disk
 or attach Signet wallet volumes to mainnet.
 
@@ -69,9 +71,17 @@ Create a **separate** Coolify Compose resource using:
 - Runtime `COOLIFY_NETWORK`: verified existing website network.
 - No public domains or host ports for the Core/signer services.
 
-Never reuse Signet volumes or keys. The new Compose stack has distinct
-`mainnet-bitcoin-data`, `mainnet-bitcoin-cookie` and `mainnet-signer-data` volumes
-and a distinct private `vault-mainnet-engine` hostname.
+Never reuse Signet volumes or keys. The new Compose stack uses separate encrypted
+host directories and a distinct private `vault-mainnet-engine` hostname.
+The owner verified the filesystem mount and prepared all three directories with
+owner/group 10001:10001 and mode 0700. Keep the underlying root-disk mountpoint
+empty: never create these directories while the encrypted disk is unmounted.
+Without the mounted disk, the missing bind sources prevent container startup;
+there is no named-volume or automatic-directory fallback. This is not an
+encryption detector: manually placing substitute directories on the root disk
+would defeat the missing-path check. A missing disk at boot may require manually
+starting the stack after restoring the mount. Do not unmount a live wallet disk.
+No host reboot or hosted missing-disk drill has yet been performed.
 The signer pins its network in the journal; mismatches and legacy populated
 journals proposed for mainnet are rejected.
 
