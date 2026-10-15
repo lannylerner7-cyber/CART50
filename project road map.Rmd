@@ -292,8 +292,12 @@ without being created. Owner inspection after the raw-mode redeployment confirms
 both services running, the signer cookie RW=false, Core cookie/data RW=true and
 signer data RW=true. Each local volume has type=none, o=bind and the expected
 /mnt/vault-mainnet device path. No data was moved and the website remains on
-Signet. Post-redeployment sync progress, network membership, signer readiness and
-hosted recovery verification remain open; no real-BTC transfers are verified.
+Signet. Subsequent owner output confirms Core is connected only to mainnet-egress
+and mainnet-rpc; the signer is connected to coolify and mainnet-rpc. Core progressed
+to 306476 blocks versus 971540 headers, verificationprogress approximately 2.93%,
+initialblockdownload=true, with no warnings. Synchronization continued after the
+storage change. Completed sync, signer readiness and hosted recovery verification
+remain open; no real-BTC transfers are verified.
 
 Owner selected a separate encrypted wallet-data volume instead of replacing the
 existing root disk. Owner screenshots now verify the new 100 GiB gp3 volume is
@@ -703,7 +707,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-439 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+440 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -968,6 +972,7 @@ to publish: review repository assets before release.
 | `attached_assets/IMG_2361_1792048790802.jpeg` | 309561 | `da5c1461721b7e92865f33f0605259a70d54108487236d21bbbe9c774df136de` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2364_1792049227489.jpeg` | 400087 | `22c5b740ff363e1cdaf85fe108a37e50de5332f14b39e909ea5cdc08be78be42` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2367_1792051780541.jpeg` | 3310005 | `f03a2deb4e95e2f74abe9579109efe104ae2d8de158095d56d27b8c545d8f16d` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2376_1792054295155.jpeg` | 283674 | `dd602ec94bdcc008ce6b1f4986b6a2b160e0f63aadb15b42401ea67f087473d6` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Instance_details_EC2_us-east-1_1792026579263.jpeg` | 771370 | `b7448325b7cb709434e0939b0ec2d3052b1936d0e960472a6d83bf1c117ab57e` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Instance_details_EC2_us-east-1_1792027022480.jpeg` | 860135 | `39e51bc750872489a9eca4e9ead22aa8cc0687a60ff41b166ddea4a29fa7b048` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Modify_volume_EC2_us-east-1_1792033601063.jpeg` | 871430 | `64508cec1eb103ab7f50bf18b5f0ecf16a6d28ab9530b91688808574dd50df7a` | Uploaded reference/evidence asset; content not reproduced here. |
@@ -1104,7 +1109,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 40858 | `7cb67363d059e389c8c51b69e945f2ac9e66df8eb8865c9479a2402eaeb89108` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 41159 | `5027d26bd5103bb683675c1d03da7ec922d43701a282559ff1a6c23182801e9b` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
