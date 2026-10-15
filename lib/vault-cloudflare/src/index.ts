@@ -2,7 +2,10 @@
 interface Statement { bind(...v: unknown[]): Statement; run(): Promise<unknown>; all<T>(): Promise<{results: T[]}> }
 interface Env {
   DB: { prepare(sql: string): Statement; batch(s: Statement[]): Promise<unknown> };
-  BACKUPS: { put(key: string, value: ArrayBuffer, opts?: unknown): Promise<unknown> };
+  BACKUPS: {
+    put(key: string, value: ArrayBuffer, opts?: unknown): Promise<unknown>;
+    get(key: string): Promise<{ size: number; body: ReadableStream<Uint8Array> } | null>;
+  };
   REPLICA: { send(message: unknown): Promise<void> };
   REPLICA_TOKEN: string;
   MARKET_ENABLED: string;
@@ -80,6 +83,18 @@ export default {
         if (text === null) return new Response("Too large", {status: 413});
         await env.REPLICA.send(validateCheckpoint(JSON.parse(text)));
         return Response.json({queued: true}, {status: 202});
+      }
+      if (req.method === "GET" && /^\/backups\/[a-zA-Z0-9_-]{1,80}\.vault$/.test(url.pathname)) {
+        const object = await env.BACKUPS.get(url.pathname.slice(9));
+        if (!object) return new Response("Backup not found", {status: 404, headers: {"Cache-Control": "no-store"}});
+        if (object.size < 32 || object.size > 16 * 1024 * 1024) return new Response("Invalid backup size", {status: 413});
+        return new Response(object.body, {headers: {
+          "Content-Type": "application/octet-stream",
+          "Content-Length": String(object.size),
+          "Content-Disposition": `attachment; filename="${url.pathname.slice(9)}"`,
+          "Cache-Control": "no-store",
+          "X-Content-Type-Options": "nosniff",
+        }});
       }
       if (req.method === "PUT" && /^\/backups\/[a-zA-Z0-9_-]{1,80}\.vault$/.test(url.pathname)) {
         const size = Number(req.headers.get("content-length"));

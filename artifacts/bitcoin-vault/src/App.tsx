@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { QueryCache, QueryClient, QueryClientProvider, MutationCache } from '@tanstack/react-query';
 import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
 import { useGetVaultSession, getGetVaultSessionQueryKey, setCsrfToken } from '@workspace/api-client-react';
@@ -10,14 +10,14 @@ import { Shell, VaultMark } from '@/components/shell';
 import { ErrorPanel } from '@/components/kit';
 import { SessionProvider, errStatus } from '@/lib/vault';
 import LockScreen from '@/pages/lock';
-import Overview from '@/pages/overview';
-import Wallets from '@/pages/wallets';
-import WalletDetail from '@/pages/wallet-detail';
-import Transactions from '@/pages/transactions';
-import Spending from '@/pages/spending';
-import Explorer from '@/pages/explorer';
-import Market from '@/pages/market';
-import SettingsPage from '@/pages/settings';
+const Overview = lazy(() => import('@/pages/overview'));
+const Wallets = lazy(() => import('@/pages/wallets'));
+const WalletDetail = lazy(() => import('@/pages/wallet-detail'));
+const Transactions = lazy(() => import('@/pages/transactions'));
+const Spending = lazy(() => import('@/pages/spending'));
+const Explorer = lazy(() => import('@/pages/explorer'));
+const Market = lazy(() => import('@/pages/market'));
+const SettingsPage = lazy(() => import('@/pages/settings'));
 import { lockClient, LOCK_EVENT } from '@/lib/session-lock';
 
 const SESSION_KEY = getGetVaultSessionQueryKey();
@@ -33,6 +33,7 @@ const queryClient: QueryClient = new QueryClient({
 function Router() {
   return (
     <RoutedErrorBoundary>
+      <Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading page…</p>}>
       <Switch>
         <Route path="/" component={Overview} />
         <Route path="/wallets" component={Wallets} />
@@ -44,6 +45,7 @@ function Router() {
         <Route path="/settings" component={SettingsPage} />
         <Route component={NotFound} />
       </Switch>
+      </Suspense>
     </RoutedErrorBoundary>
   );
 }

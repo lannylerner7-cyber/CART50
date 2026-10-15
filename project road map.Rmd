@@ -271,6 +271,29 @@ Never remove persistent wallet volumes as a casual rollback strategy.
 
 # Current readiness — 2026-10-14
 
+## Commissioning preparation and access boundary — 2026-10-15
+
+Protected routes now load on demand with Suspense inside the existing route
+error boundary. The production initial JS chunk decreased from about 965 kB to
+460 kB (146 kB gzip); the market route is separate at 396 kB. No emitted chunk
+exceeds the default 500 kB warning threshold. Build/typecheck and standalone
+packaging checks passed. This does not constitute authenticated mobile verification.
+
+Found and closed a Worker recovery-interface gap: authenticated GET of an
+allowlisted `.vault` backup now retrieves encrypted R2 bytes, with no-store,
+attachment/nosniff headers, size bounds and explicit missing/outage responses.
+No decryption keys enter the Worker and no live wallet is overwritten. Unit tests
+cover authorization, exact bytes, missing objects, invalid paths and R2 failures.
+Live deployment/object restoration has not been performed.
+
+Session-lock regression and queue sequencing/durable-acknowledgement/retry tests
+passed again. Source inspection and fixtures are not proof of live queue health.
+No secure Coolify management endpoint/token is configured in this workspace.
+Hosted sync, authenticated browser access, isolated live backup restore and
+bounded production load measurement need operator access and agreed targets.
+Real-BTC transfers require separately confirmed amounts, fees and destinations.
+No funds moved, production credentials changed, or live restore/load test executed.
+
 ## Pre-redeploy verification — 2026-10-15
 
 Workspace and Cloudflare typechecks passed. API/admission, static routing,
@@ -607,7 +630,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/public/offline-keygen.html` | 3706 | `1102ffcdc57e9ed88ed53a7ea10f9e1b5acf5cee09c85cf466ed2e4ff5289c09` | Public static asset/tool: offline-keygen.html; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/robots.txt` | 26 | `331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1` | Public static asset/tool: robots.txt; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/signet-setup.html` | 66997 | `41f76188e4442f023c632c16cad297819724ea1d1b913b2d5e0097d08544bb0e` | Public static asset/tool: signet-setup.html; never place generated secrets here. |
-| `artifacts/bitcoin-vault/src/App.tsx` | 4944 | `21c6d84198c295466ff11120bec92636c110f56a24921c5f23b49f54ed18ebef` | Application routing/providers and access boundary. |
+| `artifacts/bitcoin-vault/src/App.tsx` | 5217 | `dbf9195b32742489d78423971e5ea30efc20fbf75a87fc00b21330e447ddfc28` | Application routing/providers and access boundary. |
 | `artifacts/bitcoin-vault/src/components/data-table.tsx` | 10120 | `15af3d3bc09114998678cc044f2c4fe6fac77032aae8024c6f7ed724b00bee90` | data-table.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/error-boundary.tsx` | 2735 | `c1ea4d88be8cd206a46bd87f19edf025b2504a70a2b65cd9c438e4a0e62dafe0` | error-boundary.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/kit.tsx` | 8267 | `e57c9ee17eaddf6f441fccf75c404d91b1846bbf8ad42f71b7b5c70ed640e511` | kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
@@ -876,14 +899,14 @@ to publish: review repository assets before release.
 | `lib/db/tsconfig.json` | 244 | `69c976d11de35f0ac391934625beeccdd1b2689ba5d0f14c54b5384d4c30a9c9` | TypeScript compilation/project-reference configuration. |
 | `lib/vault-cloudflare/migrations/0001.sql` | 348 | `0b0572a16e7806f8257abc0dc3b7efa6dec4308241536f97fb32c023befbefc1` | 0001.sql module in lib/vault-cloudflare/migrations; see the owning subsystem above. |
 | `lib/vault-cloudflare/package.json` | 146 | `218a4b8aa29ff20e55bba282480f0028ce6828c484ac413a3b6bab298e16a498` | Package identity, dependencies and runnable scripts. |
-| `lib/vault-cloudflare/src/index.test.mjs` | 2832 | `c65993c28b77fab9847eac65dc81ad96e5784f0bd882253a81e7b59f83d9b7df` | Regression tests for index; local checks, not hosted evidence. |
-| `lib/vault-cloudflare/src/index.ts` | 6946 | `ee0f8fb2c3d3b01ac7ae3225fa6802ea84664c20c351c178a0029cd3b69159fa` | Cloudflare Worker price and health-replication endpoints. |
+| `lib/vault-cloudflare/src/index.test.mjs` | 4029 | `d3ea6991a85d1969d23ab9df68adf1a550f05a5e3084e03d30abace8c8fb99de` | Regression tests for index; local checks, not hosted evidence. |
+| `lib/vault-cloudflare/src/index.ts` | 7797 | `79ea108f147c6a5574535924df3aa775b3e5a084498eff3048f74968b23cb046` | Cloudflare Worker price and health-replication endpoints. |
 | `lib/vault-cloudflare/tsconfig.json` | 206 | `71f61c1494eae268125f8cb1af3530c1d205b784f0b4b1f04fc8e30c4799dd28` | TypeScript compilation/project-reference configuration. |
 | `lib/vault-cloudflare/wrangler.jsonc` | 734 | `5999164a4e53708fa087e3353560a56bf1435c8ae971ca4d6c0570a91d74550d` | wrangler.jsonc module in lib/vault-cloudflare; see the owning subsystem above. |
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 31060 | `49e3725aed9f99d9a298f6709e8fe8b68cb37c9b880f33669ae87e24c3ca6182` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 32533 | `2bf4741cf765f01a1040cde009ea448e769021a9500f822cb4138da92d144e38` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
