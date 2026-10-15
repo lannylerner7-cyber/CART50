@@ -271,6 +271,23 @@ Never remove persistent wallet volumes as a casual rollback strategy.
 
 # Current readiness — 2026-10-14
 
+## Transfer delay signals — 2026-10-15
+
+History now shows elapsed-time signals on mobile cards and in the desktop table.
+Browser-local warning thresholds are 30, 60 (default), or 120 minutes from first
+seen while fewer than three confirmations are reported. It is not time since the
+latest block or an estimated completion time. Signals update on a 15-second
+clock; paused views evaluate against the frozen snapshot timestamp.
+Completed, replaced, conflicted, failed/expired/abandoned and unknown broadcast
+states are distinguished rather than labeled as ordinary delays. Invalid/future
+timestamps report unavailable timing. Stale data can yield stale signals.
+
+Threshold rules have unit coverage for boundaries, confirmations/reorgs,
+exceptional states and timestamps. This is display-only: no fee change, automatic
+retry, push notification or diagnosed root cause. Possible network causes are
+explicitly described as possibilities, not facts. Configuration persistence
+failures are shown and never silently claimed successful.
+
 ## History organization and mobile stability — 2026-10-15
 
 Transaction history now renders paginated cards below the desktop breakpoint
@@ -500,7 +517,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-374 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+376 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -630,6 +647,8 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.ts` | 920 | `0ef19efdd008050bd8c98e9aea32d0fd97d163e08a6f02dfa44651b36a4352d3` | ledger-keys.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.test.ts` | 1648 | `86e951698a47a5037b3e43156cad26fc0ccb79f49fd1e723efd3d5fbd9d99eb0` | Regression tests for session-lock; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.ts` | 1115 | `5962a8ac11ca1035e7024c1463f78897f2d93d42a22fa39f57cc770aa775ee39` | Client lock, protected cache clearing and cross-tab session notification. |
+| `artifacts/bitcoin-vault/src/lib/transfer-delay.test.ts` | 1514 | `72eb407e75c163ac8e923263fd2cf32b694395f15b99f4127a6542a5b89db7f6` | Regression tests for transfer-delay; local checks, not hosted evidence. |
+| `artifacts/bitcoin-vault/src/lib/transfer-delay.ts` | 1164 | `df573946bf3b4250cee7d7e3c8b91326cc627c32888e4c62bf32b0728222d486` | transfer-delay.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/utils.ts` | 170 | `afc0e1dc0e142d6b81f688d91087f81a4b2db4240cf70f55b6e5e4dcc199ebf1` | utils.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/vault.tsx` | 3543 | `4aad0cc8f08811709b537612bb3f3331469751a5952290f6245e1a342023b61e` | vault.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/main.tsx` | 446 | `e7e03b61f962dc1787ea029d4941424475455366b5a4f079c8fcb4f5df4d076c` | React browser mount entrypoint. |
@@ -640,7 +659,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/pages/overview.tsx` | 14157 | `ac9e88e0e53deabeddee3984ece46bba48ec16f48aed305a25cf85296d30d341` | overview wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/settings.tsx` | 13397 | `0ff351b2944f03f932844c55b7810888b5f7f953c56e814e049e56a907d83009` | settings wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/spending.tsx` | 10915 | `4f7984706c2dd2de063a80905a58aed76d242826f548d7615520689652445183` | spending wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 9567 | `4e06855f0439c18ae0c30005e039f1dc88b1ff103d85e8423a28149377d5eb98` | transactions wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 12027 | `99206c0bb5da7b9c1c0553e13fe4965f249f517de28f666e6c612577f0ab3938` | transactions wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallet-detail.tsx` | 10175 | `d87ea8d6f0f6815a290136641cbee91204c33c57f3b5ff060cf308af140010a4` | wallet detail wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallets.tsx` | 9598 | `ccdcf0a80728ec23bc9a147c2394e8d919a9c9c14d2714b1b7f7ba98f0f12284` | wallets wallet screen. |
 | `artifacts/bitcoin-vault/tsconfig.json` | 520 | `e0a2fd8a7f3bfc860ccab5623b1881e754eb02336612708ff8b59215e8c256c9` | TypeScript compilation/project-reference configuration. |
@@ -836,7 +855,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 28352 | `27678c097d63394d8e964beaad2eac787e2005314e93c8f9d18190539411ee76` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 29384 | `35daad99388b83aafb8d45bd36e1fe359f91b2b1e78f246d60532756902bcb0f` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
@@ -857,7 +876,7 @@ to publish: review repository assets before release.
 | `scripts/vault-live-probe.test.mjs` | 2036 | `3d39bce9677f184c6e13a5c8c985cb55be158965a9b9cc316e19fd4b956a4731` | Regression tests for vault-live-probe; local checks, not hosted evidence. |
 | `scripts/vault-package.test.mjs` | 4098 | `9f489b9e023e2bd35589d24f378779bb7dd619173c5464ee73afc42f6030eed9` | Regression tests for vault-package; local checks, not hosted evidence. |
 | `scripts/vault-release.sh` | 2413 | `7bb1b6fd9606776f9d10b239ae3d973f2d5221f91632972550d41e3563f1a362` | Operator/build utility: vault-release.sh; inspect flags before invoking. |
-| `scripts/vault-verify.sh` | 1178 | `a24f753efb1ecd341613674995377ce73b3bf71d39828293cd8dfbd938904143` | Operator/build utility: vault-verify.sh; inspect flags before invoking. |
+| `scripts/vault-verify.sh` | 1278 | `ae4084c55e5282f05fc2e74665530dafe0132ae22458b13c1c626c58c8056d86` | Operator/build utility: vault-verify.sh; inspect flags before invoking. |
 | `services/vault-engine/admission.go` | 679 | `75535c621e210d79a5e9b54e102490bafeef0f19dbe926b9a74049a4ab6dcf87` | admission.go module in services/vault-engine; see the owning subsystem above. |
 | `services/vault-engine/admission_test.go` | 1981 | `4359fa9b2e35332a0f7f2a3ad241dd7691f7b3f0b30658d036507f7622e58baf` | Regression tests for admission; local checks, not hosted evidence. |
 | `services/vault-engine/custody.go` | 3206 | `be7232547ef26afc4877b6e9175d70adddfe8e35964b61c24586323b91dded80` | custody.go module in services/vault-engine; see the owning subsystem above. |

@@ -7,6 +7,14 @@ import { Btc, CopyText, Empty, ErrorPanel, PageHeader, Pill, SkelRows, statusTon
 import { Button } from '@/components/ui/button';
 import { POLL_MS, short, stamp, toBig, ago } from '@/lib/vault';
 import { keyLedger } from '@/lib/ledger-keys';
+import { transferDelay } from '@/lib/transfer-delay';
+import { createContext, useContext, useEffect } from 'react';
+
+const DelayContext = createContext({ now: 0, minutes: 60 });
+function DelaySignal({ transaction }: { transaction: Transaction }) {
+  const { now, minutes } = useContext(DelayContext);
+  return <span className="block max-w-sm text-xs text-muted-foreground">{transferDelay(transaction, now, minutes)}</span>;
+}
 
 type Row = { row: Transaction; key: string };
 
@@ -15,6 +23,7 @@ const confText = (n: number) => (n < 0 ? 'Conflicted' : `${Math.min(n, 3)} / 3`)
 const dirTone = (d: string) => (/in/.test(d) ? 'ok' : 'ember') as 'ok' | 'ember';
 
 const COLS: Column<Row>[] = [
+  { key: 'delay', label: 'Transfer signal', render: ({ row }) => <DelaySignal transaction={row} /> },
   { key: 'txid', label: 'Txid', render: ({ row: t }) => <CopyText value={t.txid} display={short(t.txid, 10)} />, sort: ({ row: t }) => t.txid },
   { key: 'direction', label: 'Dir', render: ({ row: t }) => <Pill tone={dirTone(t.direction)}>{t.direction}</Pill>, sort: ({ row: t }) => t.direction },
   { key: 'amount', label: 'Amount', align: 'right', render: ({ row: t }) => <Btc sats={t.amountSats} size="sm" />, sort: ({ row: t }) => toBig(t.amountSats) },
@@ -56,9 +65,15 @@ function MobileCard({ row: t }: Row) {
     </div>
   );
 }
-const mobileCard = (r: Row) => <MobileCard {...r} />;
+const mobileCard = (r: Row) => <><MobileCard {...r} /><div className="px-4 pb-3"><DelaySignal transaction={r.row} /></div></>;
 
 export default function Transactions() {
+  const [minutes, setMinutes] = useState(() => {
+    try { const n = Number(localStorage.getItem('vault-delay-minutes')); return [30, 60, 120].includes(n) ? n : 60; } catch { return 60; }
+  });
+  const [clock, setClock] = useState(Date.now);
+  const [storageWarning, setStorageWarning] = useState(false);
+  useEffect(() => { const timer = setInterval(() => setClock(Date.now()), 15000); return () => clearInterval(timer); }, []);
   const [live, setLive] = useState(true);
   const [snapshot, setSnapshot] = useState<{ data: Transaction[]; updated: number } | null>(null);
   const q = useListTransactions({ query: { queryKey: getListTransactionsQueryKey(), enabled: live, refetchOnWindowFocus: live, refetchOnReconnect: live, refetchInterval: live ? POLL_MS : false } });
@@ -79,8 +94,21 @@ export default function Transactions() {
   const updated = updatedAt ? ago(new Date(updatedAt).toISOString()) : null;
 
   return (
+    <DelayContext.Provider value={{ now: live ? clock : updatedAt, minutes }}>
     <div className="min-w-0 space-y-6">
       <PageHeader kicker="Ledger" title="Transactions" desc="Every movement your node has observed for vault wallets, including replaced and unconfirmed spends." />
+      <section className="space-y-2 rounded-2xl border bg-card p-4">
+        <label className="flex flex-wrap items-center gap-3 text-sm">
+          Warn when fewer than 3 confirmations after
+          <select className="h-11 rounded-lg border bg-card px-3" value={minutes} onChange={(e) => {
+            const value = Number(e.target.value); setMinutes(value);
+            try { localStorage.setItem('vault-delay-minutes', String(value)); setStorageWarning(false); } catch { setStorageWarning(true); }
+          }}>{[30, 60, 120].map(n => <option key={n} value={n}>{n} minutes</option>)}</select>
+        </label>
+        <p className="text-xs text-muted-foreground">Measured from first seen, not time since the last block. This browser-only warning does not change fees or send notifications. Paused history uses its snapshot time. Stale data may show an outdated signal.</p>
+        <p className="text-xs text-muted-foreground">Possible causes include low fees, mempool congestion, slow block arrival or a node still syncing. Elapsed time does not identify the cause. Check your node and transaction before reviewing a fee replacement; do not resend blindly.</p>
+        {storageWarning && <p role="status" className="text-xs">Preference could not be saved. It applies to this page until reload.</p>}
+      </section>
       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <p className="text-sm text-muted-foreground" role="status" data-testid="text-refresh-status">
           {q.isError
@@ -110,5 +138,6 @@ export default function Transactions() {
           empty={<Empty icon={<ListTree className="h-5 w-5" />} title={keyed.length ? 'No matches' : 'Ledger is empty'} body={keyed.length ? 'Adjust search or filters.' : 'Transactions appear here once your node sees them.'} />} />
       )}
     </div>
+    </DelayContext.Provider>
   );
 }
