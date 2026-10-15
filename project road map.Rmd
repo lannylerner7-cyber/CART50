@@ -279,6 +279,12 @@ Cloudflare is authoritative. The new management hostname did not resolve at the
 initial check. DNS creation and Coolify instance URL/TLS configuration remain
 operator-guided and unverified; no DNS mutation or credential entry was performed.
 
+Follow-up public lookup resolves the chosen hostname to Cloudflare proxy addresses,
+not directly to the host. A TLS-verified request pinned to a returned edge address
+received HTTP 503; local system DNS had not yet resolved the new name. Cloudflare
+edge TLS succeeds, but dashboard routing and origin TLS are not verified. Operator
+must confirm the DNS record's origin value and complete the instance URL setup.
+
 ## Core 29.4 payment/recovery regression — 2026-10-15
 
 The full Go suite passed with race detection and Go vet against the exact Core
@@ -985,7 +991,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 35081 | `d6a96f732f25ec14a8cf72595a0fd06876563053655e04097836d1614ed39ab9` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 35494 | `8b875af5bc090793db69bc0f538c0e6666b40621c0f985ec9d2ed399fa280c23` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
