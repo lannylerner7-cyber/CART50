@@ -288,8 +288,12 @@ now requires Raw Compose Deployment and uses local-driver bind volumes pointing
 to the same encrypted directories, with an explicit :ro signer cookie mount.
 Disposable Docker probes verified existing data is readable through this
 arrangement, cookie writes fail, and a missing source directory is rejected
-without being created. The host-side redeployment and resulting mount flags
-remain unverified. No data was moved and the website remains on Signet.
+without being created. Owner inspection after the raw-mode redeployment confirms
+both services running, the signer cookie RW=false, Core cookie/data RW=true and
+signer data RW=true. Each local volume has type=none, o=bind and the expected
+/mnt/vault-mainnet device path. No data was moved and the website remains on
+Signet. Post-redeployment sync progress, network membership, signer readiness and
+hosted recovery verification remain open; no real-BTC transfers are verified.
 
 Owner selected a separate encrypted wallet-data volume instead of replacing the
 existing root disk. Owner screenshots now verify the new 100 GiB gp3 volume is
@@ -699,14 +703,14 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-438 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+439 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
 | `.agents/agent_assets_metadata.toml` | 3000 | `c4e96a25aac94d4c82b5086ad7486ac497e3f93536d99a6288ca75b7736df5eb` | Workspace asset metadata; not application logic. |
 | `.agents/memory/MEMORY.md` | 1264 | `addac73a702fd994fd543017b6acb2a98b88bc4b75faafd224ef44f34959c130` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
-| `.agents/memory/coolify-mount-parsing.md` | 1062 | `9450c900fb7e3d0ab61ec17bf16044ce753de3261d286a0e92eba35f5abad048` | Durable project decision/lesson: coolify-mount-parsing. |
+| `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
 | `.agents/memory/health-replication.md` | 1196 | `a960703d098ebe5dabcd92a0cb3b5d01b5cef3c1e5ed1328e9d326b642f30471` | Durable project decision/lesson: health-replication. |
 | `.agents/memory/hosting-scope.md` | 4384 | `7b0ad7d558e79a77db161c532edf37035879cf2a010dd67e006f63b2e82ab3b0` | Durable project decision/lesson: hosting-scope. |
 | `.agents/memory/owner-access.md` | 1808 | `159d57009f9e05cc3a71f1adaf0eb452995a20aa1fe57e837629feb5d9d29088` | Durable project decision/lesson: owner-access. |
@@ -1000,6 +1004,7 @@ to publish: review repository assets before release.
 | `attached_assets/Volumes_EC2_us-east-1_1792031434573.jpeg` | 1016627 | `097a1197ebbf352631c44b739bb10eb07832f4825251187dc883e41856ebc282` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/[Coolify]_Terminal_Coolify_1792051780541.jpeg` | 743145 | `ebed2f17005f4b3f8eed9a41e509ca034f0eb800561b4052555affd5059180d3` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/[Coolify]_Terminal_Coolify_1792051995060.jpeg` | 1073940 | `5fabe4879a2d28c74eb8dce1d92b432cdbfcc8eb9a4aff0509351935af0be590` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/[Coolify]_Terminal_Coolify_1792054030777.jpeg` | 1399226 | `d1fff4dfc481ff30ebeb6f23e46cf1858bea3f4eba8b89cd42c16d81fa364426` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/[Coolify]_vault-main..._Terminal_Coolify_1792053029807.jpeg` | 551797 | `1e28f88c9f18b8c73932bac7877e4a39a02f2842834540c7f9bcd1e96308a5df` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/image_1792053162896.jpg` | 2558591 | `abb652a8598b95682aceb9c8d5df23ed539409968836aef2fd6e1958aa19a3ad` | Uploaded reference/evidence asset; content not reproduced here. |
 | `deploy/app-config.mjs` | 3639 | `76f336b8bd3fbe2e0a077964b21600cf8e8d1ce38db09553c9cf8e6005fdaf93` | Deployment configuration/tool: app-config.mjs; see deployment chapter and runbooks. |
@@ -1099,7 +1104,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 40530 | `67c511e066e644529091f5f10737e4bb3b1ea03881cbe11261fb4a7726663629` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 40858 | `7cb67363d059e389c8c51b69e945f2ac9e66df8eb8865c9479a2402eaeb89108` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |

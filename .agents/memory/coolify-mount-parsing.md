@@ -16,3 +16,8 @@ RW flags and volume driver options after deployment. Do not put substitute data
 directories on the root filesystem under an unmounted encrypted mountpoint.
 Stop the previous mainnet resource before switching deployment modes so no old
 signer remains against shared state. Never stop or change unrelated applications.
+
+The owner subsequently verified the raw-mode/local-driver arrangement on the
+host: the signer cookie was read-only and the driver devices referenced the
+intended encrypted directories. Preserve this approach rather than reverting
+to direct binds based solely on native Compose tests.
