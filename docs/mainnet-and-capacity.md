@@ -50,6 +50,17 @@ the signer's 32 admitted requests. These are protection limits, not performance 
 
 ## Mainnet resource (operator-run; not deployed by this work)
 
+### Storage prerequisite
+
+The inspected host root volume and pre-expansion snapshot are unencrypted.
+Its expansion to 100 GiB resolves immediate space pressure, not encryption.
+The Compose file uses local named volumes; Docker does not add encryption.
+Provision encrypted storage for Core wallet data and the signer journal, verify
+the actual volume mounts, and retain independently encrypted offline backups
+before commissioning real funds. Moving existing storage or replacing a root
+volume is a separate operator-approved procedure; never format the current disk
+or attach Signet wallet volumes to mainnet.
+
 Create a **separate** Coolify Compose resource using:
 
 - Base directory `/`, file `/deploy/coolify-mainnet.compose.yaml`.
