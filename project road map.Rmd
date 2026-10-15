@@ -273,6 +273,12 @@ Never remove persistent wallet volumes as a casual rollback strategy.
 
 ## HTTPS dashboard verification — 2026-10-15
 
+Owner subsequently demonstrated the authenticated server terminal through the
+HTTPS dashboard: pwd returned /root. Browser server-terminal connectivity is
+therefore verified at that observation, superseding the earlier terminal blocker.
+This does not prove vault passkey flows, container-terminal behavior or mainnet
+readiness. Keep the working server SSH address separate from the dashboard URL.
+
 After operator configuration, HTTPS requests to coolify.scousgiftcardexchange.com
 returned 302 to /login followed by 200 with the Coolify login form. Certificate
 verification passed both through a publicly resolved Cloudflare edge and directly
@@ -631,7 +637,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-412 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+413 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -639,7 +645,7 @@ to publish: review repository assets before release.
 | `.agents/memory/MEMORY.md` | 1107 | `17ebd117e219b2c26238ac386ba7c1c22483c431598a44401c332d7b3d20e440` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/health-replication.md` | 1196 | `a960703d098ebe5dabcd92a0cb3b5d01b5cef3c1e5ed1328e9d326b642f30471` | Durable project decision/lesson: health-replication. |
-| `.agents/memory/hosting-scope.md` | 3381 | `a82a9400ed67d92f8851a89354a86b452d8d0b8a6bf20ea532228b6999cca154` | Durable project decision/lesson: hosting-scope. |
+| `.agents/memory/hosting-scope.md` | 3936 | `576b9363c5ee0b87c5ee7d565300eaac78ea1810498ba7cc12b07a955541d823` | Durable project decision/lesson: hosting-scope. |
 | `.agents/memory/owner-access.md` | 1808 | `159d57009f9e05cc3a71f1adaf0eb452995a20aa1fe57e837629feb5d9d29088` | Durable project decision/lesson: owner-access. |
 | `.agents/memory/production-scope.md` | 2445 | `cecdac2d450084208b00f01f47c42811cc070069aeab74fe05b7e39cd73913af` | Durable project decision/lesson: production-scope. |
 | `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
@@ -877,6 +883,7 @@ to publish: review repository assets before release.
 | `attached_assets/IMG_2316_1792027603369.jpeg` | 232236 | `ea511c8e22d637d591d81535e72ded4495d6c0c5d0c9a1d7f8426b38d7e1f003` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2317_1792027603369.png` | 586347 | `6ee6ee98fc34dfaa2aa0df6ca9a57cfa6df7f475ae65a27b56863fd1687eae1b` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2326_1792030739666.jpeg` | 3085349 | `4a443c583dbfb5e2b2fac3dd7536af5151501882db809b219b69b6b4e38c7632` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2339_1792036411713.png` | 160333 | `d7c2826c06ba927b4908067d4b4876bb20e012335a974d559bf0ca4cf26029b2` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Instance_details_EC2_us-east-1_1792026579263.jpeg` | 771370 | `b7448325b7cb709434e0939b0ec2d3052b1936d0e960472a6d83bf1c117ab57e` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Instance_details_EC2_us-east-1_1792027022480.jpeg` | 860135 | `39e51bc750872489a9eca4e9ead22aa8cc0687a60ff41b166ddea4a29fa7b048` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Modify_volume_EC2_us-east-1_1792033601063.jpeg` | 871430 | `64508cec1eb103ab7f50bf18b5f0ecf16a6d28ab9530b91688808574dd50df7a` | Uploaded reference/evidence asset; content not reproduced here. |
@@ -1005,7 +1012,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 36319 | `41b0c8e4f2e0a0fc828bbf78a427a96eac718deadb257b9c7d06e583cf7a1771` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 36717 | `151994349d34fa60c9c62905703d4f55ac4c9bbde0746b64c0b52894036619b1` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |

@@ -16,6 +16,16 @@ keep `coin.scousgiftcardexchange.com` for the vault.
 **How to apply:** Configure and verify DNS/TLS before installing new production
 credentials. Hostname selection alone does not mean it is configured or reachable.
 
+Use the HTTPS management hostname for browser terminals, not the raw-IP HTTP
+dashboard. Keep the validated SSH/server address separate from the dashboard DNS.
+
+**Why:** The owner demonstrated a working server terminal through the HTTPS
+dashboard after repeated raw-IP browser terminal failures. The precise transport
+failure was not established; do not attribute it solely to a firewall rule.
+
+**How to apply:** Do not replace a working server SSH target with the proxied
+dashboard hostname or reopen ports just to restore the obsolete HTTP access path.
+
 The user wants the project pushed to GitHub before Coolify hosting, and wants
 deployment variables managed in Coolify for this personal project.
 
