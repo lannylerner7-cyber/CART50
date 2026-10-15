@@ -26,6 +26,15 @@ failure was not established; do not attribute it solely to a firewall rule.
 **How to apply:** Do not replace a working server SSH target with the proxied
 dashboard hostname or reopen ports just to restore the obsolete HTTP access path.
 
+Use a separate encrypted wallet-data volume for mainnet; retain the existing
+root disk rather than replacing it with an encrypted root copy.
+
+**Why:** The owner explicitly chose the separate-volume option.
+
+**How to apply:** Verify encryption, attachment and persistent mounting before
+creating mainnet wallets. Explicitly bind wallet data and signer state to this
+storage; default Docker named volumes on the unencrypted root are not sufficient.
+
 The user wants the project pushed to GitHub before Coolify hosting, and wants
 deployment variables managed in Coolify for this personal project.
 
