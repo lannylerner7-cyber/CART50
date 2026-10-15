@@ -271,6 +271,20 @@ Never remove persistent wallet volumes as a casual rollback strategy.
 
 # Current readiness — 2026-10-14
 
+## HTTPS dashboard verification — 2026-10-15
+
+After operator configuration, HTTPS requests to coolify.scousgiftcardexchange.com
+returned 302 to /login followed by 200 with the Coolify login form. Certificate
+verification passed both through a publicly resolved Cloudflare edge and directly
+against the configured origin using the same hostname/SNI. No insecure TLS bypass
+was used. This supersedes the earlier 503 result.
+
+Public recursive DNS still returned Cloudflare proxy addresses; the workspace's
+local resolver had not caught up, so checks used explicit address resolution.
+The unauthenticated HTTPS management entry point is verified. Signed-in terminal
+WebSockets, Cloudflare SSL mode, live session behavior and subsequent mainnet
+commissioning are separate checks and are not implied by the login-page response.
+
 ## HTTPS management hostname selection — 2026-10-15
 
 Owner selected coolify.scousgiftcardexchange.com for the Coolify dashboard;
@@ -991,7 +1005,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 35494 | `8b875af5bc090793db69bc0f538c0e6666b40621c0f985ec9d2ed399fa280c23` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 36319 | `41b0c8e4f2e0a0fc828bbf78a427a96eac718deadb257b9c7d06e583cf7a1771` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
