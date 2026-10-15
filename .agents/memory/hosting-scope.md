@@ -8,6 +8,14 @@ Use AWS only as the Linux server hosting Coolify for this project, not as an app
 
 **How to apply:** Package the application for Coolify on that server; do not request AWS API credentials or add managed AWS services merely to deploy the vault.
 
+Use `coolify.scousgiftcardexchange.com` as the dedicated HTTPS management hostname;
+keep `coin.scousgiftcardexchange.com` for the vault.
+
+**Why:** The owner selected the separate Coolify hostname for secure management.
+
+**How to apply:** Configure and verify DNS/TLS before installing new production
+credentials. Hostname selection alone does not mean it is configured or reachable.
+
 The user wants the project pushed to GitHub before Coolify hosting, and wants
 deployment variables managed in Coolify for this personal project.
 
