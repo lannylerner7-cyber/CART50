@@ -271,6 +271,20 @@ Never remove persistent wallet volumes as a casual rollback strategy.
 
 # Current readiness — 2026-10-14
 
+## Core 29.4 payment/recovery regression — 2026-10-15
+
+The full Go suite passed with race detection and Go vet against the exact Core
+29.4 binary from the prepared production image. Tests ran in a disposable
+network-isolated container with regtest funds, not live mainnet funds.
+The dedicated test Dockerfile uses a test-only context override: the production
+ignore rules exclude test sources, and a successful zero-test Go invocation is
+not valid evidence. The test command explicitly rejects an empty test tree.
+
+This closes the previously pending version-specific local regression gate,
+not hosted sync, hosted restore, authenticated mobile verification or a real-BTC
+round trip. Secure management access and encrypted wallet storage still need
+operator configuration before mainnet credentials are installed.
+
 ## Guided hosted checks and storage expansion — 2026-10-15
 
 Evidence supplied by the owner through screenshots of the hosted SSH session:
@@ -340,7 +354,7 @@ performed. The private deploy-key file is ignored by Git. This is not a full
 security audit or a guarantee that no secret exists anywhere in repository history.
 
 Source/build readiness is distinct from commissioning: hosted mainnet sync,
-Core 29.4 full custody/recovery regression, real-BTC round trip, live R2 restore,
+real-BTC round trip, live R2 restore,
 authenticated mobile UX checks and production capacity measurements remain open.
 
 ## Transfer delay signals — 2026-10-15
@@ -416,7 +430,7 @@ Index/SPA pages remain available; crawler exclusion metadata/headers are added.
 Production setup-generator pages are denied and excluded from the runtime image.
 No private keys are embedded in public HTML. Noindex is not access control.
 
-Actual mainnet deployment, full custody regression on 29.4, hosted recovery,
+Actual mainnet deployment, hosted recovery,
 real-Bitcoin round trip, R2 restore and host load measurement remain pending.
 See `docs/mainnet-and-capacity.md` for measurements, limits and operator steps.
 
@@ -589,7 +603,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-410 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+412 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -881,12 +895,14 @@ to publish: review repository assets before release.
 | `deploy/mainnet.test.mjs` | 1556 | `957d2b00e4e568d789faa67284306b3b111db8f9410799d67f30620675eb1179` | Regression tests for mainnet; local checks, not hosted evidence. |
 | `deploy/vault-engine.Dockerfile` | 928 | `4ae9c083ac18886196b9a90f56bf1f7bb859bca581e2cfcc8d88a985d3479acb` | Deployment configuration/tool: vault-engine.Dockerfile; see deployment chapter and runbooks. |
 | `deploy/vault-engine.service` | 606 | `c05c133b8fe8fd2a1f2391f24bbdc825470a9290e8e7399ab34e06308a6487dd` | Deployment configuration/tool: vault-engine.service; see deployment chapter and runbooks. |
+| `deploy/vault-regtest.Dockerfile` | 768 | `556ac4df33192ce5b22af6fc3948f367b4b7096141f8b6e4a5df2a5a308c3e41` | Deployment configuration/tool: vault-regtest.Dockerfile; see deployment chapter and runbooks. |
+| `deploy/vault-regtest.Dockerfile.dockerignore` | 126 | `c87f626c7c5177a00915301822c369b06aba4b800dbb9cc96bfb24f80b130094` | Deployment configuration/tool: vault-regtest.Dockerfile.dockerignore; see deployment chapter and runbooks. |
 | `docs/coolify-bitcoin-setup.md` | 6457 | `79ea5ce97c779418b08abb5b0005cbee3bef98d72c9d7fe244dbad369b932e08` | Detailed coolify bitcoin setup runbook/status reference; respect dated evidence. |
 | `docs/coolify-deployment.md` | 13046 | `2b3e922475938f23b032496c27fcda353fc680f8fa5f54691b884d273c5c67f8` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
 | `docs/github-readiness.md` | 11521 | `10908f86e6a211ff20ae51d92f6e0c11938d131426fdfa100a3c4f1979d82c65` | Detailed github readiness runbook/status reference; respect dated evidence. |
 | `docs/live-session-readiness.md` | 3430 | `ef1e8eecf530e98a45c922f3af036cc4febd62117e59edaab5d447c7b75384a5` | Detailed live session readiness runbook/status reference; respect dated evidence. |
 | `docs/login-security.md` | 6803 | `3759d7aa17f02836e9f4ca921a06b0e964fc0f04e246c6368b3ce4c0385c9abf` | Detailed login security runbook/status reference; respect dated evidence. |
-| `docs/mainnet-and-capacity.md` | 6391 | `ce8cc6d51a0ce399d8a3c90d7a0ae4a835e5b903cb9eeb9a72e3f170266a89d6` | Detailed mainnet and capacity runbook/status reference; respect dated evidence. |
+| `docs/mainnet-and-capacity.md` | 6597 | `16bb5fde58ebd1ac320874ad7f561a82ce7835e3623fd097cc6609af6163992d` | Detailed mainnet and capacity runbook/status reference; respect dated evidence. |
 | `docs/receive-readiness.md` | 2926 | `ed851ccc6e98853b4468a3e82ef5c363fc1fcfc5205118aeea128b6606350b8d` | Detailed receive readiness runbook/status reference; respect dated evidence. |
 | `docs/server-held-custody.md` | 4265 | `d9785925e1ccf930279868dbcd503e7ce0b69391870463504e8c2f3421ce3f4a` | Detailed server held custody runbook/status reference; respect dated evidence. |
 | `docs/temporary-wallet-storage.md` | 8254 | `4158aea070887d148cba974cb9fbfe97ba2bc5a85fcb85799c6ba5d219c03b23` | Detailed temporary wallet storage runbook/status reference; respect dated evidence. |
@@ -961,7 +977,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 33885 | `ade0f78231a05a0001ff9526e2c5795229fe057c6954af44233b24cc8ea786a8` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 34624 | `128a831716190d44ab062f91b52ba309e1c53901be2c6156e976b6f35bbf0eb9` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |

@@ -1,0 +1,6 @@
+**
+!services/
+!services/vault-engine/
+!services/vault-engine/*.go
+!services/vault-engine/go.mod
+!services/vault-engine/go.sum

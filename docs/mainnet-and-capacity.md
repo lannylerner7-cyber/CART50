@@ -105,10 +105,13 @@ Keep Signet services/volumes separate for rollback/testing rather than deleting 
 4. Verify pending -> confirmed and reviewed fee replacement with controlled funds.
 5. Confirm monitoring, disk growth, prune/rescan limitations and backup retention.
 
-Existing Core 29.0 regtest covers the custody round trip, duplicate identity,
-replacement, engine reconstruction and reserve restore. Hosted recovery and full
-payment/recovery regression on the new 29.4 image remain unproven. No full
-disaster-recovery or R2 restoration claim is made.
+The full Go suite now also passes with Core 29.4 in an isolated Docker regtest
+environment, with race detection and Go vet. It covers the custody round trip,
+duplicate identity, replacement, engine reconstruction and reserve restore.
+Reproduce with deploy/vault-regtest.Dockerfile's build/run instructions; its
+test-only build context includes tests excluded from production images, and the
+command fails if no test files were copied. Hosted disaster recovery, live R2
+restoration and real-BTC transfers remain unproven.
 
 ## Public HTML and routes
 
@@ -122,7 +125,7 @@ and missing state-file paths. API authentication remains the access boundary.
 
 ## Remaining gates
 
-Host capacity measurement; 29.4 full custody regression; hosted mainnet sync;
+Host capacity measurement; hosted mainnet sync;
 backup/restore drill; outage recovery; controlled real-BTC receive/send; independent
 security/release review; live market/replication/R2 commissioning as applicable.
 Do not announce production readiness or horizontal scalability from these fixtures.
