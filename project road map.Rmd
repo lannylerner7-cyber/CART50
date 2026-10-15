@@ -271,6 +271,27 @@ Never remove persistent wallet volumes as a casual rollback strategy.
 
 # Current readiness — 2026-10-14
 
+## Guided hosted checks and storage expansion — 2026-10-15
+
+Evidence supplied by the owner through screenshots of the hosted SSH session:
+Core reports Signet, matching blocks/headers at 326403, initialblockdownload=false,
+and no warnings. The website also reports Core connected, recovery healthy,
+fresh Last Sync and D1 connected. This verifies the existing Signet path at the
+observation time, not mainnet commissioning or a completed disaster-recovery drill.
+
+A private, unshared pre-expansion EBS snapshot reached Completed. It is explicitly
+unencrypted and was taken while the server ran; it is not a verified consistent
+wallet backup. The existing gp3 volume was expanded from 30 to 100 GiB while
+retaining 3000 IOPS and 125 MiB/s throughput. Final lsblk shows xvda=100G,
+xvda1=98.9G ext4 mounted at /. Final df shows root=96G, used=16G, available=81G.
+Partition/filesystem expansion is complete; no further resize command is needed.
+
+Still open: secure HTTPS management access, the Coolify browser terminal failure,
+encrypted mainnet storage/backups, host updates/restart planning, memory headroom,
+the separate mainnet deployment/sync, live R2 restoration and controlled real-BTC
+receive/send. SSH through the owner's CloudShell session worked; the browser
+terminal did not. No credentials were shared and no hosted mainnet switch occurred.
+
 ## Commissioning preparation and access boundary — 2026-10-15
 
 Protected routes now load on demand with Suspense inside the existing route
@@ -568,7 +589,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-376 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+410 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -801,6 +822,22 @@ to publish: review repository assets before release.
 | `attached_assets/IMG_2295_1792016824116.png` | 1283205 | `aae501f55764bbb51af2a8f1c7ece5bbcacb540bd9bde41b9b574cda04f27000` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2297_1792016824116.jpeg` | 181362 | `2ccf3c33a9cee0c5cf274c7e225199ccc29024b74a51849326c166e76126a82d` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2298_1792016824116.png` | 1427553 | `2c8df15d734261f9b9c2b22da5c273e9964411015f1da4318338ab3659f682c8` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2300_1792023930952.jpeg` | 431550 | `b7e3e8f938e0905cb7d27fd51c92b8a08e61116af8e14177a199ab9479b0a468` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2301_1792024021401.jpeg` | 235434 | `bc1479dd5bd1d4227d5994e3213ee2a13334a43c47cec3870bcc969eb3501ddd` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2301_1792024213798.jpeg` | 235434 | `bc1479dd5bd1d4227d5994e3213ee2a13334a43c47cec3870bcc969eb3501ddd` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2303_1792024213798.jpeg` | 281290 | `c7a5ddc6c84f337ffb4aba9b6cb8f3ebd0b4cd13582159ba683fbc1640d66cde` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2305_1792024213798.jpeg` | 287889 | `28a7b0c517c8ddafe5832cc28758ecafbc41c0d76293d0f66ed0c831aecc0a2a` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2307_1792024213798.jpeg` | 306006 | `c622b1557f584b370505c7688c2f048333a0e5f356dbf562a380f1508bbf95d3` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2308_1792024580716.png` | 199873 | `a97c7fa916dfdeb7aae55c72142ac061407947950ab2e6f9deb9e0361387cfdf` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2309_1792025919424.jpeg` | 154854 | `f65a19d039aae1d2e2105f6c3a1a81bf8ddcdefc6e8daf8079e3b00b7a44a2c3` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2312_1792027184181.png` | 163599 | `b253dafb21162d1f8969a845059b401c1df3651b95824024d11680b676f52e75` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2314_1792027603368.png` | 223111 | `f9c6123beb9dd1748ddab33503191bae7e6e384ee3656eb30beaf7c091eee1fa` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2316_1792027603369.jpeg` | 232236 | `ea511c8e22d637d591d81535e72ded4495d6c0c5d0c9a1d7f8426b38d7e1f003` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2317_1792027603369.png` | 586347 | `6ee6ee98fc34dfaa2aa0df6ca9a57cfa6df7f475ae65a27b56863fd1687eae1b` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2326_1792030739666.jpeg` | 3085349 | `4a443c583dbfb5e2b2fac3dd7536af5151501882db809b219b69b6b4e38c7632` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Instance_details_EC2_us-east-1_1792026579263.jpeg` | 771370 | `b7448325b7cb709434e0939b0ec2d3052b1936d0e960472a6d83bf1c117ab57e` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Instance_details_EC2_us-east-1_1792027022480.jpeg` | 860135 | `39e51bc750872489a9eca4e9ead22aa8cc0687a60ff41b166ddea4a29fa7b048` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Modify_volume_EC2_us-east-1_1792033601063.jpeg` | 871430 | `64508cec1eb103ab7f50bf18b5f0ecf16a6d28ab9530b91688808574dd50df7a` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Pasted--Project-Blueprint-Self-Hosted-Single-User-Crypto-Node-_1791805333879.txt` | 2752 | `752e822393f96d8bb566a4136a7d8418a807a55d8f639be90fc8ee103ecc38a0` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Pasted--imagine-over-10-000-users-make-a-request-at-once-and-T_1792020129887.txt` | 2421 | `a18b5248e1562e71fee4f4407d687f525538dd0a21dc9c56edf8a08b07e32783` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Pasted-2026-Oct-14-17-27-45-Docker-29-8-1-with-BuildKit-and-Bu_1791998920351.txt` | 7083 | `30867b1c8836eec05e69426db70b104ec8c217db5cf38377f28139c862d6868e` | Uploaded reference/evidence asset; content not reproduced here. |
@@ -811,6 +848,24 @@ to publish: review repository assets before release.
 | `attached_assets/Pasted-Short-answer-the-language-isn-t-your-latency-problem-an_1791805387433.txt` | 5155 | `6f392cf12925bce3d1316d1f0add639e0d99355057104a5399a3c5b8d9aea071` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Pasted-The-Bitcoin-hot-sweeper-key-path-is-the-only-configurat_1791805354418.txt` | 4745 | `5c17ab5e65f907429d6856ac0044ef777420fab723e8cfa5a53c5b8747bf37b1` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Pasted-This-is-an-exceptionally-rigorous-sovereign-tier-self-c_1791808542763.txt` | 3931 | `665744a1d182a773808de8ebefd099a73a476565c77af4874b0ac3620cc97516` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Personal_Bitcoin_Vault_1792030925559.jpeg` | 3347731 | `355e952c4803450902754f25e6666c7d93f62a8d7eea866d0fc2e9a1707b98b1` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Screenshot_2026-10-14_at_20.39.23_1792028403291.jpeg` | 556523 | `9d9e8b7ffc5f14ce465b3adc04bb1888440e85104bc8d7c76e362f5b612fe326` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Screenshot_2026-10-14_at_21.03.56_1792029859254.jpeg` | 1021818 | `86d177744d3ea34cf89e1a25c71384d962c439f669e0c5209c6f22fdf3d4e5fa` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Screenshot_2026-10-14_at_21.06.43_1792030043231.jpeg` | 902113 | `5cc87d3bb2b7329125a6abd2fffef18d81e7f64020e3dd14bdbd0de878507831` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Screenshot_2026-10-14_at_21.12.21_1792030396366.jpeg` | 1102848 | `9bb52d1c55f23aa224b4e0b1030a3649446d9b0e3695e1b33e0589ca5a9811cf` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Screenshot_2026-10-14_at_21.12.49_1792030396366.jpeg` | 812723 | `79c73409a15f5549c8667861bb9bef6288b698f88fbbd11f9bd130138ff2cfcd` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Screenshot_2026-10-14_at_21.15.50_1792030576769.jpeg` | 958680 | `497905ce21dc022495474266adaabda2cfcd7b287a5a0c4df053b50227432ba7` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Screenshot_2026-10-14_at_21.24.25_1792031095032.jpeg` | 940552 | `3e41a0ae79e4d9c8c9eb676f70f5bf5e1b61f2825a5826419144d688a19dcef2` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Screenshot_2026-10-14_at_22.09.24_1792033819449.jpeg` | 885371 | `c0eeddf344628054e017e989bb7c4ec61720f15af0c3a5d7877e33a591107da8` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Screenshot_2026-10-14_at_22.13.41_1792034125022.jpeg` | 904536 | `2b350f36d7f7ddc6abb597ffef833336707daca1b1d54ec16d7f17649484120d` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Screenshot_2026-10-14_at_22.14.48_1792034125022.jpeg` | 885602 | `947c8fcb73c987313c2f1c36540723b7ccd7509af1441fcbc3b2aff1d3029719` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Screenshot_2026-10-14_at_22.28.52_1792034964557.jpeg` | 950752 | `00c6bc48ade7990bb91f1688bf95a031b12a3446e91353acac0f701d2d92ec69` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Snapshot_details_EC2_us-east-1_1792033287721.jpeg` | 979234 | `e4cef89983e476835e664709d4d6dee9f5635651b2079e52da2804ad0763da9f` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Snapshot_details_EC2_us-east-1_1792033309635.jpeg` | 979234 | `e4cef89983e476835e664709d4d6dee9f5635651b2079e52da2804ad0763da9f` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Snapshot_details_EC2_us-east-1_1792033309636.jpeg` | 881522 | `7ea0f8b78745dc77762fa9f652ce4f056e4b85a4c8a1e70945dce0e869030db2` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Snapshots_EC2_us-east-1_1792031919918.jpeg` | 1105368 | `f973e740ac4c14c89f197111bcb399d3a896afae7a13990f5e1706f10cb1d4da` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Volume_details_EC2_us-east-1_1792033601063.jpeg` | 1025195 | `f0239b7958401776221cb30b21110cd3a22c3adab03cba3cac5f8b1c216baf18` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Volumes_EC2_us-east-1_1792031434573.jpeg` | 1016627 | `097a1197ebbf352631c44b739bb10eb07832f4825251187dc883e41856ebc282` | Uploaded reference/evidence asset; content not reproduced here. |
 | `deploy/app-config.mjs` | 3639 | `76f336b8bd3fbe2e0a077964b21600cf8e8d1ce38db09553c9cf8e6005fdaf93` | Deployment configuration/tool: app-config.mjs; see deployment chapter and runbooks. |
 | `deploy/app-config.test.mjs` | 3964 | `992a3d9bf3a91795d59aa33467cff58b75d283f42b80511e74a926656cee2f0b` | Regression tests for app-config; local checks, not hosted evidence. |
 | `deploy/app-entrypoint.mjs` | 1320 | `1cf752f14460de6fb9c30acf1e1b1e3195dcc5cbea2ea93881dc31645dbb1f09` | Deployment configuration/tool: app-entrypoint.mjs; see deployment chapter and runbooks. |
@@ -906,7 +961,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 32533 | `2bf4741cf765f01a1040cde009ea448e769021a9500f822cb4138da92d144e38` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 33885 | `ade0f78231a05a0001ff9526e2c5795229fe057c6954af44233b24cc8ea786a8` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
