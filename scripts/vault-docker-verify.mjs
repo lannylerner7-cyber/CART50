@@ -23,9 +23,11 @@ try {
   // Configuration errors go to stderr; the process must exit before remote D1.
   assert.ok(!rejected.includes("Server listening"));
   docker(["run", "--rm", "--network", "none", engineImage], 1);
-  docker(["run", "--rm", "--network", "none", "-e", `VAULT_ENGINE_TOKEN=${token}`,
-    "-e", "BITCOIN_NETWORK=mainnet", engineImage], 1);
-  const verifier = createHash("sha256").update(Buffer.alloc(164, 7)).digest("hex");
+  for (const network of ["main", "mainnet"]) {
+    docker(["run", "--rm", "--network", "none", "-e", `VAULT_ENGINE_TOKEN=${token}`,
+      "-e", `BITCOIN_NETWORK=${network}`, engineImage], 1);
+  }
+  const verifier = createHash("sha256").update(Buffer.alloc(64, 7)).digest("hex");
   docker(["run", "--rm", "--name", app, "--network", "none", "--read-only",
     "--tmpfs", "/tmp:rw,noexec,nosuid,nodev", "-e", "NODE_ENV=development",
     "-e", "VAULT_DATA_DIR=/tmp/state", "-e", "PUBLIC_ORIGIN=https://vault.test",
@@ -41,7 +43,7 @@ try {
     assert.equal((await fetch(base+'/settings')).status,200);
     assert.equal((await fetch(base+'/api/unknown')).status,404);
     assert.equal((await fetch(base+'/api/vault/dashboard')).status,401);
-    const r=await fetch(base+'/api/vault/login',{method:'POST',headers:{Origin:'https://vault.test','Content-Type':'application/json'},body:JSON.stringify({credential:Buffer.alloc(164,7).toString('base64url')})});
+    const r=await fetch(base+'/api/vault/login',{method:'POST',headers:{Origin:'https://vault.test','Content-Type':'application/json'},body:JSON.stringify({credential:Buffer.alloc(64,7).toString('base64url')})});
     assert.equal(r.status,200);
     assert.equal((await r.json()).authenticated,true);
     assert.match(r.headers.get('set-cookie'),/Secure/);
@@ -65,9 +67,9 @@ try {
     printf 'GET /status HTTP/1.1\\r\\nHost: localhost\\r\\nAuthorization: Bearer ${token}\\r\\nConnection: close\\r\\n\\r\\n' >&4
     result=$(cat <&4)
     [[ "$result" == *"200 OK"* && "$result" == *'"network":"signet"'* && "$result" == *'"connected":false'* ]]
-    echo 'PASS signer image: unauthorized rejected; signet-only, disconnected safely.'
+    echo 'PASS signer image: unauthorized rejected; default Signet, disconnected safely.'
   `]);
-  console.log("PASS: both amd64 images run without public ports or outbound network; production configuration and mainnet rejection checked.");
+  console.log("PASS: both amd64 images run without public ports or outbound network; production configuration and mainnet-without-opt-in rejection checked.");
   console.log("NOT PROVEN: real D1/SMTP/Core connectivity, Coolify proxy, live recovery or funding.");
 } finally {
   for (const name of [app, signer]) spawnSync("docker", ["rm", "-f", name], { stdio: "ignore", timeout: 15000 });

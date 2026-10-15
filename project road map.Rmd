@@ -271,6 +271,34 @@ Never remove persistent wallet volumes as a casual rollback strategy.
 
 # Current readiness — 2026-10-14
 
+## Pre-redeploy verification — 2026-10-15
+
+Workspace and Cloudflare typechecks passed. API/admission, static routing,
+session-lock, ledger identity, delay rules, Compose/configuration, backup,
+Cloudflare replica, generator/browser, package/runtime and live-probe unit tests
+passed. API and frontend production builds completed; frontend reports a
+roughly 965 kB uncompressed JS bundle and source-map warnings. These remain
+performance/tooling follow-ups, not build failures.
+
+The verification pass found and corrected two outdated test expectations:
+production setup HTML must return 404, and disposable owner login fixtures must
+use 64 bytes, not the former 164-byte format. Real credentials were untouched.
+
+App and signer linux/amd64 images built. Isolated smoke tests validate non-root
+configuration, static/SPA routing, authenticated disposable-key login, unauthorized
+rejection and disconnected Signet behavior; no host ports or external network used.
+Full Core regtest with race detection and Go vet passed, including custody,
+confirmation progression, duplicate sends, replacement and recovery scenarios.
+
+GitHub main was fetched successfully using the configured deploy identity; there
+were no remote-only commits at verification. No force-push or deployment was
+performed. The private deploy-key file is ignored by Git. This is not a full
+security audit or a guarantee that no secret exists anywhere in repository history.
+
+Source/build readiness is distinct from commissioning: hosted mainnet sync,
+Core 29.4 full custody/recovery regression, real-BTC round trip, live R2 restore,
+authenticated mobile UX checks and production capacity measurements remain open.
+
 ## Transfer delay signals — 2026-10-15
 
 History now shows elapsed-time signals on mobile cards and in the desktop table.
@@ -855,7 +883,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 29384 | `35daad99388b83aafb8d45bd36e1fe359f91b2b1e78f246d60532756902bcb0f` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 31060 | `49e3725aed9f99d9a298f6709e8fe8b68cb37c9b880f33669ae87e24c3ca6182` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
@@ -871,10 +899,10 @@ to publish: review repository assets before release.
 | `scripts/update-roadmap.test.mjs` | 2302 | `835d9b356ce704b84be849bbfd976c95077ad5db223624b5d85bc8ed8d98c889` | Regression tests for update-roadmap; local checks, not hosted evidence. |
 | `scripts/vault-backup.mjs` | 3134 | `81434bac3664005b7f7fdd238d26ad28ddfddee5dbcb429f2dbb2fe6b28f1362` | Operator/build utility: vault-backup.mjs; inspect flags before invoking. |
 | `scripts/vault-backup.test.mjs` | 1611 | `d3b8dfa5277fa6e3be103c31fa1aa7ed0627efaca3f3bc148a46b481957623db` | Regression tests for vault-backup; local checks, not hosted evidence. |
-| `scripts/vault-docker-verify.mjs` | 4559 | `4e892df373345bbab32737b3e43f3074fddba6ab43f6a39049f74a53ef7eb1ab` | Operator/build utility: vault-docker-verify.mjs; inspect flags before invoking. |
+| `scripts/vault-docker-verify.mjs` | 4633 | `d76e8ebc4dd4176d09c916aa01f2532dfc3029cfda4afa12b17f3fa445d61a22` | Operator/build utility: vault-docker-verify.mjs; inspect flags before invoking. |
 | `scripts/vault-live-probe.mjs` | 2986 | `ec049309adbe23560f46aa929fb0579d42860c29401037bf6fe437830caeb147` | Operator/build utility: vault-live-probe.mjs; inspect flags before invoking. |
 | `scripts/vault-live-probe.test.mjs` | 2036 | `3d39bce9677f184c6e13a5c8c985cb55be158965a9b9cc316e19fd4b956a4731` | Regression tests for vault-live-probe; local checks, not hosted evidence. |
-| `scripts/vault-package.test.mjs` | 4098 | `9f489b9e023e2bd35589d24f378779bb7dd619173c5464ee73afc42f6030eed9` | Regression tests for vault-package; local checks, not hosted evidence. |
+| `scripts/vault-package.test.mjs` | 4187 | `7162b406326c18968c1895e92b5b1f7cac9cbdc924f9f5f32c42a888368bc6e9` | Regression tests for vault-package; local checks, not hosted evidence. |
 | `scripts/vault-release.sh` | 2413 | `7bb1b6fd9606776f9d10b239ae3d973f2d5221f91632972550d41e3563f1a362` | Operator/build utility: vault-release.sh; inspect flags before invoking. |
 | `scripts/vault-verify.sh` | 1278 | `ae4084c55e5282f05fc2e74665530dafe0132ae22458b13c1c626c58c8056d86` | Operator/build utility: vault-verify.sh; inspect flags before invoking. |
 | `services/vault-engine/admission.go` | 679 | `75535c621e210d79a5e9b54e102490bafeef0f19dbe926b9a74049a4ab6dcf87` | admission.go module in services/vault-engine; see the owning subsystem above. |

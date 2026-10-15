@@ -69,7 +69,9 @@ test("standalone runtime works without workspace node_modules or Replit routing"
     assert.ok(asset);
     assert.equal((await fetch(base + asset)).status, 200);
     assert.equal((await fetch(base + "/settings")).status, 200);
-    assert.equal((await fetch(base + "/offline-keygen.html")).status, 200);
+    for (const route of ["/offline-keygen.html", "/signet-setup.html", "/%73ignet-setup.html"]) {
+      assert.equal((await fetch(base + route)).status, 404);
+    }
     assert.equal((await fetch(base + "/api/not-a-route")).status, 404);
     assert.equal((await fetch(base + "/missing.js")).status, 404);
     assert.equal((await fetch(base + "/api/vault/dashboard")).status, 401);
