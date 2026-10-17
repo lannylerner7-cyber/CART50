@@ -19,3 +19,9 @@ The login coin-rain audio should attempt autoplay, with a visible manual sound c
 **Why:** The user requested autoplay after the initial opt-in audio implementation.
 
 **How to apply:** Respect browser playback restrictions; do not claim autoplay is guaranteed on iPhone/iPad or remove the mute control.
+
+Show mainnet synchronization progress after login without requiring repeated terminal commands, independently of the wallet's active network during commissioning.
+
+**Why:** The user asked for in-app progress while mainnet is still syncing and the wallet remains on Signet. Monitoring must not prematurely enable real-Bitcoin transfers.
+
+**How to apply:** Keep monitoring read-only, label freshness and unavailable data explicitly, and distinguish blockchain synchronization from custody readiness.

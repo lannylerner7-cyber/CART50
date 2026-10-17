@@ -707,7 +707,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-483 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+489 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -721,7 +721,7 @@ to publish: review repository assets before release.
 | `.agents/memory/production-scope.md` | 2445 | `cecdac2d450084208b00f01f47c42811cc070069aeab74fe05b7e39cd73913af` | Durable project decision/lesson: production-scope. |
 | `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
 | `.agents/memory/temporary-wallet-destruction.md` | 2255 | `308fab6c2e98bb62dc6f2cdc25c5f5716eb296a98b7f81af7c4e57bca7a4c538` | Durable project decision/lesson: temporary-wallet-destruction. |
-| `.agents/memory/wallet-presentation.md` | 1712 | `7d5076b1cb059f74dce879ec7581187d697e3621429ab57c01f00e19d4042bde` | Durable project decision/lesson: wallet-presentation. |
+| `.agents/memory/wallet-presentation.md` | 2211 | `f67a867abda179e23b79b13df88813c6fa7bf870498860076834aec47e686b07` | Durable project decision/lesson: wallet-presentation. |
 | `.dockerignore` | 1308 | `baee3e84520fdf1074ee278b752611522e467dcdbe2216b14446893ba068863d` | Repository/tool configuration: .dockerignore. |
 | `.gitignore` | 911 | `04d7c0ec9e25280c87ff990c90b57492be5958258114a213e713fb01732857bd` | Repository/tool configuration: .gitignore. |
 | `.npmrc` | 56 | `1ded4f26f4851b35dae702edd5719d1be5ff31db6983858d088d5e6593ea7c99` | Repository/tool configuration: .npmrc. |
@@ -739,7 +739,7 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/middlewares/admission.ts` | 745 | `bed05bed36e4379b502ad75ab15abb973d4de2b9f79b1409cc94a52f09c3c004` | admission.ts module in artifacts/api-server/src/middlewares; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/health.ts` | 288 | `0386ceddb4ff4bff220af72ca38a62191ad95a2f41fd619df3bb9ceffce03db2` | health.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/index.ts` | 171 | `957c7d2e44a720dc48ffc511a738c57bb7659a3ab273c8b64b919a9d2a06b232` | index.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
-| `artifacts/api-server/src/routes/vault.ts` | 9328 | `85bd9190238825d6432f8a22fb1d053624925de43c7a36046d4e5d81fc550693` | Owner-gated vault API endpoints and contract validation. |
+| `artifacts/api-server/src/routes/vault.ts` | 9456 | `bb50512d9fc1feda633aa3a44dcf68e2e888198665de0881f00b13ddc90818c3` | Owner-gated vault API endpoints and contract validation. |
 | `artifacts/api-server/src/smtp-check.ts` | 2672 | `2181f6e32c377c4ff424a7fff89b78655b5ca61d3b975a191b07702fc490d2fc` | smtp-check.ts module in artifacts/api-server/src; see the owning subsystem above. |
 | `artifacts/api-server/src/static.test.ts` | 3297 | `3b58e56f5d98beaa539129d82dffeade2abd826cb85174169173ad53e96195c7` | Regression tests for static; local checks, not hosted evidence. |
 | `artifacts/api-server/src/static.ts` | 1528 | `90483b8a79a78f60d353ad953d35cce4b2c7372b2a705b26a7f59f5d42f52a55` | static.ts module in artifacts/api-server/src; see the owning subsystem above. |
@@ -754,6 +754,8 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/vault/market.test.ts` | 1172 | `32e98a536b8de783a48055cd1ff738b5d0ca8dd63f33533bda9ad8932fad2816` | Regression tests for market; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/market.ts` | 3387 | `cfdf94b95d7f6c089ef281a2faa35c86bc001e598847d0b2c8509dba3e82f63c` | Market freshness, pricing state and alert evaluation. |
 | `artifacts/api-server/src/vault/network.ts` | 527 | `74b5f26c3290c49a2e2db6943ac4a87219dd7275c14eb345a2c7621f10e294f2` | network.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
+| `artifacts/api-server/src/vault/node-sync.test.ts` | 2417 | `f5c3d8bd9c44edd3f6849dcab2884044502c5eb4f95e1eae4fff35539dde76ea` | Regression tests for node-sync; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/node-sync.ts` | 2519 | `83f5bd117a4d5076d34f7c9e25f626bfefac9e6a15cef21cb9ed8b9cd38c7013` | node-sync.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/passkeys.ts` | 6143 | `1e13f0c38ec58fa624eff64f28f14c3d421c6434e5233545c8d3054564789cc2` | WebAuthn passkey enrollment, authentication and management. |
 | `artifacts/api-server/src/vault/read-flight.test.ts` | 2078 | `dd8f7ec226b44d685661049a827b1eb0b40db8bff731d18c8cf02fd0e88bf746` | Regression tests for read-flight; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/read-flight.ts` | 523 | `f5753228cb365a378c1dad710d5fbc395ca5d11d7f86c460b74dc5621c80da18` | read-flight.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
@@ -776,6 +778,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/error-boundary.tsx` | 2735 | `c1ea4d88be8cd206a46bd87f19edf025b2504a70a2b65cd9c438e4a0e62dafe0` | error-boundary.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/kit.tsx` | 8267 | `e57c9ee17eaddf6f441fccf75c404d91b1846bbf8ad42f71b7b5c70ed640e511` | kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/login-bitcoin-hero.tsx` | 4169 | `b86bdaeb40a3515105dc13207a193b5b69fd4b4383b1e49230e99c3ac2d9bc4d` | login-bitcoin-hero.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/node-sync.tsx` | 3835 | `71e47f7e003271ec3b66a7571c17df6a2d9f7bb5eed7d26fc9cebade664ae66b` | node-sync.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/price-chart.tsx` | 4344 | `fd3204d36d0667a55fc4d1d74aca4a32eab9c084b2be0e2d77abd84ff11580a2` | price-chart.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/receive.tsx` | 15007 | `2f88d80c8eb203b428a80570e248419644be65167d873bbdf7b60a9a0c1a608d` | Receive dialog, QR code, network warning, copy/share and readiness gating. |
 | `artifacts/bitcoin-vault/src/components/sheet.tsx` | 2748 | `ebc64aa8cd585f254e5b45e5f858e73b66809a2b4ba3f3c958192800f5299992` | sheet.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
@@ -853,7 +856,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/pages/lock.tsx` | 14663 | `8619b42c14bf11b4de8ef0f23a313e292e9804e27bdd2668be18de7142506cea` | lock wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/market.tsx` | 12977 | `5a54373e2e613e0421ef3010868c7c8703fa855a409c480f3b7988f57fce17cf` | market wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/not-found.tsx` | 739 | `6aaea7a7125024440020566f3a14fde4f65149b1fd21f68c6a437b193e88c642` | not found wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/overview.tsx` | 15001 | `1d01d78f36ff918cfae097abca5cb266bac1fd4356bbd6d188d054cc12b2bdf9` | overview wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/overview.tsx` | 15071 | `1bcfa2359525498fed07a0ec3d9411335ae4330e2d4e55c486ad08afdc293146` | overview wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/settings.tsx` | 13397 | `0ff351b2944f03f932844c55b7810888b5f7f953c56e814e049e56a907d83009` | settings wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/spending.tsx` | 10915 | `4f7984706c2dd2de063a80905a58aed76d242826f548d7615520689652445183` | spending wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 13645 | `bf143717bf45e4ca251194d3b850548eef81cad963cb8441f12504a7d4a3cb89` | transactions wallet screen. |
@@ -1078,6 +1081,7 @@ to publish: review repository assets before release.
 | `docs/live-session-readiness.md` | 3430 | `ef1e8eecf530e98a45c922f3af036cc4febd62117e59edaab5d447c7b75384a5` | Detailed live session readiness runbook/status reference; respect dated evidence. |
 | `docs/login-security.md` | 6803 | `3759d7aa17f02836e9f4ca921a06b0e964fc0f04e246c6368b3ce4c0385c9abf` | Detailed login security runbook/status reference; respect dated evidence. |
 | `docs/mainnet-and-capacity.md` | 9136 | `57430c0a1d0d3b13cf5b403aa8fad650c80aff1883d574c5837ca7541f5f38d2` | Detailed mainnet and capacity runbook/status reference; respect dated evidence. |
+| `docs/mainnet-sync-monitor.md` | 1687 | `1aec872da31af91d241d5575f1034813b9179f4498d63a2c81ecb8c505d4bce2` | Detailed mainnet sync monitor runbook/status reference; respect dated evidence. |
 | `docs/receive-readiness.md` | 2926 | `ed851ccc6e98853b4468a3e82ef5c363fc1fcfc5205118aeea128b6606350b8d` | Detailed receive readiness runbook/status reference; respect dated evidence. |
 | `docs/server-held-custody.md` | 4265 | `d9785925e1ccf930279868dbcd503e7ce0b69391870463504e8c2f3421ce3f4a` | Detailed server held custody runbook/status reference; respect dated evidence. |
 | `docs/temporary-wallet-storage.md` | 8254 | `4158aea070887d148cba974cb9fbfe97ba2bc5a85fcb85799c6ba5d219c03b23` | Detailed temporary wallet storage runbook/status reference; respect dated evidence. |
@@ -1089,15 +1093,15 @@ to publish: review repository assets before release.
 | `es.txt` | 1 | `01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b` | Legacy root text asset; not an executable entrypoint; purpose requires owner review. |
 | `lib/api-client-react/package.json` | 265 | `ae70f97a12d1f7e7cbb291b5ffd1d6893f0d7a0ff7721a21e615d47bccfad789` | Package identity, dependencies and runnable scripts. |
 | `lib/api-client-react/src/custom-fetch.ts` | 11615 | `3455e24d5ceaed1b3f3cebf8609ff7d804f2a3902c37f112a653ce7c5d4d19e8` | Client HTTP transport and request/session integration. |
-| `lib/api-client-react/src/generated/api.schemas.ts` | 6578 | `4051a4dda9c08843d68f432a052926fdf821464a0ed465c00abf9178351c2a33` | Generated api.schemas.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-client-react/src/generated/api.ts` | 78852 | `184e7358845f68d2000d7e521b425a17aee1a3b9a6bad84fdbbe938c44812d6e` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-client-react/src/generated/api.schemas.ts` | 6923 | `ec1e04c36f0698507747173951e654ff5347cc27137aa8349e737b3ed1374c71` | Generated api.schemas.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-client-react/src/generated/api.ts` | 80657 | `a6f7523236b814cda8fb9e0839e7632f3eca1dbe362bcb5310c7cd4ae2ecb368` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-client-react/src/index.ts` | 208 | `708d0a9abb7cc7cc6c4873185fb57bc1873f82521c7dff78bbf3c0939d83e21f` | index.ts module in lib/api-client-react/src; see the owning subsystem above. |
 | `lib/api-client-react/tsconfig.json` | 267 | `a00fda842228e3478705abcf2c76d9641f5d6263cd5d2df0b613d5379088ad73` | TypeScript compilation/project-reference configuration. |
-| `lib/api-spec/openapi.yaml` | 64996 | `7822d3733e78eda1e4c546b89657c12806a520aa5e59b64091936cc84e344840` | Authoritative HTTP API contract. |
+| `lib/api-spec/openapi.yaml` | 66016 | `f35ee8451cb7025597a41ee0df5cb4207ffaedf479d1ec4cd4b88aeb069157d1` | Authoritative HTTP API contract. |
 | `lib/api-spec/orval.config.ts` | 2051 | `17bbe15ed439c69c5a900398b2a146e4c8d8c79365479cb0ca9adc4dd4058776` | orval.config.ts module in lib/api-spec; see the owning subsystem above. |
 | `lib/api-spec/package.json` | 228 | `2c0f6e86a51350d26ad83e057f0ae4a886b1d8fd484965b34a6a762c0495f088` | Package identity, dependencies and runnable scripts. |
 | `lib/api-zod/package.json` | 189 | `07009861b2ba8decccb4e9d78d743cb7273bd91915231b5eb1463b296efca13e` | Package identity, dependencies and runnable scripts. |
-| `lib/api-zod/src/generated/api.ts` | 17476 | `5818ca5946f572f49b75bd45c1e6b2e68beb13b0ea17d3cf4b26bee27fa4a603` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/api.ts` | 17843 | `4027789ce7de07d435d889ffce292f48a09c718a705ec8cebd6339680063ef4a` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/activity.ts` | 220 | `6a40ba64d552dccf6f83273d142b81fa514c03fae4d38bf900bb214880154ce1` | Generated activity.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/alert.ts` | 367 | `416ac7eeea3c9e6b301029cbc01bb4ce0e01b39d84f00c94f2ddb930192fa228` | Generated alert.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/alertInput.ts` | 512 | `4917d8e0399d7c90b3894594ea1f09668c57e888566d82af7a0a3eb6720be2a2` | Generated alertInput.ts contract/registry output; update its source generator rather than hand-editing. |
@@ -1110,10 +1114,11 @@ to publish: review repository assets before release.
 | `lib/api-zod/src/generated/types/explorer.ts` | 418 | `0cf5f1266b2870b16574fb229c828a5e4b5eb76ef98234a2f2ded78a004eb8da` | Generated explorer.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/explorerDetails.ts` | 157 | `61cf7f255b34f7689e7e5f0dee1f8a59ed696c1ab15d1f3eb7d90c352cdcc136` | Generated explorerDetails.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/healthStatus.ts` | 151 | `6ccf17c2dc7f498c00627c8568bea6f04963b1954d3db765d8b4278bf343ca66` | Generated healthStatus.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/index.ts` | 1260 | `f6d0dae73c9cc3abb87e0c8f510f9d031a91abfe9e6ce70e80925cd2eb083426` | Generated index.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/index.ts` | 1288 | `fe1169038d158cce373814d3d8ebb5a5d520572155878cc01972f4b484ea751f` | Generated index.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/market.ts` | 408 | `233be950c911aca8a078cce723369b48047274d4fae3c7ccb16f3911d64894fd` | Generated market.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/marketHistoryItem.ts` | 169 | `26fd394071ba2518780d96392359e8376bef0ae5575e21c7b9d6ef60f7afe61b` | Generated marketHistoryItem.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/nodeStatus.ts` | 445 | `fc4c73ed90dc8a3ed388751d00b5e2be962510f1cff370bb186fa9419185ad76` | Generated nodeStatus.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/nodeSync.ts` | 443 | `573003b97d202c7a8f0dcd1e7fccced0b2616f7a1c7b51f76b05c634c270e4a8` | Generated nodeSync.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/notification.ts` | 221 | `f405bcf351bf9f89b456a4c5a06f8cd938c4cb23966ee1644145aa1380852c0b` | Generated notification.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/ok.ts` | 157 | `b28fabd4cb17077e8285ce24f46a51519c7a1436162b105491a0146f2d65057f` | Generated ok.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/passkey.ts` | 179 | `0600b33bb36fc4ab9f74faf5bbe7f50d66ac2aa7f93f2bcfff0f0eb4733e0969` | Generated passkey.ts contract/registry output; update its source generator rather than hand-editing. |
@@ -1183,7 +1188,7 @@ to publish: review repository assets before release.
 | `services/vault-engine/engine.go` | 13119 | `f1532ac538e99dd04efa7170662823cc33a62207f8fa45a867b6e13e549adcab` | Core readiness, wallet initialization, reconciliation and engine persistence. |
 | `services/vault-engine/engine_test.go` | 10514 | `e1dff12d56d883927fa3c059e49f9d87ca7b894776340a6d342743fb345a3044` | Regression tests for engine; local checks, not hosted evidence. |
 | `services/vault-engine/go.mod` | 38 | `f121f796cf6ed79edf948f45b9aa64e63c43ef4a7579b2a9ceee803743150272` | Go engine module and language version. |
-| `services/vault-engine/main.go` | 10329 | `926e482bcbf9106617809d788baa0f73ce469b99912fe2b3e51344f7b4b611e8` | Private HTTP service, authenticated routes and engine startup. |
+| `services/vault-engine/main.go` | 10756 | `37cc4f68872ad385ad9d92c19005c8bad762dde8d775f7baedf54fed0281f33b` | Private HTTP service, authenticated routes and engine startup. |
 | `services/vault-engine/network.go` | 493 | `74a76289cca402cceb7c8909a184218e747b3771f576bbb850b62b8c753b5ff1` | network.go module in services/vault-engine; see the owning subsystem above. |
 | `services/vault-engine/payments.go` | 15467 | `164c5da58389001f358e2194a7d59ee450814891f309461f22f87d5fa41f30a5` | Payment review, signing, broadcast and transaction lifecycle. |
 | `services/vault-engine/receive.go` | 1482 | `ffb6320cb6fa99d5d6ad0e56525e890e162f4a81af0ae9c3bcacfaa725d9afea` | Receive-address allocation and wallet receipt checks. |
@@ -1192,6 +1197,7 @@ to publish: review repository assets before release.
 | `services/vault-engine/replica_test.go` | 4253 | `6667bdfed328308c3990ff848f4734347896b22ab39f93b8dcff74481d2d6f4e` | Regression tests for replica; local checks, not hosted evidence. |
 | `services/vault-engine/rpc.go` | 2934 | `816f2bea7c1b6bb0a75157e9af621f5935f88ce9d32d8b18747fe0d7650a23c4` | Bitcoin Core JSON-RPC transport and cookie authentication. |
 | `services/vault-engine/state.go` | 4798 | `78b04eb1b64a1a9ea0f89dc6c750996bf813dc33d73013267c6fa5a7708d808d` | Durable engine data structures and journal state handling. |
+| `services/vault-engine/sync_test.go` | 1593 | `6165e8687c79230739de9bbc925e3dc7101f84ad3b8ba4bf274a96211630a1c6` | Regression tests for sync; local checks, not hosted evidence. |
 | `tsconfig.base.json` | 692 | `2dfaa6f6168f618e0e6deff048c17e4f5f73d59325bd935d471905ae6773585c` | TypeScript compilation/project-reference configuration. |
 | `tsconfig.json` | 236 | `8883c5dbf9e073ef0c7e91769b3e4abccca022df69b62fa7518d73e1512b37ef` | TypeScript compilation/project-reference configuration. |
 

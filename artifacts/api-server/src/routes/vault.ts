@@ -7,6 +7,7 @@ import { engine, nodeStatus, operationalSettings } from "../vault/engine";
 import { passkeyRouter } from "../vault/passkeys";
 import { getMarket } from "../vault/market";
 import { checkCredential, loginCooldown } from "../vault/login-security";
+import { mainnetSync } from "../vault/node-sync";
 
 const router = Router();
 router.use((_req, res, next) => {
@@ -32,6 +33,7 @@ router.post("/logout", async (req, res) => {
   clearSessionCookie(res); res.json({ ok: true, message: "Vault locked" });
 });
 router.use(requireOwner);
+router.get("/node/sync", async (_req, res) => res.json(await mainnetSync()));
 router.post("/security/revoke", async (_req, res) => {
   await changeState(s => { s.sessions = []; }); clearSessionCookie(res);
   res.json({ ok: true, message: "All sessions revoked" });

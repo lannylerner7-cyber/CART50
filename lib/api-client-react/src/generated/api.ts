@@ -29,6 +29,7 @@ import type {
   HealthStatus,
   Market,
   NodeStatus,
+  NodeSync,
   Notification,
   Ok,
   Passkey,
@@ -1254,6 +1255,77 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       > => {
       return useMutation(getUpdateVaultSettingsMutationOptions(options));
     }
+
+export const getGetNodeSyncUrl = () => {
+
+
+
+
+  return `/api/vault/node/sync`
+}
+
+export const getNodeSync = async ( options?: Parameters<typeof customFetch>[1]): Promise<NodeSync> => {
+
+  return customFetch<NodeSync>(getGetNodeSyncUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNodeSyncQueryKey = () => {
+    return [
+    `/api/vault/node/sync`
+    ] as const;
+    }
+
+
+export const getGetNodeSyncQueryOptions = <TData = Awaited<ReturnType<typeof getNodeSync>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNodeSync>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNodeSyncQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNodeSync>>> = ({ signal }) => getNodeSync({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNodeSync>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetNodeSyncQueryResult = NonNullable<Awaited<ReturnType<typeof getNodeSync>>>
+export type GetNodeSyncQueryError = ErrorType<unknown>
+
+
+
+export function useGetNodeSync<TData = Awaited<ReturnType<typeof getNodeSync>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNodeSync>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetNodeSyncQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getReconnectNodeUrl = () => {
 

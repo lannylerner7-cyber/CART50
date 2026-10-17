@@ -112,6 +112,22 @@ export interface Transaction {
   replacedBy: string | null;
 }
 
+export interface NodeSync {
+  available: boolean;
+  message: string;
+  network: string;
+  /** @nullable */
+  observedAt: string | null;
+  /** @nullable */
+  blocks: number | null;
+  /** @nullable */
+  headers: number | null;
+  /** @nullable */
+  verificationProgress: number | null;
+  /** @nullable */
+  initialBlockDownload: boolean | null;
+}
+
 export interface NodeStatus {
   connected: boolean;
   network: string;

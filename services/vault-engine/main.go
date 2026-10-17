@@ -32,6 +32,13 @@ if r.Context().Err() != nil { return }
 	var result any
 	var err error
 	switch {
+case r.Method == "GET" && r.URL.Path == "/sync":
+// Observation only: no wallet reconciliation or mutation is required during IBD.
+var c Chain
+c, err = e.chain()
+if err == nil {
+result = map[string]any{"available": true, "network": e.network, "observedAt": stamp(), "blocks": c.Blocks, "headers": c.Headers, "verificationProgress": c.Progress, "initialBlockDownload": c.IBD, "message": "Fresh Bitcoin Core sync observation"}
+}
 	case r.Method == "GET" && r.URL.Path == "/status":
 		var c Chain
 		c, err = e.chain()

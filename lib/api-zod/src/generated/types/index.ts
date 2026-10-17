@@ -20,6 +20,7 @@ export * from './healthStatus';
 export * from './market';
 export * from './marketHistoryItem';
 export * from './nodeStatus';
+export * from './nodeSync';
 export * from './notification';
 export * from './ok';
 export * from './passkey';

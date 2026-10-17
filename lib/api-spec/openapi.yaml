@@ -832,6 +832,18 @@
         }
       }
     },
+    "/vault/node/sync": {
+      "get": {
+        "operationId": "getNodeSync",
+        "tags": ["vault"],
+        "responses": {
+          "200": {
+            "description": "Read-only mainnet sync observation, independent of wallet network",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/NodeSync"}}}
+          }
+        }
+      }
+    },
     "/vault/node/reconnect": {
       "post": {
         "operationId": "reconnectNode",
@@ -2029,6 +2041,20 @@
           "address",
           "replacedBy"
         ]
+      },
+      "NodeSync": {
+        "type": "object",
+        "required": ["available", "message", "network", "observedAt", "blocks", "headers", "verificationProgress", "initialBlockDownload"],
+        "properties": {
+          "available": {"type": "boolean"},
+          "message": {"type": "string"},
+          "network": {"type": "string"},
+          "observedAt": {"type": ["string", "null"]},
+          "blocks": {"type": ["integer", "null"]},
+          "headers": {"type": ["integer", "null"]},
+          "verificationProgress": {"type": ["number", "null"]},
+          "initialBlockDownload": {"type": ["boolean", "null"]}
+        }
       },
       "NodeStatus": {
         "type": "object",

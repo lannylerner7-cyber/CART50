@@ -319,6 +319,18 @@ export const UpdateVaultSettingsResponse = zod.object({
 })
 
 
+export const GetNodeSyncResponse = zod.object({
+  "available": zod.boolean(),
+  "message": zod.string(),
+  "network": zod.string(),
+  "observedAt": zod.string().nullable(),
+  "blocks": zod.number().int().nullable(),
+  "headers": zod.number().int().nullable(),
+  "verificationProgress": zod.number().nullable(),
+  "initialBlockDownload": zod.boolean().nullable()
+})
+
+
 export const ReconnectNodeResponse = zod.object({
   "connected": zod.boolean(),
   "network": zod.string(),

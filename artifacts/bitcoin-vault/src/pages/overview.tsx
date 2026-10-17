@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import { ArrowDownToLine, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { Sheet, SheetAction, kindLabel } from '@/components/sheet';
 import { PriceChart } from '@/components/price-chart';
+import { NodeSync } from '@/components/node-sync';
 import { ReceiveDialog, receiveBlock, useOnline, type Freshness } from '@/components/receive';
 import { Boxes, Radio, Snowflake, Flame, Timer } from 'lucide-react';
 import { useGetVaultDashboard, getGetVaultDashboardQueryKey, useGetMarket, getGetMarketQueryKey, type Wallet } from '@workspace/api-client-react';
@@ -28,6 +29,7 @@ export default function Overview() {
 
   return (
     <div className="space-y-7 pb-24 md:pb-0">
+      <NodeSync />
       {q.isError && <ErrorPanel error={q.error} onRetry={() => q.refetch()} title="Dashboard unavailable" />}
       {q.isLoading && <div className="grid gap-4"><Skel className="h-72" /><Skel className="h-64" /></div>}
 
