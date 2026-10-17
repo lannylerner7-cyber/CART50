@@ -9,6 +9,7 @@ import { ErrorPanel } from '@/components/kit';
 import { VaultMark } from '@/components/shell';
 import { CREDENTIAL_RE } from '@/lib/vault';
 import { cn } from '@/lib/utils';
+import { LoginBitcoinHero } from '@/components/login-bitcoin-hero';
 
 export default function LockScreen({ session }: { session: Session }) {
   const isMain = /^(main|mainnet|bitcoin)$/i.test(session.network);
@@ -28,6 +29,7 @@ export default function LockScreen({ session }: { session: Session }) {
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground" data-testid="badge-network"><span className={cn('h-1.5 w-1.5 rounded-full', isMain ? 'bg-accent' : 'bg-warn')} />{session.network}{isMain ? '' : ' · test network'}</span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-muted-foreground"><Lock className="h-3 w-3" aria-hidden /> Locked</span>
           </div>
+          <LoginBitcoinHero />
           <p className="mt-8 hidden max-w-sm text-[12.5px] leading-relaxed text-muted-foreground lg:block">{session.network === 'main' ? 'Bitcoin mainnet · real funds. Verify network and destination before sending.' : 'Test network only. Do not send real Bitcoin.'}</p>
         </header>
         <main className="rise rise-2 w-full max-w-md justify-self-center lg:max-w-none">{session.configured ? <UnlockCard retryAfter={session.loginRetryAfterSeconds ?? 0} /> : <SetupCard />}</main>

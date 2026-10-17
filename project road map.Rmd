@@ -707,7 +707,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-480 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+481 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -774,6 +774,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/data-table.tsx` | 10120 | `15af3d3bc09114998678cc044f2c4fe6fac77032aae8024c6f7ed724b00bee90` | data-table.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/error-boundary.tsx` | 2735 | `c1ea4d88be8cd206a46bd87f19edf025b2504a70a2b65cd9c438e4a0e62dafe0` | error-boundary.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/kit.tsx` | 8267 | `e57c9ee17eaddf6f441fccf75c404d91b1846bbf8ad42f71b7b5c70ed640e511` | kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/login-bitcoin-hero.tsx` | 7641 | `5acaf4756a637e90ffeef6fde72e59f48b00404d393166c9a48c25ad817ff2bf` | login-bitcoin-hero.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/price-chart.tsx` | 4344 | `fd3204d36d0667a55fc4d1d74aca4a32eab9c084b2be0e2d77abd84ff11580a2` | price-chart.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/receive.tsx` | 15007 | `2f88d80c8eb203b428a80570e248419644be65167d873bbdf7b60a9a0c1a608d` | Receive dialog, QR code, network warning, copy/share and readiness gating. |
 | `artifacts/bitcoin-vault/src/components/sheet.tsx` | 2748 | `ebc64aa8cd585f254e5b45e5f858e73b66809a2b4ba3f3c958192800f5299992` | sheet.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
@@ -836,7 +837,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/ui/tooltip.tsx` | 1277 | `e3c6ea9d4ecd62881af33564e25be013d35a8a7fa78475a6dcc98a06c7f894eb` | Reusable tooltip UI primitive (wallet app). |
 | `artifacts/bitcoin-vault/src/hooks/use-mobile.tsx` | 585 | `82bff42ff087bd5dc90a5d17609cc428b8688de92d1333073a839af5ad3c9cbd` | use-mobile.tsx module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/hooks/use-toast.ts` | 3952 | `12cce940e597e1d597f7063131acd19658d25e924904308bf719bde17b67e351` | use-toast.ts module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/index.css` | 11888 | `a3bfa691ca043d006cb6c6d46c385ac1a288cc14f7adcb58b35322ea7b4e01ad` | Application stylesheet and design tokens. |
+| `artifacts/bitcoin-vault/src/index.css` | 13139 | `28e70288f5916b514e3dd7c034bde6bdc75df6843757e498a6cec15ebe85c29c` | Application stylesheet and design tokens. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.test.ts` | 823 | `6054ccce2ec59ee582f9784efb7f8f746470b352ade82ee1affc9497f0137194` | Regression tests for ledger-keys; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.ts` | 920 | `0ef19efdd008050bd8c98e9aea32d0fd97d163e08a6f02dfa44651b36a4352d3` | ledger-keys.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.test.ts` | 1648 | `86e951698a47a5037b3e43156cad26fc0ccb79f49fd1e723efd3d5fbd9d99eb0` | Regression tests for session-lock; local checks, not hosted evidence. |
@@ -847,7 +848,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/vault.tsx` | 3543 | `4aad0cc8f08811709b537612bb3f3331469751a5952290f6245e1a342023b61e` | vault.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/main.tsx` | 446 | `e7e03b61f962dc1787ea029d4941424475455366b5a4f079c8fcb4f5df4d076c` | React browser mount entrypoint. |
 | `artifacts/bitcoin-vault/src/pages/explorer.tsx` | 4021 | `b67c12740585a2237541c3e2f520da90bb40ab6f25c31f0c0f8e0d88adc43bc4` | explorer wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/lock.tsx` | 14505 | `453ab7e0916a0bba294540151b444cd1d5aa90d4a39a3d8df3ea99e47315b628` | lock wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/lock.tsx` | 14604 | `a4925f0b38d875d6fe06720c546f0acd513bf3d6347ab3207f815482fe037b2d` | lock wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/market.tsx` | 12977 | `5a54373e2e613e0421ef3010868c7c8703fa855a409c480f3b7988f57fce17cf` | market wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/not-found.tsx` | 739 | `6aaea7a7125024440020566f3a14fde4f65149b1fd21f68c6a437b193e88c642` | not found wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/overview.tsx` | 15001 | `1d01d78f36ff918cfae097abca5cb266bac1fd4356bbd6d188d054cc12b2bdf9` | overview wallet screen. |
