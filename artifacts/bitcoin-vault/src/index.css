@@ -246,6 +246,26 @@
 :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 
 /* Login Bitcoin hero */
+.login-sunrise {
+  position: absolute;
+  inset: 0 0 auto;
+  height: clamp(220px, 34vh, 380px);
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 28% 9% at 50% 0%, rgba(255,244,209,.85), transparent 100%),
+    radial-gradient(ellipse 55% 42% at 50% -8%, rgba(255,191,91,.28), transparent 100%),
+    radial-gradient(ellipse 85% 75% at 50% -20%, rgba(235,126,35,.13), transparent 100%);
+}
+.login-sunrise::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,231,178,.85), transparent);
+  box-shadow: 0 2px 18px rgba(255,190,86,.25);
+}
 .btc-rain { mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%); }
 .btc-drop { position: absolute; top: -40px; will-change: transform; animation: btc-fall linear infinite; }
 .btc-spin { display: block; animation: btc-spin ease-in-out infinite alternate; }
@@ -255,5 +275,5 @@
 .btc-hero-coin { filter: drop-shadow(0 10px 24px rgba(247,147,26,.35)); animation: btc-float 5s ease-in-out infinite; }
 .btc-hero-coin.is-still { animation-play-state: paused; }
 @keyframes btc-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-@media (max-width: 640px) { .btc-hero-coin svg { width: 52px; height: 52px; } .btc-drop:nth-child(n+9) { display: none; } }
+@media (max-width: 640px) { .btc-hero-coin svg { width: 52px; height: 52px; } .btc-drop:nth-child(n+25) { display: none; } }
 @media (prefers-reduced-motion: reduce) { .btc-drop, .btc-spin, .btc-hero-coin { animation: none !important; } .btc-drop { transform: translateY(18vh); } .btc-drop:nth-child(2n) { transform: translateY(42vh); } }

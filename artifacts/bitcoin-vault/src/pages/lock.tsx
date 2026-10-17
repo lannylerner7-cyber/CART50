@@ -15,6 +15,7 @@ export default function LockScreen({ session }: { session: Session }) {
   const isMain = /^(main|mainnet|bitcoin)$/i.test(session.network);
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-background">
+      <div className="login-sunrise" aria-hidden="true" />
       <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,hsl(var(--primary)/0.16),transparent_65%)] lg:left-[28%]" />
       <div aria-hidden className="pointer-events-none absolute -bottom-48 right-[-120px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,hsl(var(--accent)/0.10),transparent_65%)]" />
       <div className="relative mx-auto grid min-h-[100dvh] max-w-6xl grid-cols-1 gap-8 px-5 pb-8 pt-[max(2.5rem,env(safe-area-inset-top))] lg:grid-cols-[1fr_440px] lg:items-center lg:gap-16 lg:px-10">

@@ -2,9 +2,9 @@ import { useEffect, useId, useState } from 'react';
 import { Pause, Play, Volume2, VolumeX } from 'lucide-react';
 import { useCoinAudio } from '@/hooks/use-coin-audio';
 
-const COINS = Array.from({ length: 14 }, (_, i) => {
+const COINS = Array.from({ length: 42 }, (_, i) => {
   const r = (n: number) => ((Math.sin((i + 1) * n) + 1) / 2);
-  return { left: 3 + r(12.9898) * 92, size: 14 + Math.round(r(78.233) * 16), dur: 7 + r(3.7) * 7, delay: -r(9.1) * 14, spin: 4 + r(5.3) * 5, blur: r(2.1) > 0.75 };
+  return { left: 2 + r(12.9898) * 94, size: 12 + Math.round(r(78.233) * 18), dur: 5 + r(3.7) * 6, delay: -r(9.1) * 14, spin: 4 + r(5.3) * 5, blur: r(2.1) > 0.75 };
 });
 
 function CoinSvg({ size }: { size: number }) {
