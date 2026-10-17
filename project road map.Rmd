@@ -707,18 +707,19 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-489 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+493 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
 | `.agents/agent_assets_metadata.toml` | 3680 | `b847fae514fc9cec0e4a7a31b5a187210d644036601f8723af13696e3fb0df3a` | Workspace asset metadata; not application logic. |
-| `.agents/memory/MEMORY.md` | 1264 | `addac73a702fd994fd543017b6acb2a98b88bc4b75faafd224ef44f34959c130` | Durable project decision/lesson: MEMORY. |
+| `.agents/memory/MEMORY.md` | 1407 | `00a61f756be684c78fa10e4dc0acf4727a439b2f6ac94d4266e68b06d8498aeb` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
 | `.agents/memory/health-replication.md` | 1196 | `a960703d098ebe5dabcd92a0cb3b5d01b5cef3c1e5ed1328e9d326b642f30471` | Durable project decision/lesson: health-replication. |
 | `.agents/memory/hosting-scope.md` | 4384 | `7b0ad7d558e79a77db161c532edf37035879cf2a010dd67e006f63b2e82ab3b0` | Durable project decision/lesson: hosting-scope. |
 | `.agents/memory/owner-access.md` | 1808 | `159d57009f9e05cc3a71f1adaf0eb452995a20aa1fe57e837629feb5d9d29088` | Durable project decision/lesson: owner-access. |
 | `.agents/memory/production-scope.md` | 2445 | `cecdac2d450084208b00f01f47c42811cc070069aeab74fe05b7e39cd73913af` | Durable project decision/lesson: production-scope. |
+| `.agents/memory/schema-evolution.md` | 828 | `103fdc6b2118e431650e2bed193e5284ab99f3263a29b5f9c71dda8dfb2a31cd` | Durable project decision/lesson: schema-evolution. |
 | `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
 | `.agents/memory/temporary-wallet-destruction.md` | 2255 | `308fab6c2e98bb62dc6f2cdc25c5f5716eb296a98b7f81af7c4e57bca7a4c538` | Durable project decision/lesson: temporary-wallet-destruction. |
 | `.agents/memory/wallet-presentation.md` | 2211 | `f67a867abda179e23b79b13df88813c6fa7bf870498860076834aec47e686b07` | Durable project decision/lesson: wallet-presentation. |
@@ -732,7 +733,7 @@ to publish: review repository assets before release.
 | `artifacts/api-server/build.mjs` | 3657 | `97e0a7f2a0509d86b390bc9f1f97f4848eb77339b0c27ac1c7e90b17a8784d6a` | build.mjs module in artifacts/api-server; see the owning subsystem above. |
 | `artifacts/api-server/package.json` | 1031 | `1057ae534032ae130e07320d9226d401ad1a03f8a9def9ce90e15aaf93a6b567` | Package identity, dependencies and runnable scripts. |
 | `artifacts/api-server/src/app.ts` | 1809 | `612974d443ac718ebcf8eecb3f5953ae38ef8144203d8a4bdac80e3e371e068b` | app.ts module in artifacts/api-server/src; see the owning subsystem above. |
-| `artifacts/api-server/src/index.ts` | 670 | `9212d26ec83d06ba7f3f001d69c2686411aacdb79d435ff5834b6ced7007c7fa` | index.ts module in artifacts/api-server/src; see the owning subsystem above. |
+| `artifacts/api-server/src/index.ts` | 955 | `0076abc2b553984eac9e658720b08adade31d05510e24b8e6f69307773c7e336` | index.ts module in artifacts/api-server/src; see the owning subsystem above. |
 | `artifacts/api-server/src/lib/.gitkeep` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Empty-directory placeholder. |
 | `artifacts/api-server/src/lib/logger.ts` | 421 | `29e1ca75036fe917595a3a74fd450857d845836fe0625c30b9caa02df4acba62` | logger.ts module in artifacts/api-server/src/lib; see the owning subsystem above. |
 | `artifacts/api-server/src/middlewares/.gitkeep` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Empty-directory placeholder. |
@@ -759,10 +760,12 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/vault/passkeys.ts` | 6143 | `1e13f0c38ec58fa624eff64f28f14c3d421c6434e5233545c8d3054564789cc2` | WebAuthn passkey enrollment, authentication and management. |
 | `artifacts/api-server/src/vault/read-flight.test.ts` | 2078 | `dd8f7ec226b44d685661049a827b1eb0b40db8bff731d18c8cf02fd0e88bf746` | Regression tests for read-flight; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/read-flight.ts` | 523 | `f5753228cb365a378c1dad710d5fbc395ca5d11d7f86c460b74dc5621c80da18` | read-flight.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
+| `artifacts/api-server/src/vault/schema.test.ts` | 4126 | `ecb73f63f9bac16f591d6890316c593037f2e132c15f6a911d51895110f90cd5` | Regression tests for schema; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/schema.ts` | 4498 | `21be976d0539d6aec4733caf6effd5ac2d6fd20f72ac89d9ba61763d5dbe7d21` | schema.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/security-mail.ts` | 2034 | `1b625e27ca0d77d96fca66cf44633a2d64069930cfcf792f4958e66b0102d0de` | Security-event mail coordination. |
 | `artifacts/api-server/src/vault/smtp.test.ts` | 1306 | `8f99832fc6b62622254a129a431c390bd15691f81db9dd6891c53b767ca4678b` | Regression tests for smtp; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/smtp.ts` | 1981 | `54a2a9c5ef47fe207b0ca65447488271f9601a8fd92591f6a45a3e80d4fbfc93` | SMTP delivery transport. |
-| `artifacts/api-server/src/vault/store.ts` | 4968 | `fdfd3252f3241b09241726e333b8e7d39e0b336f857bf814c4081cd60c70804b` | Metadata persistence adapters and application-state access. |
+| `artifacts/api-server/src/vault/store.ts` | 5193 | `aa42d7a51c3e09ae4934a3ffe2bfc0d17157eaf22b4cbf8c90fc7daee99fed43` | Metadata persistence adapters and application-state access. |
 | `artifacts/api-server/tsconfig.json` | 335 | `aa300909ccd1d4282761b5d6549a174717b663bb56cb0f59d107d4b3d96cb009` | TypeScript compilation/project-reference configuration. |
 | `artifacts/bitcoin-vault/.replit-artifact/artifact.toml` | 770 | `8ffc0ab0be434d79fa9639b72cde3be4bf299f71dd6692b49640f13852b9195d` | Managed artifact service/routing configuration; update through artifact tooling. |
 | `artifacts/bitcoin-vault/components.json` | 434 | `3a5d5af62f05e6e3de6c5085f31ed4f49273d57cfeae4d69d00a2568c91f54f9` | UI component tooling and import/style configuration. |
@@ -1060,7 +1063,7 @@ to publish: review repository assets before release.
 | `attached_assets/image_1792082835480.jpg` | 3036130 | `78a2801db1041c4e7d851155707d4fadca992716c4bcbb7d83c5a0f9e038a358` | Uploaded reference/evidence asset; content not reproduced here. |
 | `deploy/app-config.mjs` | 3639 | `76f336b8bd3fbe2e0a077964b21600cf8e8d1ce38db09553c9cf8e6005fdaf93` | Deployment configuration/tool: app-config.mjs; see deployment chapter and runbooks. |
 | `deploy/app-config.test.mjs` | 3964 | `992a3d9bf3a91795d59aa33467cff58b75d283f42b80511e74a926656cee2f0b` | Regression tests for app-config; local checks, not hosted evidence. |
-| `deploy/app-entrypoint.mjs` | 1320 | `1cf752f14460de6fb9c30acf1e1b1e3195dcc5cbea2ea93881dc31645dbb1f09` | Deployment configuration/tool: app-entrypoint.mjs; see deployment chapter and runbooks. |
+| `deploy/app-entrypoint.mjs` | 665 | `62eaea1cda8f23f2d87fc62e8dcfe68c2a94e4f145049ba88e791e61620ba923` | Deployment configuration/tool: app-entrypoint.mjs; see deployment chapter and runbooks. |
 | `deploy/bitcoin-core.Dockerfile` | 1283 | `c81be1c1c13f568bffbd5d0841c7dcd8f851e18b89e18eb1b930872e116cfa30` | Deployment configuration/tool: bitcoin-core.Dockerfile; see deployment chapter and runbooks. |
 | `deploy/bitcoin-mainnet.Dockerfile` | 1200 | `ff7da8d17974b3f0a99c62d4d642d67ad0450be9b88950c560c6b8c23ec97e87` | Deployment configuration/tool: bitcoin-mainnet.Dockerfile; see deployment chapter and runbooks. |
 | `deploy/bitcoin-mainnet.conf` | 347 | `8f278ea8a3eacf2606fa974cd968510779ef249bc1d7f0430cd85bfefbba0178` | Deployment configuration/tool: bitcoin-mainnet.conf; see deployment chapter and runbooks. |
@@ -1076,7 +1079,8 @@ to publish: review repository assets before release.
 | `deploy/vault-regtest.Dockerfile` | 768 | `556ac4df33192ce5b22af6fc3948f367b4b7096141f8b6e4a5df2a5a308c3e41` | Deployment configuration/tool: vault-regtest.Dockerfile; see deployment chapter and runbooks. |
 | `deploy/vault-regtest.Dockerfile.dockerignore` | 126 | `c87f626c7c5177a00915301822c369b06aba4b800dbb9cc96bfb24f80b130094` | Deployment configuration/tool: vault-regtest.Dockerfile.dockerignore; see deployment chapter and runbooks. |
 | `docs/coolify-bitcoin-setup.md` | 6457 | `79ea5ce97c779418b08abb5b0005cbee3bef98d72c9d7fe244dbad369b932e08` | Detailed coolify bitcoin setup runbook/status reference; respect dated evidence. |
-| `docs/coolify-deployment.md` | 13046 | `2b3e922475938f23b032496c27fcda353fc680f8fa5f54691b884d273c5c67f8` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
+| `docs/coolify-deployment.md` | 13300 | `54c615f5401cab319d7a03b48a41f11a1f7d83f0f52ea8434518f126ec2b3470` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
+| `docs/database-schema.md` | 3150 | `83c765f8d07d3008a0813094dd0ea961dbd923a960a3fee98537ad4ca494c47c` | Detailed database schema runbook/status reference; respect dated evidence. |
 | `docs/github-readiness.md` | 11521 | `10908f86e6a211ff20ae51d92f6e0c11938d131426fdfa100a3c4f1979d82c65` | Detailed github readiness runbook/status reference; respect dated evidence. |
 | `docs/live-session-readiness.md` | 3430 | `ef1e8eecf530e98a45c922f3af036cc4febd62117e59edaab5d447c7b75384a5` | Detailed live session readiness runbook/status reference; respect dated evidence. |
 | `docs/login-security.md` | 6803 | `3759d7aa17f02836e9f4ca921a06b0e964fc0f04e246c6368b3ce4c0385c9abf` | Detailed login security runbook/status reference; respect dated evidence. |
@@ -1089,7 +1093,7 @@ to publish: review repository assets before release.
 | `docs/vault-commissioning-status.md` | 5958 | `45bbf3369dac5eb49ff71a607994d8ab769cf430eee3d6590919754921461047` | Detailed vault commissioning status runbook/status reference; respect dated evidence. |
 | `docs/vault-completion-plan.md` | 17653 | `8254a91f42917b293055d5ad72a335585adcdb7380ba965e66219c11b456ac58` | Detailed vault completion plan runbook/status reference; respect dated evidence. |
 | `docs/vault-offline-handoff.md` | 4435 | `81b725d8436354af4f3d095fde83c6dd62d31116a85286527d84d71779d30480` | Detailed vault offline handoff runbook/status reference; respect dated evidence. |
-| `docs/vault-operations.md` | 12006 | `899ef0ef70d32e0afbe5f508ae5467994ef08a78a45adf5a1a3e20188055a44f` | Detailed vault operations runbook/status reference; respect dated evidence. |
+| `docs/vault-operations.md` | 12192 | `f203dab0c9abbd7ff916a825bc8bcfaa664493b0e30c6a7b5eff4149d283e3ed` | Detailed vault operations runbook/status reference; respect dated evidence. |
 | `es.txt` | 1 | `01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b` | Legacy root text asset; not an executable entrypoint; purpose requires owner review. |
 | `lib/api-client-react/package.json` | 265 | `ae70f97a12d1f7e7cbb291b5ffd1d6893f0d7a0ff7721a21e615d47bccfad789` | Package identity, dependencies and runnable scripts. |
 | `lib/api-client-react/src/custom-fetch.ts` | 11615 | `3455e24d5ceaed1b3f3cebf8609ff7d804f2a3902c37f112a653ce7c5d4d19e8` | Client HTTP transport and request/session integration. |
@@ -1148,7 +1152,7 @@ to publish: review repository assets before release.
 | `lib/db/src/index.ts` | 416 | `fc285bc83108137ba57c4c2774a35053e3c25fda1292c3d7a16a57d43dd9679c` | Unused PostgreSQL starter scaffold; not the vault production store. |
 | `lib/db/src/schema/index.ts` | 743 | `459c09e0be1c1e28c794ee70e838f55d0c3d225fa6614fe2d4182a86fbf5e115` | Unused PostgreSQL starter scaffold; not the vault production store. |
 | `lib/db/tsconfig.json` | 244 | `69c976d11de35f0ac391934625beeccdd1b2689ba5d0f14c54b5384d4c30a9c9` | TypeScript compilation/project-reference configuration. |
-| `lib/vault-cloudflare/migrations/0001.sql` | 348 | `0b0572a16e7806f8257abc0dc3b7efa6dec4308241536f97fb32c023befbefc1` | 0001.sql module in lib/vault-cloudflare/migrations; see the owning subsystem above. |
+| `lib/vault-cloudflare/migrations/0001.sql` | 532 | `387731a6f6023e05672a2fe92627b9ba51ce39252074b99a4c83afe4a688a8c5` | 0001.sql module in lib/vault-cloudflare/migrations; see the owning subsystem above. |
 | `lib/vault-cloudflare/package.json` | 146 | `218a4b8aa29ff20e55bba282480f0028ce6828c484ac413a3b6bab298e16a498` | Package identity, dependencies and runnable scripts. |
 | `lib/vault-cloudflare/src/index.test.mjs` | 4029 | `d3ea6991a85d1969d23ab9df68adf1a550f05a5e3084e03d30abace8c8fb99de` | Regression tests for index; local checks, not hosted evidence. |
 | `lib/vault-cloudflare/src/index.ts` | 7797 | `79ea108f147c6a5574535924df3aa775b3e5a084498eff3048f74968b23cb046` | Cloudflare Worker price and health-replication endpoints. |
@@ -1176,7 +1180,7 @@ to publish: review repository assets before release.
 | `scripts/vault-docker-verify.mjs` | 4633 | `d76e8ebc4dd4176d09c916aa01f2532dfc3029cfda4afa12b17f3fa445d61a22` | Operator/build utility: vault-docker-verify.mjs; inspect flags before invoking. |
 | `scripts/vault-live-probe.mjs` | 2986 | `ec049309adbe23560f46aa929fb0579d42860c29401037bf6fe437830caeb147` | Operator/build utility: vault-live-probe.mjs; inspect flags before invoking. |
 | `scripts/vault-live-probe.test.mjs` | 2036 | `3d39bce9677f184c6e13a5c8c985cb55be158965a9b9cc316e19fd4b956a4731` | Regression tests for vault-live-probe; local checks, not hosted evidence. |
-| `scripts/vault-package.test.mjs` | 4187 | `7162b406326c18968c1895e92b5b1f7cac9cbdc924f9f5f32c42a888368bc6e9` | Regression tests for vault-package; local checks, not hosted evidence. |
+| `scripts/vault-package.test.mjs` | 5244 | `3fca7c9c48ac9353fd55293d75ff09149dbcc83b6185c0eb0adab65d18125147` | Regression tests for vault-package; local checks, not hosted evidence. |
 | `scripts/vault-release.sh` | 2413 | `7bb1b6fd9606776f9d10b239ae3d973f2d5221f91632972550d41e3563f1a362` | Operator/build utility: vault-release.sh; inspect flags before invoking. |
 | `scripts/vault-verify.sh` | 1278 | `ae4084c55e5282f05fc2e74665530dafe0132ae22458b13c1c626c58c8056d86` | Operator/build utility: vault-verify.sh; inspect flags before invoking. |
 | `services/vault-engine/admission.go` | 679 | `75535c621e210d79a5e9b54e102490bafeef0f19dbe926b9a74049a4ab6dcf87` | admission.go module in services/vault-engine; see the owning subsystem above. |

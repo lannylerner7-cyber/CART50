@@ -4,6 +4,7 @@ import path from "node:path";
 import type { WebAuthnCredential } from "@simplewebauthn/server";
 import type { LoginSecurity } from "./login-security";
 import { ReadFlight } from "./read-flight";
+import { ensureMetadataSchema } from "./schema";
 
 export type Alert = {
   id: string; name: string; kind: "below" | "percent_drop"; threshold: number;
@@ -46,11 +47,22 @@ async function query(sql: string, params: (string | number)[] = []): Promise<Rec
     mkdirSync(dir, { recursive: true, mode: 0o700 });
     local = new DatabaseSync(path.join(dir, "metadata.sqlite"));
     chmodSync(path.join(dir, "metadata.sqlite"), 0o600);
-    local.exec("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS vault_state (id INTEGER PRIMARY KEY CHECK(id=1), version INTEGER NOT NULL, data TEXT NOT NULL)");
+    local.exec("PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL");
   }
   return local.prepare(sql).all(...params) as Record<string, unknown>[];
 }
+let schemaReady: Promise<void> | undefined;
+export function initializeMetadata(): Promise<void> {
+  if (!schemaReady) {
+    schemaReady = ensureMetadataSchema(query).catch(error => {
+      schemaReady = undefined;
+      throw error;
+    });
+  }
+  return schemaReady;
+}
 async function readVersion(): Promise<{ version: number; state: State }> {
+  await initializeMetadata();
   await query("INSERT OR IGNORE INTO vault_state(id,version,data) VALUES(1,0,?)", [JSON.stringify(initial())]);
   const rows = await query("SELECT version,data FROM vault_state WHERE id=1");
   if (!rows[0]) throw new Error("Metadata state missing");

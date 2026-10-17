@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { startMarketPolling } from "./vault/market";
 import { startSecurityMail } from "./vault/security-mail";
+import { initializeMetadata } from "./vault/store";
 
 const rawPort = process.env["PORT"];
 
@@ -17,7 +18,8 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-app.listen(port, (err) => {
+// Do not accept traffic or start background jobs until the schema is ready.
+initializeMetadata().then(() => app.listen(port, (err) => {
   if (err) {
     logger.error({ err }, "Error listening on port");
     process.exit(1);
@@ -26,4 +28,7 @@ app.listen(port, (err) => {
   logger.info({ port }, "Server listening");
   startMarketPolling();
   startSecurityMail();
+})).catch(err => {
+  logger.error({ err }, "Metadata schema initialization failed; server not started");
+  process.exit(1);
 });

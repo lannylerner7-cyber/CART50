@@ -47,8 +47,9 @@ do not create duplicates. Their existence does not mean the Worker is deployed.
 
 Use dedicated vault resources, not databases or buckets belonging to other apps:
 
-1. Create D1 `personal-vault`; apply
-   `lib/vault-cloudflare/migrations/0001.sql` to that database.
+1. Create D1 `personal-vault`. The API initializes its schema automatically.
+   For Worker-first provisioning, apply `lib/vault-cloudflare/migrations/0001.sql`
+   before starting Worker jobs. See `docs/database-schema.md` for safe column repair.
 2. Create private R2 `personal-vault-encrypted-backups`.
 3. Create Queues `personal-vault-replica` and `personal-vault-replica-dlq`.
 4. Replace the placeholder database ID in
@@ -121,7 +122,9 @@ Replit recipient variable nor a Replit provider connection is automatically
 copied to Coolify.
 
 The container refuses startup on missing/invalid required settings, mainnet,
-an absent built dashboard, or a failed D1 schema/access check. It never silently
+an absent built dashboard, or failed D1 schema initialization/access. Startup creates
+missing tables and safely adds defined columns; incompatible schemas fail explicitly.
+It never silently
 uses SQLite in production. The signer URL/token may both be absent for initial
 UI setup: the dashboard will report a disconnected node and cannot make payments.
 A passing container health check proves HTTP liveness, **not** node sync, current

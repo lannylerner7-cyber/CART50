@@ -1,7 +1,7 @@
 // Run after building API and dashboard. No real credentials or remote services.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, cp, rm } from "node:fs/promises";
+import { mkdtemp, cp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import net from "node:net";
@@ -42,11 +42,29 @@ test("standalone runtime works without workspace node_modules or Replit routing"
   try {
     await cp("artifacts/api-server/dist", path.join(root, "dist"), { recursive: true });
     await cp("artifacts/bitcoin-vault/dist/public", path.join(root, "public"), { recursive: true });
-    // The entrypoint's D1 check requires a real deployment and is not bypassed
-    // in the image. This test only isolates the built runtime and its routes.
-    child = spawn(process.execPath, ["dist/index.mjs"], {
+    // Missing production D1 configuration must stop the bundle before listening.
+    const missing = spawnSync(process.execPath, ["dist/index.mjs"], {
+      cwd: root, encoding: "utf8", timeout: 5000,
+      env: { NODE_ENV: "production", PORT: String(port) },
+    });
+    assert.equal(missing.status, 1);
+    assert.match(missing.stdout + missing.stderr, /Production requires Cloudflare D1/);
+    // Test-only D1 transport, backed by real SQLite. No network or real credentials.
+    // This preload is never packaged into the application.
+    await writeFile(path.join(root, "fixture.mjs"), `
+      import { DatabaseSync } from 'node:sqlite';
+      const db = new DatabaseSync(':memory:');
+      globalThis.fetch = async (url, options) => {
+        if (!String(url).startsWith('https://api.cloudflare.com/')) throw new Error('Unexpected fixture network request');
+        const { sql, params } = JSON.parse(options.body);
+        const results = db.prepare(sql).all(...(params || []));
+        return Response.json({success:true,result:[{success:true,results}]});
+      };
+    `);
+    child = spawn(process.execPath, ["--import", "./fixture.mjs", "dist/index.mjs"], {
       cwd: root,
-      env: { NODE_ENV: "production", PORT: String(port), BITCOIN_NETWORK: "signet", VAULT_STATIC_DIR: path.join(root, "public") },
+      env: { NODE_ENV: "production", PORT: String(port), BITCOIN_NETWORK: "signet", VAULT_STATIC_DIR: path.join(root, "public"),
+        CF_ACCOUNT_ID: "fixture", CF_D1_DATABASE_ID: "fixture", CF_API_TOKEN: "fixture-only" },
       stdio: ["ignore", "pipe", "pipe"],
     });
     stopped = once(child, "exit");

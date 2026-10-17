@@ -98,7 +98,9 @@ API runtime configuration:
 - `CF_ACCOUNT_ID`, `CF_D1_DATABASE_ID`, least-privilege `CF_API_TOKEN`.
 - `MARKET_WORKER_URL`: HTTPS `/price` endpoint.
 
-Apply `lib/vault-cloudflare/migrations/0001.sql` to a new D1 database; configure
+The API automatically creates and checks its defined tables before startup, adding
+only safely repairable missing columns (see `docs/database-schema.md`). For Worker-first
+provisioning, apply `lib/vault-cloudflare/migrations/0001.sql` to a new D1 database; configure
 the Worker bindings and independent `REPLICA_TOKEN`. Do not use placeholder
 database IDs. Use same-origin routing: `/api/*` to the API; all other application
 routes to the built React app. Use Node 24+, pinned pnpm lockfile, TLS, no request

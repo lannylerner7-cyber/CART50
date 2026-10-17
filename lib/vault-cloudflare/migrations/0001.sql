@@ -12,3 +12,8 @@ CREATE TABLE IF NOT EXISTS replica (
   sequence INTEGER NOT NULL,
   data TEXT NOT NULL
 );
+-- The API records the baseline after verifying all required columns.
+CREATE TABLE IF NOT EXISTS vault_schema_migrations (
+  version INTEGER PRIMARY KEY,
+  applied_at TEXT NOT NULL
+);
