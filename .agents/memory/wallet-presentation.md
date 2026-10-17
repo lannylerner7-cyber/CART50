@@ -13,3 +13,9 @@ The user approved closely matching the supplied black mobile wallet screens: flo
 **Why:** The user approved this interpretation of their five screenshots on 2026-10-17. Their reference is a visual and interaction direction, not permission to copy example addresses, balances, earnings claims, or guaranteed processing times.
 
 **How to apply:** Preserve real wallet data, supported actions, and visible synchronization/readiness safeguards when reproducing the reference presentation.
+
+The login coin-rain audio should attempt autoplay, with a visible manual sound control when the browser blocks it.
+
+**Why:** The user requested autoplay after the initial opt-in audio implementation.
+
+**How to apply:** Respect browser playback restrictions; do not claim autoplay is guaranteed on iPhone/iPad or remove the mute control.

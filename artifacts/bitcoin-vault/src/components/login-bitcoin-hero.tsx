@@ -78,6 +78,37 @@ export function LoginBitcoinHero() {
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const sound = audioContext !== null;
   const [audioErr, setAudioErr] = useState<string | null>(null);
+  const cancelAutoplay = useRef<(() => void) | null>(null);
+  useEffect(() => {
+    const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctor || document.hidden) return;
+    let context: AudioContext;
+    try { context = new Ctor(); } catch { return; }
+    let cancelled = false;
+    let transferred = false;
+    const cancel = () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      if (!transferred) void context.close().catch(() => {});
+    };
+    const timer = window.setTimeout(() => {
+      if (transferred || cancelled) return;
+      cancel();
+      setAudioErr('Autoplay is blocked. Tap Coin rain sound to listen.');
+    }, 1200);
+    cancelAutoplay.current = cancel;
+    void context.resume().then(() => {
+      if (cancelled || document.hidden || context.state !== 'running') return;
+      transferred = true;
+      window.clearTimeout(timer);
+      setAudioContext(context);
+    }).catch(() => {
+      if (cancelled) return;
+      cancel();
+      setAudioErr('Autoplay is blocked. Tap Coin rain sound to listen.');
+    });
+    return cancel;
+  }, []);
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const fn = () => setReduced(mq.matches);
@@ -85,6 +116,7 @@ export function LoginBitcoinHero() {
   }, []);
   useCoinRainAudio(audioContext, (m) => { setAudioErr(m); setAudioContext(null); });
   const toggleSound = () => {
+    cancelAutoplay.current?.();
     setAudioErr(null);
     if (audioContext) { setAudioContext(null); return; }
     const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
