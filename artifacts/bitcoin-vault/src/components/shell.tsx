@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
-import { Activity, ArrowUpRight, Wallet as WalletIcon, Home, Lock, Menu, ScanSearch, Settings2, LineChart, X, History } from 'lucide-react';
+import { Activity, ArrowUpRight, Wallet as WalletIcon, Home, Lock, Menu, ScanSearch, Settings2, LineChart, History } from 'lucide-react';
 import { useLockVault } from '@workspace/api-client-react';
 import { useCsrf, useSession, remaining, errMsg, errStatus } from '@/lib/vault';
 import { lockClient } from '@/lib/session-lock';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { NetworkBadge } from '@/components/receive';
+import { Sheet } from '@/components/sheet';
 
 export const NAV = [
   { href: '/', label: 'Overview', icon: Home, code: '00' },
@@ -93,44 +94,41 @@ export function Shell({ children }: { children: ReactNode }) {
     </div>
   );
 
-  const TABS = [NAV[0], NAV[1], NAV[3], NAV[2]];
+  const TABS = [NAV[0], NAV[1], NAV[3], NAV[5], NAV[2]];
+  const tabLabel = (l: string) => (l === 'Transactions' ? 'Activity' : l === 'Spending' ? 'Send' : l === 'Overview' ? 'Home' : l);
 
   return (
-    <div className="min-h-[100dvh] pb-24 md:pb-0 md:pl-64">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-card p-5 md:flex">
+    <div className="min-h-[100dvh] pb-28 md:pb-0 md:pl-64">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-sidebar p-5 md:flex">
         <Brand />
         <div className="mt-3"><NetworkBadge network={session.network} /></div>
         <div className="mt-7 flex-1">{nav}</div>
         {footer}
       </aside>
 
-      <div className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-background/85 px-4 py-3 backdrop-blur-md md:hidden">
-        <Brand />
-        <div className="flex items-center gap-2">
-          <NetworkBadge network={session.network} className="text-[10px]" />
-          <button onClick={doLock} disabled={lock.isPending} aria-label="Logout" data-testid="button-lock-mobile" className="flex min-h-10 items-center gap-1 rounded-full bg-card px-3 text-xs font-semibold shadow-sm"><Lock className="h-4 w-4" />{lock.isPending ? 'Logging out…' : 'Logout'}</button>
-        </div>
-      </div>
+      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 bg-background/85 px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] backdrop-blur-md md:hidden">
+        <button onClick={() => setOpen(true)} aria-label="Open menu" data-testid="button-mobile-menu" className="circle-btn h-12 w-12"><Menu className="h-5 w-5" /></button>
+        <Link href="/" className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3.5" data-testid="link-brand-mobile">
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-foreground text-background"><VaultMark className="h-5 w-5" /></span>
+          <span className="font-display text-[14px] font-bold">Strongroom</span>
+        </Link>
+        <button onClick={doLock} disabled={lock.isPending} aria-label={lock.isPending ? 'Logging out' : 'Logout'} data-testid="button-lock-mobile" className="circle-btn h-12 w-12 disabled:opacity-50"><Lock className="h-5 w-5" /></button>
+      </header>
 
-      <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 rounded-[26px] border border-border bg-card/95 p-1.5 shadow-[0_12px_32px_-12px_hsl(232_30%_20%/0.35)] backdrop-blur md:hidden">
+      <nav aria-label="Primary" className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-40 grid grid-cols-5 gap-1 rounded-[30px] border border-border bg-card/90 p-1.5 shadow-[0_18px_40px_-12px_hsl(228_30%_2%/0.9)] backdrop-blur-xl md:hidden">
         {TABS.map((n) => (
-          <Link key={n.href} href={n.href} onClick={() => setOpen(false)} data-testid={`tab-nav-${n.label.toLowerCase()}`}
-            className={cn('flex flex-col items-center gap-0.5 rounded-2xl py-2 text-[10.5px] font-semibold transition-colors', isActive(n.href) && !open ? 'bg-foreground text-background' : 'text-muted-foreground')}>
-            <n.icon className="h-5 w-5" />{n.label === 'Transactions' ? 'Activity' : n.label === 'Spending' ? 'Send' : n.label === 'Overview' ? 'Home' : n.label}
+          <Link key={n.href} href={n.href} data-testid={`tab-nav-${n.label.toLowerCase()}`} aria-current={isActive(n.href) ? 'page' : undefined}
+            className={cn('flex flex-col items-center gap-1 rounded-[24px] py-2 text-[11px] font-semibold transition-colors', isActive(n.href) ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground')}>
+            <n.icon className="h-[22px] w-[22px]" />{tabLabel(n.label)}
           </Link>
         ))}
-        <button onClick={() => setOpen((o) => !o)} data-testid="button-mobile-menu" className={cn('flex flex-col items-center gap-0.5 rounded-2xl py-2 text-[10.5px] font-semibold', open ? 'bg-foreground text-background' : 'text-muted-foreground')}>
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}More
-        </button>
       </nav>
-      {open && (
-        <div className="fixed inset-x-3 bottom-[88px] z-40 rounded-[26px] border border-border bg-card p-4 shadow-xl md:hidden rise">
-          {nav}
-          <div className="mt-4">{footer}</div>
-        </div>
-      )}
+      <Sheet open={open} onOpenChange={setOpen} title="Menu" description={<NetworkBadge network={session.network} />} testId="sheet-menu">
+        <div className="mt-4">{nav}</div>
+        <div className="mt-4">{footer}</div>
+      </Sheet>
 
-      <main className="mx-auto max-w-[1200px] px-4 py-4 md:px-10 md:py-10">{children}</main>
+      <main className="mx-auto max-w-[1200px] px-4 py-3 md:px-10 md:py-10">{children}</main>
     </div>
   );
 }

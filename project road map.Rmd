@@ -707,7 +707,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-440 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+480 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -721,7 +721,7 @@ to publish: review repository assets before release.
 | `.agents/memory/production-scope.md` | 2445 | `cecdac2d450084208b00f01f47c42811cc070069aeab74fe05b7e39cd73913af` | Durable project decision/lesson: production-scope. |
 | `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
 | `.agents/memory/temporary-wallet-destruction.md` | 2255 | `308fab6c2e98bb62dc6f2cdc25c5f5716eb296a98b7f81af7c4e57bca7a4c538` | Durable project decision/lesson: temporary-wallet-destruction. |
-| `.agents/memory/wallet-presentation.md` | 693 | `05cd9feef50fb7e88957f063678ffa928715f8cfe3c0e0185edf241d92a3bb27` | Durable project decision/lesson: wallet-presentation. |
+| `.agents/memory/wallet-presentation.md` | 1374 | `7258fde88c0c9ca3d6e55e2d8c47d4394f71da8b164150c3d04cfb1c4bc2221f` | Durable project decision/lesson: wallet-presentation. |
 | `.dockerignore` | 1308 | `baee3e84520fdf1074ee278b752611522e467dcdbe2216b14446893ba068863d` | Repository/tool configuration: .dockerignore. |
 | `.gitignore` | 911 | `04d7c0ec9e25280c87ff990c90b57492be5958258114a213e713fb01732857bd` | Repository/tool configuration: .gitignore. |
 | `.npmrc` | 56 | `1ded4f26f4851b35dae702edd5719d1be5ff31db6983858d088d5e6593ea7c99` | Repository/tool configuration: .npmrc. |
@@ -774,8 +774,11 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/data-table.tsx` | 10120 | `15af3d3bc09114998678cc044f2c4fe6fac77032aae8024c6f7ed724b00bee90` | data-table.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/error-boundary.tsx` | 2735 | `c1ea4d88be8cd206a46bd87f19edf025b2504a70a2b65cd9c438e4a0e62dafe0` | error-boundary.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/kit.tsx` | 8267 | `e57c9ee17eaddf6f441fccf75c404d91b1846bbf8ad42f71b7b5c70ed640e511` | kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/components/receive.tsx` | 10982 | `29611d9c8f58398281edc91a580d2e5282afef8e8ab5db6d476ecf0879d942b0` | Receive dialog, QR code, network warning, copy/share and readiness gating. |
-| `artifacts/bitcoin-vault/src/components/shell.tsx` | 7422 | `17b70492334883097971d8a92bd250457b7c00286f6f56ee92ef30bf7ba036ad` | shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/price-chart.tsx` | 4344 | `fd3204d36d0667a55fc4d1d74aca4a32eab9c084b2be0e2d77abd84ff11580a2` | price-chart.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/receive.tsx` | 15007 | `2f88d80c8eb203b428a80570e248419644be65167d873bbdf7b60a9a0c1a608d` | Receive dialog, QR code, network warning, copy/share and readiness gating. |
+| `artifacts/bitcoin-vault/src/components/sheet.tsx` | 2748 | `ebc64aa8cd585f254e5b45e5f858e73b66809a2b4ba3f3c958192800f5299992` | sheet.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/shell.tsx` | 7664 | `e907a20e0abe4e9c80d50e3fff763ec3db4c9e331aecaab5147a90e5a7395284` | shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/tx-row.tsx` | 2730 | `5c82f6b311c84afc3559efb1786a1a3136bd2c94d4ed2547b18a34ad6a82f07c` | tx-row.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/ui/accordion.tsx` | 2013 | `8e4230a3e6d38bfab7b02f00f9e948c8c4038432c5b1bf2d0ea44dc8b5ce09cc` | Reusable accordion UI primitive (wallet app). |
 | `artifacts/bitcoin-vault/src/components/ui/alert-dialog.tsx` | 4447 | `d76901a06e6881e94aa3847fde2602ee6f6ddc9f4cace9fa238627a5572bd24e` | Reusable alert-dialog UI primitive (wallet app). |
 | `artifacts/bitcoin-vault/src/components/ui/alert.tsx` | 1609 | `695369ea4d1ba4438dcedacaa8059b08b6463ac93170360f3bd42b983b7608e9` | Reusable alert UI primitive (wallet app). |
@@ -833,7 +836,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/ui/tooltip.tsx` | 1277 | `e3c6ea9d4ecd62881af33564e25be013d35a8a7fa78475a6dcc98a06c7f894eb` | Reusable tooltip UI primitive (wallet app). |
 | `artifacts/bitcoin-vault/src/hooks/use-mobile.tsx` | 585 | `82bff42ff087bd5dc90a5d17609cc428b8688de92d1333073a839af5ad3c9cbd` | use-mobile.tsx module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/hooks/use-toast.ts` | 3952 | `12cce940e597e1d597f7063131acd19658d25e924904308bf719bde17b67e351` | use-toast.ts module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/index.css` | 10787 | `4d29e462f02affbd517083390e6c8f12b15d325e33bac54287b7016b2245ba02` | Application stylesheet and design tokens. |
+| `artifacts/bitcoin-vault/src/index.css` | 11888 | `a3bfa691ca043d006cb6c6d46c385ac1a288cc14f7adcb58b35322ea7b4e01ad` | Application stylesheet and design tokens. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.test.ts` | 823 | `6054ccce2ec59ee582f9784efb7f8f746470b352ade82ee1affc9497f0137194` | Regression tests for ledger-keys; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.ts` | 920 | `0ef19efdd008050bd8c98e9aea32d0fd97d163e08a6f02dfa44651b36a4352d3` | ledger-keys.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.test.ts` | 1648 | `86e951698a47a5037b3e43156cad26fc0ccb79f49fd1e723efd3d5fbd9d99eb0` | Regression tests for session-lock; local checks, not hosted evidence. |
@@ -847,11 +850,11 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/pages/lock.tsx` | 12124 | `a8b26f4dd0a7f7e7572bd93f8ca228355f3169d708da250b087262fc684faf48` | lock wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/market.tsx` | 12977 | `5a54373e2e613e0421ef3010868c7c8703fa855a409c480f3b7988f57fce17cf` | market wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/not-found.tsx` | 739 | `6aaea7a7125024440020566f3a14fde4f65149b1fd21f68c6a437b193e88c642` | not found wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/overview.tsx` | 14157 | `ac9e88e0e53deabeddee3984ece46bba48ec16f48aed305a25cf85296d30d341` | overview wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/overview.tsx` | 15001 | `1d01d78f36ff918cfae097abca5cb266bac1fd4356bbd6d188d054cc12b2bdf9` | overview wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/settings.tsx` | 13397 | `0ff351b2944f03f932844c55b7810888b5f7f953c56e814e049e56a907d83009` | settings wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/spending.tsx` | 10915 | `4f7984706c2dd2de063a80905a58aed76d242826f548d7615520689652445183` | spending wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 12027 | `99206c0bb5da7b9c1c0553e13fe4965f249f517de28f666e6c612577f0ab3938` | transactions wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/wallet-detail.tsx` | 10175 | `d87ea8d6f0f6815a290136641cbee91204c33c57f3b5ff060cf308af140010a4` | wallet detail wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 13645 | `bf143717bf45e4ca251194d3b850548eef81cad963cb8441f12504a7d4a3cb89` | transactions wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/wallet-detail.tsx` | 13031 | `d446af86cc5666932bf3ea1ec0dcfb06c490220d6d14d8f0e857eee80fc79762` | wallet detail wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallets.tsx` | 9598 | `ccdcf0a80728ec23bc9a147c2394e8d919a9c9c14d2714b1b7f7ba98f0f12284` | wallets wallet screen. |
 | `artifacts/bitcoin-vault/tsconfig.json` | 520 | `e0a2fd8a7f3bfc860ccab5623b1881e754eb02336612708ff8b59215e8c256c9` | TypeScript compilation/project-reference configuration. |
 | `artifacts/bitcoin-vault/vite.config.ts` | 1803 | `4f7c94d802c4f2d5f5c92e051ac99f5701d62d518a8cb412b9ae094879e0a4f7` | Vite host, bundling, aliases and artifact base-path configuration. |
@@ -929,6 +932,22 @@ to publish: review repository assets before release.
 | `attached_assets/EC2_us-east-1_1792037696300.jpeg` | 941008 | `b2c0e8c1f2c99405a83110bf657066ed982410d3be0d151db913dd067725b1d9` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/EC2_us-east-1_1792037704075.jpeg` | 941008 | `b2c0e8c1f2c99405a83110bf657066ed982410d3be0d151db913dd067725b1d9` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/EC2_us-east-1_1792038049797.jpeg` | 779352 | `854b73d94734e54eb6cc1e0783f37051b2025726531f57d6bb8460a255af2886` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2007_1792084027589.jpeg` | 729021 | `0ef52c0846cf29cfaa5c8c6bc051f67a52648977b86bbc6216609211c25d8753` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2008_1792084027589.jpeg` | 668599 | `9e9718544db6cfbfdc43ce3a8ab26131c62ad94ad72968825fb3658908670ef0` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2009_1792084154181.jpeg` | 766789 | `225b07400d4b19ecb343814350e561db7297b08892d55e1416bf643b53725df0` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2010_1792084304017.jpeg` | 828830 | `619089ef23fdc1168386b3b80ec66ef53f0fbe468c066dd553641327bafbd99a` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2010_1792084612626.jpeg` | 828830 | `619089ef23fdc1168386b3b80ec66ef53f0fbe468c066dd553641327bafbd99a` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2012_1792084477164.jpeg` | 261530 | `ec51214035ff9fb74005465fb3de76a84524a3e732135721e69cd435954366aa` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2012_1792084612626.jpeg` | 261530 | `ec51214035ff9fb74005465fb3de76a84524a3e732135721e69cd435954366aa` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2014_1792084477164.jpeg` | 353666 | `ab22a19ecef5b9c544cd3ea33dc32ffa42f897f1f8115fef2b86322cf845b380` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2014_1792084612626.jpeg` | 353666 | `ab22a19ecef5b9c544cd3ea33dc32ffa42f897f1f8115fef2b86322cf845b380` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2016_1792084612626.jpeg` | 334906 | `d0db97aaeecb816bb5fa47d0b53089ccf5777e315dd6e36f9af98775883097f1` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2016_1792119737134.jpeg` | 334906 | `d0db97aaeecb816bb5fa47d0b53089ccf5777e315dd6e36f9af98775883097f1` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2018_1792084612626.jpeg` | 329701 | `c9d32465c7a6266e7bf1ffff9f7f4d72ad807731ee368bfb07d295696acc9012` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2018_1792119737134.jpeg` | 329701 | `c9d32465c7a6266e7bf1ffff9f7f4d72ad807731ee368bfb07d295696acc9012` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2018_1792119882608.jpeg` | 329701 | `c9d32465c7a6266e7bf1ffff9f7f4d72ad807731ee368bfb07d295696acc9012` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2024_1792119882608.jpeg` | 580959 | `8faad80688b8f4212fcfda3013776623bf8bb7f3bcf7238bb2f70813484600ef` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2027_1792222186872.jpeg` | 334667 | `8b49360b28ffdfe0cc458ae681be428db318213fb3ab823e3f359b83373d6c34` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2262_1791972847481.jpeg` | 133994 | `859009edaa8fdb8f3a03633037a2627c07be091c533aa2716af3b55f9b363323` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2263_1791972847481.jpeg` | 117250 | `f92c72838322e8b401cf42917345da1b903f66586fb57cfbc5bf92085d11ffc0` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2264_1791972847481.jpeg` | 140771 | `d089aec0eb34aae907bfff0db170cf207076a814891d928d5402d6d7598bab6d` | Uploaded reference/evidence asset; content not reproduced here. |
@@ -973,6 +992,26 @@ to publish: review repository assets before release.
 | `attached_assets/IMG_2364_1792049227489.jpeg` | 400087 | `22c5b740ff363e1cdaf85fe108a37e50de5332f14b39e909ea5cdc08be78be42` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2367_1792051780541.jpeg` | 3310005 | `f03a2deb4e95e2f74abe9579109efe104ae2d8de158095d56d27b8c545d8f16d` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2376_1792054295155.jpeg` | 283674 | `dd602ec94bdcc008ce6b1f4986b6a2b160e0f63aadb15b42401ea67f087473d6` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2379_1792059602120.jpeg` | 282438 | `4c38580ae2760aade05735543c704db64853286685e6b9a0b11ae843a42bb9af` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2385_1792067717921.jpeg` | 441868 | `f74caa750e038b5003f601131f14e1f50a18d556e1da0bea0c5e7d597274e800` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2386_1792068244022.jpeg` | 130551 | `9a8e805c7fbb0edf14e30d693b9f6835ba92f7752209d0555a341e00b293e98e` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2388_1792068244022.jpeg` | 155432 | `d60e04b6ff074afc9a7d61712967b8f17dd13612e68a0b4cfd1dd3d17ffb8d6f` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2390_1792068244022.jpeg` | 239172 | `287838a7152adbf9e292874e72c61fbdf422ddbe6c803d95f9474209d0adbb8b` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2392_1792068244022.jpeg` | 266628 | `ece2bc95edf14eed17e9b7fcad5538e79fb3c73c89c0b32f3d485c7104f0884a` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2394_1792068244022.jpeg` | 216998 | `550526eac16da22617effe4c6576769c96892abb5e4f2b4e5135ecf14a1bcd1a` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2396_1792068244022.jpeg` | 150521 | `f720cb9e0d1cdc551484f69f2fb954c011d6e85bad6681e8b72f6ca95f98747b` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2398_1792068244022.jpeg` | 144710 | `288db081f7de177f434dc7fb75befb68853936ace2fc2133217f8c7d0cfd73d6` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2400_1792068652914.jpeg` | 255012 | `6af8075b91822b68cd7a52b00f3e6d3431ab1658e1f6d35d832c8b1e951e6549` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2401_1792070951369.png` | 130971 | `55e02d95ae29ac3114a7bc1fa1d4db168d8e6a0db305e2fc42114daf2908296c` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2403_1792071592330.jpeg` | 222860 | `b3456cd43cd03c9d9d106db1ee121cec278c902616f9cfd66237b30b052f97f9` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2405_1792071592330.jpeg` | 197018 | `9a8714f69ba245818a5f2d7cd1312285f080cc52ca53ad822c61083391f2fd62` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2407_1792071592330.jpeg` | 212059 | `b5ccbf22aed7b06b640d86bd79242f785de3c65d85d939f677567c2dca837615` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2409_1792071592330.jpeg` | 216816 | `569b8ee321124cac430bb193d1554be7259d457fdd5031c5e1c31f2551cc7c1d` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2436_1792222645853.jpeg` | 276886 | `c2f09eebd1c73a3c1840d52c670d15636ad15a3df8b2017fcff8a3cc83104627` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2437_1792222645853.jpeg` | 196072 | `7906ddb2516f558d797749bcea9777bc87012079fbc6e189eb87cd4ba10cec0d` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2438_1792222645853.jpeg` | 214876 | `ce6fa0803ce8f69e47dc366fae85c0cbbe915ba931464ebb5885c09e8d6d30d1` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2439_1792222645853.jpeg` | 191782 | `4b7b6727f2abdf9305fa01776bf63647b19e53d3e11e251888836cb3cfaca61c` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2440_1792222645853.jpeg` | 248140 | `d9e1f01486bcef412070fd9861ad3d4b0fdc4dd8cf21cfc1fb39107a2d2c609c` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Instance_details_EC2_us-east-1_1792026579263.jpeg` | 771370 | `b7448325b7cb709434e0939b0ec2d3052b1936d0e960472a6d83bf1c117ab57e` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Instance_details_EC2_us-east-1_1792027022480.jpeg` | 860135 | `39e51bc750872489a9eca4e9ead22aa8cc0687a60ff41b166ddea4a29fa7b048` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Modify_volume_EC2_us-east-1_1792033601063.jpeg` | 871430 | `64508cec1eb103ab7f50bf18b5f0ecf16a6d28ab9530b91688808574dd50df7a` | Uploaded reference/evidence asset; content not reproduced here. |
@@ -1012,6 +1051,7 @@ to publish: review repository assets before release.
 | `attached_assets/[Coolify]_Terminal_Coolify_1792054030777.jpeg` | 1399226 | `d1fff4dfc481ff30ebeb6f23e46cf1858bea3f4eba8b89cd42c16d81fa364426` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/[Coolify]_vault-main..._Terminal_Coolify_1792053029807.jpeg` | 551797 | `1e28f88c9f18b8c73932bac7877e4a39a02f2842834540c7f9bcd1e96308a5df` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/image_1792053162896.jpg` | 2558591 | `abb652a8598b95682aceb9c8d5df23ed539409968836aef2fd6e1958aa19a3ad` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/image_1792082835480.jpg` | 3036130 | `78a2801db1041c4e7d851155707d4fadca992716c4bcbb7d83c5a0f9e038a358` | Uploaded reference/evidence asset; content not reproduced here. |
 | `deploy/app-config.mjs` | 3639 | `76f336b8bd3fbe2e0a077964b21600cf8e8d1ce38db09553c9cf8e6005fdaf93` | Deployment configuration/tool: app-config.mjs; see deployment chapter and runbooks. |
 | `deploy/app-config.test.mjs` | 3964 | `992a3d9bf3a91795d59aa33467cff58b75d283f42b80511e74a926656cee2f0b` | Regression tests for app-config; local checks, not hosted evidence. |
 | `deploy/app-entrypoint.mjs` | 1320 | `1cf752f14460de6fb9c30acf1e1b1e3195dcc5cbea2ea93881dc31645dbb1f09` | Deployment configuration/tool: app-entrypoint.mjs; see deployment chapter and runbooks. |

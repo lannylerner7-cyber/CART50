@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { QRCodeSVG } from 'qrcode.react';
-import { AlertTriangle, Check, Copy, Share2, ShieldAlert, X } from 'lucide-react';
+import * as D from '@radix-ui/react-dialog';
+import { Link } from 'wouter';
+import { AlertTriangle, ArrowDown, ArrowLeft, Check, Clock, Copy, History, Info, MoreVertical, RefreshCw, Share2, ShieldAlert } from 'lucide-react';
 import { useCreateWalletReceiveAddress, getGetWalletQueryKey, getListWalletsQueryKey, getGetVaultDashboardQueryKey, type Wallet } from '@workspace/api-client-react';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetAction } from '@/components/sheet';
 import { ErrorPanel } from '@/components/kit';
-import { POLL_MS, remaining, stamp, useCsrf, useSession } from '@/lib/vault';
+import { POLL_MS, remaining, short, stamp, useCsrf, useSession } from '@/lib/vault';
 import { cn } from '@/lib/utils';
 
 export function useOnline() {
@@ -67,6 +69,8 @@ export function ReceiveDialog({ wallet, freshness, open, onOpenChange }: { walle
   const qc = useQueryClient();
   const alloc = useCreateWalletReceiveAddress(useCsrf());
   const [copied, setCopied] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [actionErr, setActionErr] = useState<string | null>(null);
   const [, tick] = useState(0);
   useEffect(() => { if (!open) return; const t = setInterval(() => tick((x) => x + 1), 5000); return () => clearInterval(t); }, [open]);
 
@@ -95,84 +99,119 @@ export function ReceiveDialog({ wallet, freshness, open, onOpenChange }: { walle
     });
   }, [wallet.id, qc]);
 
-  // Verify with the server every time the dialog opens; clear on close or when blocked.
+  // Verify with the server every time the screen opens; clear on close or when blocked.
   const blocked = !!block;
   useEffect(() => {
     if (open && !blocked) verify();
-    else { reqId.current++; setVerified(null); resetRef.current(); }
+    else { reqId.current++; setVerified(null); resetRef.current(); setMenu(false); setActionErr(null); }
   }, [open, blocked, verify]);
   // Drop the QR the moment the temporary window lapses.
   useEffect(() => { if (verified && remaining(verified.expiresAt).ms <= 0) setVerified(null); });
 
   const address = !block && verified ? verified.address : null;
 
-  const copy = () => address && navigator.clipboard.writeText(address).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1400); }).catch(() => undefined);
+  const copy = async () => {
+    if (!address) return;
+    setActionErr(null);
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('unsupported');
+      await navigator.clipboard.writeText(address);
+      setCopied(true); setTimeout(() => setCopied(false), 1400);
+    } catch {
+      setActionErr('Could not copy to the clipboard. Select and copy the address manually.');
+    }
+  };
   const share = async () => {
     if (!address) return;
-    if (navigator.share) { try { await navigator.share({ title: `${netLabel(session.network)} address`, text: address }); return; } catch { /* fall through to copy */ } }
-    copy();
+    setActionErr(null);
+    if (!navigator.share) { setActionErr('Sharing is not available on this device. Use Copy instead.'); return; }
+    try { await navigator.share({ title: `${netLabel(session.network)} address`, text: address }); }
+    catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return; // user cancelled: do nothing
+      setActionErr('Sharing failed. Use Copy instead.');
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[100dvh] max-w-md gap-0 overflow-y-auto rounded-[28px] border-0 bg-card p-0 [&>button]:hidden">
-        <div className="flex items-center justify-between px-5 pt-5">
-          <button onClick={() => onOpenChange(false)} className="grid h-10 w-10 place-items-center rounded-full bg-muted transition-transform active:scale-95" data-testid="button-close-receive" aria-label="Close"><X className="h-5 w-5" /></button>
-          <DialogTitle className="text-[17px] font-bold">Receive</DialogTitle>
-          <span className="h-10 w-10" />
-        </div>
-        <DialogDescription className="sr-only">Receive bitcoin into {wallet.label}</DialogDescription>
-        <div className="flex flex-col items-center px-5 pb-6 pt-4">
-          <div className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1.5 text-sm font-semibold"><BtcGlyph className="h-5 w-5 rounded-md" />{netLabel(session.network)}</div>
-          <div className="mt-1.5 text-[12.5px] text-muted-foreground">{wallet.label} · {wallet.kind}</div>
+    <D.Root open={open} onOpenChange={onOpenChange}>
+      <D.Portal>
+        <D.Overlay className="fixed inset-0 z-50 bg-[hsl(228_20%_2%/0.8)] data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+        <D.Content className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-background outline-none data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom-6 data-[state=open]:fade-in-0 duration-300 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:max-h-[92dvh] sm:w-[440px] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-[32px] sm:border sm:border-border" data-testid="sheet-receive">
+          <div className="sticky top-0 z-10 flex items-center justify-between bg-background/90 px-5 pb-2 pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur">
+            <button onClick={() => onOpenChange(false)} className="circle-btn" data-testid="button-close-receive" aria-label="Back"><ArrowLeft className="h-5 w-5" /></button>
+            <button onClick={() => setMenu(true)} disabled={!address} className="circle-btn disabled:opacity-40" aria-label="Address options" data-testid="button-address-options"><MoreVertical className="h-5 w-5" /></button>
+          </div>
+          <div className="flex flex-1 flex-col px-6 pb-6">
+            <D.Title className="font-display mt-4 text-[30px] font-semibold leading-tight">Receive BTC</D.Title>
+            <D.Description className="text-[15px] text-muted-foreground">on the {netLabel(session.network)} network · {wallet.label}</D.Description>
 
-          {block ? (
-            <div className="mt-5 flex w-full flex-col items-center gap-3 rounded-3xl border border-dashed border-border bg-muted/40 px-6 py-10 text-center" data-testid="status-receive-blocked">
-              <ShieldAlert className="h-8 w-8 text-warn" />
-              <div className="font-bold">Receiving unavailable</div>
-              <p className="text-sm text-muted-foreground">{block}</p>
-            </div>
-          ) : alloc.isError ? (
-            <div className="mt-5 w-full space-y-3" data-testid="status-receive-error">
-              <ErrorPanel error={alloc.error} onRetry={verify} title="The vault could not confirm this address" />
-              <p className="text-center text-xs text-muted-foreground">No address is shown until the server verifies it against your live node.</p>
-            </div>
-          ) : !verified ? (
-            <div className="mt-5 flex w-full flex-col items-center gap-3 rounded-3xl bg-muted/40 px-6 py-12 text-center" data-testid="status-receive-verifying">
-              <div className="h-[200px] w-[200px] animate-pulse rounded-2xl bg-muted" />
-              <p className="text-sm text-muted-foreground">Checking this address with your node</p>
-            </div>
-          ) : address ? (
-            <>
-              <div className="mt-5 w-full rounded-3xl border border-card-border bg-[hsl(240_33%_99%)] p-5 shadow-[0_10px_30px_-16px_hsl(232_30%_20%/0.3)]">
-                <div className="relative mx-auto w-fit">
-                  <QRCodeSVG value={`bitcoin:${address}`} title="Bitcoin receive QR code for the address shown below" size={232} level="Q" bgColor="#ffffff" fgColor="#000000" marginSize={4} data-testid="img-qr" />
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-[hsl(240_33%_99%)] p-1"><BtcGlyph className="h-10 w-10" /></span>
+            {block ? (
+              <div className="mt-7 flex flex-col items-center gap-3 rounded-[28px] border border-dashed border-border bg-card px-6 py-12 text-center" data-testid="status-receive-blocked">
+                <ShieldAlert className="h-8 w-8 text-warn" />
+                <div className="font-bold">Receiving unavailable</div>
+                <p className="text-sm text-muted-foreground">{block}</p>
+              </div>
+            ) : alloc.isError ? (
+              <div className="mt-7 space-y-3" data-testid="status-receive-error">
+                <ErrorPanel error={alloc.error} onRetry={verify} title="The vault could not confirm this address" />
+                <p className="text-center text-xs text-muted-foreground">No address is shown until the server verifies it against your live node.</p>
+              </div>
+            ) : !verified ? (
+              <div className="mt-7 flex h-[214px] overflow-hidden rounded-[26px]" data-testid="status-receive-verifying">
+                <div className="flex-1 animate-pulse bg-accent/40" />
+                <div className="grid w-[214px] place-items-center bg-card"><span className="px-4 text-center text-xs text-muted-foreground">Checking this address with your node</span></div>
+              </div>
+            ) : address ? (
+              <>
+                <div className="rise mt-7 flex overflow-hidden rounded-[26px] bg-accent">
+                  <div className="relative min-w-0 flex-1 p-5">
+                    <span className="absolute bottom-5 left-5 grid h-9 w-9 place-items-center rounded-full bg-background/90 text-accent"><svg viewBox="0 0 32 32" className="h-6 w-6" aria-hidden><circle cx="16" cy="16" r="9" fill="none" stroke="currentColor" strokeWidth="3" /><circle cx="16" cy="16" r="3" fill="currentColor" /></svg></span>
+                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-accent-foreground/70">{session.network}</span>
+                  </div>
+                  <div className="shrink-0 rounded-[24px] border-[6px] border-background bg-[#fbfaf7] p-2">
+                    <div className="relative">
+                      <QRCodeSVG value={`bitcoin:${address}`} title="Bitcoin receive QR code for the address shown below" size={186} level="Q" bgColor="#fbfaf7" fgColor="#0b0b0d" marginSize={1} data-testid="img-qr" />
+                      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#fbfaf7] p-1"><BtcGlyph className="h-9 w-9 rounded-full" /></span>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-4 break-all text-center font-mono text-[13px] leading-relaxed" data-testid="text-receive-address">{address}</div>
-              </div>
-              <div className="mt-4 flex w-full items-start gap-2.5 rounded-2xl bg-accent/15 px-4 py-3 text-[13px] text-foreground">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warn" />
-                <span>Only send <b>{netLabel(session.network)}</b> coins to this address. Coins from any other network will be lost.</span>
-              </div>
-              {temp && (
-                <div className="mt-2 flex w-full items-start gap-2.5 rounded-2xl bg-muted px-4 py-3 text-[13px]" data-testid="text-expiry-warning">
-                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                  <span>Temporary address. Expires in <b>{r.label}</b> ({stamp(wallet.expiresAt)}). Payments arriving after key destruction may be permanently lost.</span>
+                <div className="mt-7 flex items-center justify-between gap-4 border-b border-border pb-6">
+                  <div className="min-w-0">
+                    <div className="text-[16px]">Your address</div>
+                    <div className="mt-0.5 font-mono text-[13.5px] text-muted-foreground" data-testid="text-receive-address-short">{short(address, 6)}</div>
+                    <span className="sr-only" data-testid="text-receive-address">{address}</span>
+                  </div>
+                  <button onClick={copy} className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-muted transition-transform active:scale-95" aria-label="Copy address" data-testid="button-copy-address">
+                    {copied ? <Check className="h-5 w-5 text-ok" /> : <Copy className="h-5 w-5" />}
+                  </button>
                 </div>
-              )}
-              <div className="mt-4 grid w-full grid-cols-2 gap-3">
-                <button onClick={copy} className="flex flex-col items-center gap-1.5 rounded-2xl bg-muted py-4 text-sm font-semibold transition-transform active:scale-[0.97]" data-testid="button-copy-address">
-                  {copied ? <Check className="h-5 w-5 text-ok" /> : <Copy className="h-5 w-5" />}{copied ? 'Copied' : 'Copy'}
-                </button>
-                <button onClick={share} className="flex flex-col items-center gap-1.5 rounded-2xl bg-muted py-4 text-sm font-semibold transition-transform active:scale-[0.97]" data-testid="button-share-address">
-                  <Share2 className="h-5 w-5" />Share
-                </button>
-              </div>
-            </>
-          ) : null}
-        </div>
-      </DialogContent>
-    </Dialog>
+                {actionErr && <p role="alert" className="mt-3 rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive" data-testid="text-address-action-error">{actionErr}</p>}
+                <ul className="mt-5 space-y-4 text-[13px] text-muted-foreground">
+                  <li className="flex gap-3"><Info className="mt-0.5 h-4 w-4 shrink-0" />Bitcoin only. Do not send Bitcoin Cash, Bitcoin SV or any other coin to this address.</li>
+                  <li className="flex gap-3"><ArrowDown className="mt-0.5 h-4 w-4 shrink-0" />Only send <b className="text-foreground">{netLabel(session.network)}</b> coins. Coins from any other network will be lost.</li>
+                  <li className="flex gap-3"><Clock className="mt-0.5 h-4 w-4 shrink-0" />Credit appears once your own node sees the payment; confirmation time depends on fees and blocks.</li>
+                  {temp && <li className="flex gap-3 text-foreground" data-testid="text-expiry-warning"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warn" /><span>Temporary address. Expires in <b>{r.label}</b> ({stamp(wallet.expiresAt)}). Payments arriving after key destruction may be permanently lost.</span></li>}
+                </ul>
+              </>
+            ) : null}
+
+            <div className="mt-auto pt-8">
+              <button onClick={() => onOpenChange(false)} className="pill-btn h-14 w-full text-[16px]" data-testid="button-receive-done">Close</button>
+            </div>
+          </div>
+
+          <Sheet open={menu && !!address} onOpenChange={setMenu} title="Your BTC address" description={<span className="break-all font-mono text-[13px]">{address}</span>} testId="sheet-address-options">
+            <div className="mt-4">
+              <SheetAction icon={copied ? <Check className="text-ok" /> : <Copy />} label={copied ? 'Copied' : 'Copy'} onClick={copy} testId="button-option-copy" />
+              <SheetAction icon={<Share2 />} label="Share" onClick={share} testId="button-share-address" />
+              <SheetAction icon={<RefreshCw className={alloc.isPending ? 'animate-spin' : ''} />} label="Refresh address" sub="Re-checks the current receive address with the vault and your node. The vault decides which address is returned; this does not guarantee a new one." disabled={alloc.isPending} onClick={() => { setMenu(false); verify(); }} testId="button-option-refresh-address" />
+              <Link href={`/transactions?wallet=${encodeURIComponent(wallet.id)}`} onClick={() => { setMenu(false); onOpenChange(false); }} className="flex w-full items-center gap-4 rounded-2xl px-2 py-3.5 hover:bg-muted/60" data-testid="link-option-history"><History className="h-5 w-5" /><span className="text-[16px] font-medium">View history</span></Link>
+            </div>
+            {actionErr && <p role="alert" className="mt-3 rounded-2xl bg-destructive/10 px-4 py-3 text-sm text-destructive" data-testid="text-address-action-error">{actionErr}</p>}
+            <button onClick={() => setMenu(false)} className="pill-btn mt-4 h-14 w-full text-[16px]" data-testid="button-option-dismiss">Dismiss</button>
+          </Sheet>
+        </D.Content>
+      </D.Portal>
+    </D.Root>
   );
 }
