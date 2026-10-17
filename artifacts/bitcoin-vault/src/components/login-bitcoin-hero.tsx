@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Pause, Play, Volume2, VolumeX } from 'lucide-react';
+import { useCoinAudio } from '@/hooks/use-coin-audio';
 
 const COINS = Array.from({ length: 14 }, (_, i) => {
   const r = (n: number) => ((Math.sin((i + 1) * n) + 1) / 2);
@@ -22,116 +23,15 @@ function CoinSvg({ size }: { size: number }) {
   );
 }
 
-type AudioRig = { ctx: AudioContext; master: GainNode; noise: AudioBufferSourceNode; timer: number };
-
-function useCoinRainAudio(ctx: AudioContext | null, onFail: (msg: string) => void) {
-  const rig = useRef<AudioRig | null>(null);
-  const failRef = useRef(onFail); failRef.current = onFail;
-
-  useEffect(() => {
-    if (!ctx) return;
-    const master = ctx.createGain(); master.gain.value = 0.0001; master.connect(ctx.destination);
-    master.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.6);
-    // soft rain bed: filtered noise
-    const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-    const d = buf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * 0.5;
-    const noise = ctx.createBufferSource(); noise.buffer = buf; noise.loop = true;
-    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 3200; bp.Q.value = 0.6;
-    const ng = ctx.createGain(); ng.gain.value = 0.06;
-    noise.connect(bp).connect(ng).connect(master); noise.start();
-    const clink = () => {
-      if (ctx.state !== 'running') return;
-      const t = ctx.currentTime; const base = 2400 + Math.random() * 2200;
-      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.09 + Math.random() * 0.05, t + 0.004);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
-      g.connect(master);
-      [1, 2.76, 5.4].forEach((m) => {
-        const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = base * m;
-        o.connect(g); o.start(t); o.stop(t + 0.4);
-        o.onended = () => o.disconnect();
-      });
-      window.setTimeout(() => g.disconnect(), 500);
-    };
-    const timer = window.setInterval(() => { if (Math.random() < 0.55) clink(); }, 260);
-    rig.current = { ctx, master, noise, timer };
-    ctx.resume().catch(() => failRef.current('The browser blocked audio playback.'));
-    const onVis = () => {
-      if (document.hidden) void ctx.suspend().catch(() => {});
-      else void ctx.resume().catch(() => failRef.current('Audio paused. Tap the sound button to try again.'));
-    };
-    document.addEventListener('visibilitychange', onVis);
-    return () => {
-      document.removeEventListener('visibilitychange', onVis);
-      window.clearInterval(timer);
-      try { noise.stop(); } catch { /* already stopped */ }
-      noise.disconnect(); master.disconnect();
-      void ctx.close().catch(() => {});
-      rig.current = null;
-    };
-  }, [ctx]);
-}
-
 export function LoginBitcoinHero() {
   const [reduced, setReduced] = useState(() => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [paused, setPaused] = useState(false);
-  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
-  const sound = audioContext !== null;
-  const [audioErr, setAudioErr] = useState<string | null>(null);
-  const cancelAutoplay = useRef<(() => void) | null>(null);
-  useEffect(() => {
-    const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!Ctor || document.hidden) return;
-    let context: AudioContext;
-    try { context = new Ctor(); } catch { return; }
-    let cancelled = false;
-    let transferred = false;
-    const cancel = () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-      if (!transferred) void context.close().catch(() => {});
-    };
-    const timer = window.setTimeout(() => {
-      if (transferred || cancelled) return;
-      cancel();
-      setAudioErr('Autoplay is blocked. Tap Coin rain sound to listen.');
-    }, 1200);
-    cancelAutoplay.current = cancel;
-    void context.resume().then(() => {
-      if (cancelled || document.hidden || context.state !== 'running') return;
-      transferred = true;
-      window.clearTimeout(timer);
-      setAudioContext(context);
-    }).catch(() => {
-      if (cancelled) return;
-      cancel();
-      setAudioErr('Autoplay is blocked. Tap Coin rain sound to listen.');
-    });
-    return cancel;
-  }, []);
+  const { sound, audioErr, toggleSound } = useCoinAudio();
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     const fn = () => setReduced(mq.matches);
     mq.addEventListener('change', fn); return () => mq.removeEventListener('change', fn);
   }, []);
-  useCoinRainAudio(audioContext, (m) => { setAudioErr(m); setAudioContext(null); });
-  const toggleSound = () => {
-    cancelAutoplay.current?.();
-    setAudioErr(null);
-    if (audioContext) { setAudioContext(null); return; }
-    const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!Ctor) { setAudioErr('Audio is not supported in this browser.'); return; }
-    try {
-      // Start within the tap event, required by Safari/iPad audio policies.
-      const context = new Ctor();
-      void context.resume().catch(() => {
-        setAudioErr('The browser blocked audio playback. Tap sound to try again.');
-        setAudioContext((current) => current === context ? null : current);
-        void context.close().catch(() => {});
-      });
-      setAudioContext(context);
-    } catch { setAudioErr('Audio could not be started.'); }
-  };
   const still = reduced || paused;
 
   return (

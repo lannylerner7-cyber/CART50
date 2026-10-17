@@ -707,11 +707,11 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-481 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+483 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
-| `.agents/agent_assets_metadata.toml` | 3000 | `c4e96a25aac94d4c82b5086ad7486ac497e3f93536d99a6288ca75b7736df5eb` | Workspace asset metadata; not application logic. |
+| `.agents/agent_assets_metadata.toml` | 3392 | `4ec7486676c85bb6af95ad1e3f1f216b5fff7763668d070cad64edfad7412b55` | Workspace asset metadata; not application logic. |
 | `.agents/memory/MEMORY.md` | 1264 | `addac73a702fd994fd543017b6acb2a98b88bc4b75faafd224ef44f34959c130` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
@@ -721,7 +721,7 @@ to publish: review repository assets before release.
 | `.agents/memory/production-scope.md` | 2445 | `cecdac2d450084208b00f01f47c42811cc070069aeab74fe05b7e39cd73913af` | Durable project decision/lesson: production-scope. |
 | `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
 | `.agents/memory/temporary-wallet-destruction.md` | 2255 | `308fab6c2e98bb62dc6f2cdc25c5f5716eb296a98b7f81af7c4e57bca7a4c538` | Durable project decision/lesson: temporary-wallet-destruction. |
-| `.agents/memory/wallet-presentation.md` | 1374 | `7258fde88c0c9ca3d6e55e2d8c47d4394f71da8b164150c3d04cfb1c4bc2221f` | Durable project decision/lesson: wallet-presentation. |
+| `.agents/memory/wallet-presentation.md` | 1712 | `7d5076b1cb059f74dce879ec7581187d697e3621429ab57c01f00e19d4042bde` | Durable project decision/lesson: wallet-presentation. |
 | `.dockerignore` | 1308 | `baee3e84520fdf1074ee278b752611522e467dcdbe2216b14446893ba068863d` | Repository/tool configuration: .dockerignore. |
 | `.gitignore` | 911 | `04d7c0ec9e25280c87ff990c90b57492be5958258114a213e713fb01732857bd` | Repository/tool configuration: .gitignore. |
 | `.npmrc` | 56 | `1ded4f26f4851b35dae702edd5719d1be5ff31db6983858d088d5e6593ea7c99` | Repository/tool configuration: .npmrc. |
@@ -766,6 +766,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/components.json` | 434 | `3a5d5af62f05e6e3de6c5085f31ed4f49273d57cfeae4d69d00a2568c91f54f9` | UI component tooling and import/style configuration. |
 | `artifacts/bitcoin-vault/index.html` | 1208 | `d9070ee3ba52e9ca54794162de1e21fc16766edd89adc0d984557749fe9f867f` | Browser HTML shell and asset entry. |
 | `artifacts/bitcoin-vault/package.json` | 2809 | `d3357a04c624527881d905120e802105a36662031a8b5d98a946f4aba7a65806` | Package identity, dependencies and runnable scripts. |
+| `artifacts/bitcoin-vault/public/audio/coin-rain-15s.mp3` | 241205 | `c26077294080615dee09ca43a8d320e063589a34e0a66122fb39813ee92800d6` | Public static asset/tool: coin-rain-15s.mp3; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/favicon.svg` | 163 | `8ffbde9092b1fa4de97c9481b76f518b131268c82e7c555041925225b1dab6e0` | Public static asset/tool: favicon.svg; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/offline-keygen.html` | 3706 | `1102ffcdc57e9ed88ed53a7ea10f9e1b5acf5cee09c85cf466ed2e4ff5289c09` | Public static asset/tool: offline-keygen.html; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/robots.txt` | 26 | `331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1` | Public static asset/tool: robots.txt; never place generated secrets here. |
@@ -774,7 +775,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/data-table.tsx` | 10120 | `15af3d3bc09114998678cc044f2c4fe6fac77032aae8024c6f7ed724b00bee90` | data-table.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/error-boundary.tsx` | 2735 | `c1ea4d88be8cd206a46bd87f19edf025b2504a70a2b65cd9c438e4a0e62dafe0` | error-boundary.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/kit.tsx` | 8267 | `e57c9ee17eaddf6f441fccf75c404d91b1846bbf8ad42f71b7b5c70ed640e511` | kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/components/login-bitcoin-hero.tsx` | 8832 | `2089e54b83a060d4e02c9e75779aa73d3cf86de1fd71e74105356a1f8afe861e` | login-bitcoin-hero.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/login-bitcoin-hero.tsx` | 4169 | `74cad1808578a802c4f24d1a6afa53952d8097fbbbc615e2e681c6943e629eb0` | login-bitcoin-hero.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/price-chart.tsx` | 4344 | `fd3204d36d0667a55fc4d1d74aca4a32eab9c084b2be0e2d77abd84ff11580a2` | price-chart.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/receive.tsx` | 15007 | `2f88d80c8eb203b428a80570e248419644be65167d873bbdf7b60a9a0c1a608d` | Receive dialog, QR code, network warning, copy/share and readiness gating. |
 | `artifacts/bitcoin-vault/src/components/sheet.tsx` | 2748 | `ebc64aa8cd585f254e5b45e5f858e73b66809a2b4ba3f3c958192800f5299992` | sheet.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
@@ -835,6 +836,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/ui/toggle-group.tsx` | 1767 | `6d7aca86245edf5d0a8f6f3ed73bd19316f4865425891eabccd6f3e37e59519e` | Reusable toggle-group UI primitive (wallet app). |
 | `artifacts/bitcoin-vault/src/components/ui/toggle.tsx` | 1494 | `5800d2099224ef90892e8c1d972d2a0964391c33cd43d7f5c6abf5cd42e023e1` | Reusable toggle UI primitive (wallet app). |
 | `artifacts/bitcoin-vault/src/components/ui/tooltip.tsx` | 1277 | `e3c6ea9d4ecd62881af33564e25be013d35a8a7fa78475a6dcc98a06c7f894eb` | Reusable tooltip UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/hooks/use-coin-audio.ts` | 2576 | `a6e5595ebff2b4e305c568f354c7ad8e7a948635b058e6f0f4b521b8adf2d771` | use-coin-audio.ts module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/hooks/use-mobile.tsx` | 585 | `82bff42ff087bd5dc90a5d17609cc428b8688de92d1333073a839af5ad3c9cbd` | use-mobile.tsx module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/hooks/use-toast.ts` | 3952 | `12cce940e597e1d597f7063131acd19658d25e924904308bf719bde17b67e351` | use-toast.ts module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/index.css` | 13139 | `28e70288f5916b514e3dd7c034bde6bdc75df6843757e498a6cec15ebe85c29c` | Application stylesheet and design tokens. |

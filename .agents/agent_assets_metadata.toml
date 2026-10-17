@@ -56,3 +56,17 @@ mtime_ms = 1792017365739
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/fdc28597-c06c-4bd5-8961-002cc649c04d/c0b50915-27a9-4199-a718-eb1ca3517f56"
 storage_version_token = "1792017377945314"
 content_type = "application/octet-stream"
+
+[[outputs]]
+id = "Sv_47C2Pzlo1M0CabpZzP"
+uri = "file://artifacts/bitcoin-vault/public/audio/coin-rain-15s.mp3"
+type = "audio"
+title = "15-second coin-rain loop"
+description = "Generated metallic coin-rain sound, used as the repeating login-page audio."
+logical_id = "9a34f480-01ac-412a-aa1b-483920716226"
+content_hash = "sha256:c26077294080615dee09ca43a8d320e063589a34e0a66122fb39813ee92800d6"
+size = 241205
+mtime_ms = 1792226813521
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/9a34f480-01ac-412a-aa1b-483920716226/bab7e405-3a40-4d67-afd1-34307c60687a"
+storage_version_token = "1792226879955903"
+content_type = "audio/mpeg"
