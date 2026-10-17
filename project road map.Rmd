@@ -847,7 +847,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/vault.tsx` | 3543 | `4aad0cc8f08811709b537612bb3f3331469751a5952290f6245e1a342023b61e` | vault.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/main.tsx` | 446 | `e7e03b61f962dc1787ea029d4941424475455366b5a4f079c8fcb4f5df4d076c` | React browser mount entrypoint. |
 | `artifacts/bitcoin-vault/src/pages/explorer.tsx` | 4021 | `b67c12740585a2237541c3e2f520da90bb40ab6f25c31f0c0f8e0d88adc43bc4` | explorer wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/lock.tsx` | 12124 | `a8b26f4dd0a7f7e7572bd93f8ca228355f3169d708da250b087262fc684faf48` | lock wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/lock.tsx` | 14505 | `453ab7e0916a0bba294540151b444cd1d5aa90d4a39a3d8df3ea99e47315b628` | lock wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/market.tsx` | 12977 | `5a54373e2e613e0421ef3010868c7c8703fa855a409c480f3b7988f57fce17cf` | market wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/not-found.tsx` | 739 | `6aaea7a7125024440020566f3a14fde4f65149b1fd21f68c6a437b193e88c642` | not found wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/overview.tsx` | 15001 | `1d01d78f36ff918cfae097abca5cb266bac1fd4356bbd6d188d054cc12b2bdf9` | overview wallet screen. |
