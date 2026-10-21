@@ -22,7 +22,7 @@ export function mainnetSync() {
       }
       const response = await fetch(new URL("/sync", base), {
         headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(20000),
       });
       if (!response.ok) return unavailable("Mainnet monitor unavailable. Check the connection and that the engine includes sync monitoring.");
       const data = GetNodeSyncResponse.parse(await response.json());

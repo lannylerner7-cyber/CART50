@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useGetNodeSync, getGetNodeSyncQueryKey } from '@workspace/api-client-react';
+import { useGetNodeSync, getNodeSync, getGetNodeSyncQueryKey } from '@workspace/api-client-react';
 import { RefreshCw } from 'lucide-react';
+import { requireMonitor, retryRead, readRetryDelay } from '@/lib/request-recovery';
 
 export function NodeSync() {
   const q = useGetNodeSync({ query: {
     queryKey: getGetNodeSyncQueryKey(),
+    queryFn: ({ signal }) => requireMonitor(() => getNodeSync({ signal })),
     refetchInterval: 15000, staleTime: 0, refetchOnMount: 'always',
-    refetchOnWindowFocus: 'always', refetchOnReconnect: 'always', retry: 1,
+    refetchOnWindowFocus: 'always', refetchOnReconnect: 'always',
+    retry: retryRead, retryDelay: readRetryDelay,
   } });
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
@@ -16,10 +19,11 @@ export function NodeSync() {
   const d = q.data;
   const observed = Date.parse(d?.observedAt ?? '');
   const age = Number.isFinite(observed) ? Math.max(0, Math.floor((now - observed) / 1000)) : null;
-  const stale = q.isError || q.fetchStatus === 'paused' || (age !== null && age > 60);
+  const stale = q.isError || q.failureCount > 0 || q.fetchStatus === 'paused' || (age !== null && age > 60);
   const available = d?.available === true;
   const progress = available && d.verificationProgress != null ? d.verificationProgress * 100 : null;
-  const title = q.isPending ? 'Connecting to mainnet…' : stale ? 'Sync updates interrupted' :
+  const title = q.fetchStatus === 'paused' ? 'Waiting for your connection…' :
+    q.isPending ? 'Connecting to mainnet…' : stale ? 'Reconnecting to mainnet…' :
     !available ? 'Mainnet monitor not connected' : d.initialBlockDownload ? 'Bitcoin is syncing' : 'Blockchain is up to date';
 
   return <section className="rounded-[24px] border border-border bg-card p-5 sm:p-6" data-testid="mainnet-sync-card">
@@ -47,10 +51,13 @@ export function NodeSync() {
       </dl>
     </>}
     <p className={`mt-4 text-sm ${stale ? 'text-warn' : 'text-muted-foreground'}`} role="status">
-      {stale ? 'Updates are unavailable or stale. This is not evidence that the node has stopped syncing.' :
+      {stale ? `${available ? `Last successful observation ${age ?? 0}s ago. ` : ''}Updates are delayed; retrying automatically while this page is open. This does not mean Bitcoin has stopped syncing.` :
         available ? `Updated ${age ?? 0}s ago · refreshes every 15 seconds while this page is open.` :
-        q.isPending ? 'Requesting a fresh observation…' : d?.message ?? 'Unable to load sync progress.'}
+        q.isPending ? 'Requesting a fresh observation; temporary failures retry automatically…' : 'Retrying the connection automatically…'}
     </p>
+    {q.isError && <p className="mt-2 text-xs text-muted-foreground">
+      {q.error instanceof Error ? q.error.message : 'The monitor could not be reached.'}
+    </p>}
     {available && <p className="mt-2 text-xs text-muted-foreground">
       {d.initialBlockDownload ? 'Initial blockchain download is still in progress. A reliable finish time is not yet available.' :
         'Sync is complete; wallet readiness and recovery checks are separate.'}

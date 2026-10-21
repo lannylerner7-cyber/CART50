@@ -367,7 +367,14 @@ export async function customFetch<T = unknown>(
 
   const requestInfo = { method, url: resolveUrl(input) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  // Bound reads so a stalled proxy cannot leave a screen waiting forever.
+  // Do not retry or impose a new timeout on mutations: an interrupted write
+  // may already have completed and must be reconciled, not replayed.
+  const readTimeout = method === "GET" || method === "HEAD" ? AbortSignal.timeout(45000) : null;
+  const signal = readTimeout
+    ? init.signal ? AbortSignal.any([init.signal, readTimeout]) : readTimeout
+    : init.signal;
+  const response = await fetch(input, { ...init, method, headers, signal });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

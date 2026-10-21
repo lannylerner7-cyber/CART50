@@ -8,3 +8,4 @@
 - [Production scope](production-scope.md) — real-BTC receiving/sending first; public API and rate limits only afterward.
 - [Coolify mount parsing](coolify-mount-parsing.md) — normal parsing lost bind safeguards; raw mode also creates host paths, so verify live Docker mounts.
 - [Schema evolution](schema-evolution.md) — automatic code-defined additive schema initialization, never columns guessed from incoming data.
+- [Request recovery](request-recovery.md) — recover monitoring reads automatically, but never blindly replay wallet writes.

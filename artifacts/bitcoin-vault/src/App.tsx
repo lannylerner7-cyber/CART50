@@ -19,6 +19,7 @@ const Explorer = lazy(() => import('@/pages/explorer'));
 const Market = lazy(() => import('@/pages/market'));
 const SettingsPage = lazy(() => import('@/pages/settings'));
 import { lockClient, LOCK_EVENT } from '@/lib/session-lock';
+import { retryRead, readRetryDelay, transientReadError } from '@/lib/request-recovery';
 
 const SESSION_KEY = getGetVaultSessionQueryKey();
 const on401 = (e: unknown) => {
@@ -27,7 +28,16 @@ const on401 = (e: unknown) => {
 const queryClient: QueryClient = new QueryClient({
   queryCache: new QueryCache({ onError: on401 }),
   mutationCache: new MutationCache({ onError: on401 }),
-  defaultOptions: { queries: { retry: (n, e) => errStatus(e) !== 401 && errStatus(e) !== 403 && n < 1, refetchOnWindowFocus: false } },
+  defaultOptions: {
+    queries: {
+      retry: retryRead,
+      retryDelay: readRetryDelay,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
+      refetchInterval: (q) => q.state.status === 'error' && transientReadError(q.state.error) ? 30000 : false,
+    },
+    mutations: { retry: false },
+  },
 });
 
 function Router() {

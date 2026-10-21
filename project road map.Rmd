@@ -707,18 +707,19 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-493 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+504 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
 | `.agents/agent_assets_metadata.toml` | 3680 | `b847fae514fc9cec0e4a7a31b5a187210d644036601f8723af13696e3fb0df3a` | Workspace asset metadata; not application logic. |
-| `.agents/memory/MEMORY.md` | 1407 | `00a61f756be684c78fa10e4dc0acf4727a439b2f6ac94d4266e68b06d8498aeb` | Durable project decision/lesson: MEMORY. |
+| `.agents/memory/MEMORY.md` | 1533 | `e95d472c2ed7c60e018197b95dc8bb7ef5c6b7481cf75b69711826b0d1f6b69f` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
 | `.agents/memory/health-replication.md` | 1196 | `a960703d098ebe5dabcd92a0cb3b5d01b5cef3c1e5ed1328e9d326b642f30471` | Durable project decision/lesson: health-replication. |
 | `.agents/memory/hosting-scope.md` | 4384 | `7b0ad7d558e79a77db161c532edf37035879cf2a010dd67e006f63b2e82ab3b0` | Durable project decision/lesson: hosting-scope. |
 | `.agents/memory/owner-access.md` | 1808 | `159d57009f9e05cc3a71f1adaf0eb452995a20aa1fe57e837629feb5d9d29088` | Durable project decision/lesson: owner-access. |
 | `.agents/memory/production-scope.md` | 2445 | `cecdac2d450084208b00f01f47c42811cc070069aeab74fe05b7e39cd73913af` | Durable project decision/lesson: production-scope. |
+| `.agents/memory/request-recovery.md` | 799 | `b846c19420be7142cbc24bae022a1dd8c9f207f1dcb4fc21d855d1dfe7ffd876` | Durable project decision/lesson: request-recovery. |
 | `.agents/memory/schema-evolution.md` | 828 | `103fdc6b2118e431650e2bed193e5284ab99f3263a29b5f9c71dda8dfb2a31cd` | Durable project decision/lesson: schema-evolution. |
 | `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
 | `.agents/memory/temporary-wallet-destruction.md` | 2255 | `308fab6c2e98bb62dc6f2cdc25c5f5716eb296a98b7f81af7c4e57bca7a4c538` | Durable project decision/lesson: temporary-wallet-destruction. |
@@ -756,7 +757,7 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/vault/market.ts` | 3387 | `cfdf94b95d7f6c089ef281a2faa35c86bc001e598847d0b2c8509dba3e82f63c` | Market freshness, pricing state and alert evaluation. |
 | `artifacts/api-server/src/vault/network.ts` | 527 | `74b5f26c3290c49a2e2db6943ac4a87219dd7275c14eb345a2c7621f10e294f2` | network.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/node-sync.test.ts` | 2417 | `f5c3d8bd9c44edd3f6849dcab2884044502c5eb4f95e1eae4fff35539dde76ea` | Regression tests for node-sync; local checks, not hosted evidence. |
-| `artifacts/api-server/src/vault/node-sync.ts` | 2519 | `83f5bd117a4d5076d34f7c9e25f626bfefac9e6a15cef21cb9ed8b9cd38c7013` | node-sync.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
+| `artifacts/api-server/src/vault/node-sync.ts` | 2520 | `cddc137f4a12b1f12c647a3188b21b182bcc46d59a1425ec10fb1a2f784340fb` | node-sync.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/passkeys.ts` | 6143 | `1e13f0c38ec58fa624eff64f28f14c3d421c6434e5233545c8d3054564789cc2` | WebAuthn passkey enrollment, authentication and management. |
 | `artifacts/api-server/src/vault/read-flight.test.ts` | 2078 | `dd8f7ec226b44d685661049a827b1eb0b40db8bff731d18c8cf02fd0e88bf746` | Regression tests for read-flight; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/read-flight.ts` | 523 | `f5753228cb365a378c1dad710d5fbc395ca5d11d7f86c460b74dc5621c80da18` | read-flight.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
@@ -776,12 +777,12 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/public/offline-keygen.html` | 3706 | `1102ffcdc57e9ed88ed53a7ea10f9e1b5acf5cee09c85cf466ed2e4ff5289c09` | Public static asset/tool: offline-keygen.html; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/robots.txt` | 26 | `331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1` | Public static asset/tool: robots.txt; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/signet-setup.html` | 66997 | `41f76188e4442f023c632c16cad297819724ea1d1b913b2d5e0097d08544bb0e` | Public static asset/tool: signet-setup.html; never place generated secrets here. |
-| `artifacts/bitcoin-vault/src/App.tsx` | 5217 | `dbf9195b32742489d78423971e5ea30efc20fbf75a87fc00b21330e447ddfc28` | Application routing/providers and access boundary. |
+| `artifacts/bitcoin-vault/src/App.tsx` | 5484 | `523f9042e71297efe9f8d11742ee180ce9f949f9a9509027df9bd2444543c7aa` | Application routing/providers and access boundary. |
 | `artifacts/bitcoin-vault/src/components/data-table.tsx` | 10120 | `15af3d3bc09114998678cc044f2c4fe6fac77032aae8024c6f7ed724b00bee90` | data-table.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/error-boundary.tsx` | 2735 | `c1ea4d88be8cd206a46bd87f19edf025b2504a70a2b65cd9c438e4a0e62dafe0` | error-boundary.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/kit.tsx` | 8267 | `e57c9ee17eaddf6f441fccf75c404d91b1846bbf8ad42f71b7b5c70ed640e511` | kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/login-bitcoin-hero.tsx` | 4169 | `b86bdaeb40a3515105dc13207a193b5b69fd4b4383b1e49230e99c3ac2d9bc4d` | login-bitcoin-hero.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/components/node-sync.tsx` | 3835 | `71e47f7e003271ec3b66a7571c17df6a2d9f7bb5eed7d26fc9cebade664ae66b` | node-sync.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/node-sync.tsx` | 4440 | `24fe10f13473a3025634073544f4311f95b9c878ed55d40f9050e85ff71eb227` | node-sync.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/price-chart.tsx` | 4344 | `fd3204d36d0667a55fc4d1d74aca4a32eab9c084b2be0e2d77abd84ff11580a2` | price-chart.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/receive.tsx` | 15007 | `2f88d80c8eb203b428a80570e248419644be65167d873bbdf7b60a9a0c1a608d` | Receive dialog, QR code, network warning, copy/share and readiness gating. |
 | `artifacts/bitcoin-vault/src/components/sheet.tsx` | 2748 | `ebc64aa8cd585f254e5b45e5f858e73b66809a2b4ba3f3c958192800f5299992` | sheet.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
@@ -848,6 +849,8 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/index.css` | 13791 | `a9a2eeccf685d75a0a93e506756bb3a9b095685084aefa9ce3d6960a2ec562e2` | Application stylesheet and design tokens. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.test.ts` | 823 | `6054ccce2ec59ee582f9784efb7f8f746470b352ade82ee1affc9497f0137194` | Regression tests for ledger-keys; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.ts` | 920 | `0ef19efdd008050bd8c98e9aea32d0fd97d163e08a6f02dfa44651b36a4352d3` | ledger-keys.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/request-recovery.test.ts` | 1955 | `404df275dea16c2614b5eb72eb818db9f56411d19153780b88d5bbc7cc0b831d` | Regression tests for request-recovery; local checks, not hosted evidence. |
+| `artifacts/bitcoin-vault/src/lib/request-recovery.ts` | 963 | `0b4194832e0969196c349ae455eb901e5eb97ffb4da5f474ad6bcab754dbb3f8` | request-recovery.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.test.ts` | 1648 | `86e951698a47a5037b3e43156cad26fc0ccb79f49fd1e723efd3d5fbd9d99eb0` | Regression tests for session-lock; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.ts` | 1115 | `5962a8ac11ca1035e7024c1463f78897f2d93d42a22fa39f57cc770aa775ee39` | Client lock, protected cache clearing and cross-tab session notification. |
 | `artifacts/bitcoin-vault/src/lib/transfer-delay.test.ts` | 1514 | `72eb407e75c163ac8e923263fd2cf32b694395f15b99f4127a6542a5b89db7f6` | Regression tests for transfer-delay; local checks, not hosted evidence. |
@@ -1021,12 +1024,17 @@ to publish: review repository assets before release.
 | `attached_assets/IMG_2438_1792222645853.jpeg` | 214876 | `ce6fa0803ce8f69e47dc366fae85c0cbbe915ba931464ebb5885c09e8d6d30d1` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2439_1792222645853.jpeg` | 191782 | `4b7b6727f2abdf9305fa01776bf63647b19e53d3e11e251888836cb3cfaca61c` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/IMG_2440_1792222645853.jpeg` | 248140 | `d9e1f01486bcef412070fd9861ad3d4b0fdc4dd8cf21cfc1fb39107a2d2c609c` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2488_1792396346905.jpeg` | 622877 | `ae1384dd66ea16d6357a4ffa0f3983a8c4133fe445bb20714352efb96bf580e6` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2490_1792396346906.jpeg` | 147460 | `b1563af0ed562efe41ef73e8c22ae2afa5129f4981bd2329f5be1813065b9b51` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2527_1792570801529.png` | 372133 | `0c8863a443041f27c7669591ee3bc032c9d103be761957b6a9448f39ebc9cd01` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/IMG_2528_1792570801529.jpeg` | 251441 | `ef5a077f0bec5505513f11ee54232a204525e4d247a5fbdaf53012d1e3bd0443` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Instance_details_EC2_us-east-1_1792026579263.jpeg` | 771370 | `b7448325b7cb709434e0939b0ec2d3052b1936d0e960472a6d83bf1c117ab57e` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Instance_details_EC2_us-east-1_1792027022480.jpeg` | 860135 | `39e51bc750872489a9eca4e9ead22aa8cc0687a60ff41b166ddea4a29fa7b048` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Modify_volume_EC2_us-east-1_1792033601063.jpeg` | 871430 | `64508cec1eb103ab7f50bf18b5f0ecf16a6d28ab9530b91688808574dd50df7a` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Pasted--Project-Blueprint-Self-Hosted-Single-User-Crypto-Node-_1791805333879.txt` | 2752 | `752e822393f96d8bb566a4136a7d8418a807a55d8f639be90fc8ee103ecc38a0` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Pasted--imagine-over-10-000-users-make-a-request-at-once-and-T_1792020129887.txt` | 2421 | `a18b5248e1562e71fee4f4407d687f525538dd0a21dc9c56edf8a08b07e32783` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Pasted-2026-Oct-14-17-27-45-Docker-29-8-1-with-BuildKit-and-Bu_1791998920351.txt` | 7083 | `30867b1c8836eec05e69426db70b104ec8c217db5cf38377f28139c862d6868e` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/Pasted-2026-Oct-19-06-10-07-Docker-29-8-1-with-BuildKit-and-Bu_1792390617815.txt` | 52301 | `9bff7313d5788ccdffb47c1a2bd37e221e38d8fc5920b8d71c037198c3314fb0` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Pasted-Direct-answers-first-1-Pruned-not-archival-For-a-person_1791805377057.txt` | 8843 | `1fe0f380d4e15e37ae0d5c0f064d5bcde708a4c3a8b40bacee1aec56650c195d` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Pasted-Docker-29-8-1-with-BuildKit-and-Buildx-detected-on-depl_1791882749768.txt` | 4159 | `95771317a554c8d637d78e519c14d0384b0ecb93bb806ea82670ad2f6d59b275` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/Pasted-Now-that-your-AWS-Linux-server-is-running-and-Coolify-i_1791805344910.txt` | 4442 | `2687908194139a4aba0372c7f61f8d1eb3033592579509ba8b555d12589ce91c` | Uploaded reference/evidence asset; content not reproduced here. |
@@ -1061,6 +1069,8 @@ to publish: review repository assets before release.
 | `attached_assets/[Coolify]_vault-main..._Terminal_Coolify_1792053029807.jpeg` | 551797 | `1e28f88c9f18b8c73932bac7877e4a39a02f2842834540c7f9bcd1e96308a5df` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/image_1792053162896.jpg` | 2558591 | `abb652a8598b95682aceb9c8d5df23ed539409968836aef2fd6e1958aa19a3ad` | Uploaded reference/evidence asset; content not reproduced here. |
 | `attached_assets/image_1792082835480.jpg` | 3036130 | `78a2801db1041c4e7d851155707d4fadca992716c4bcbb7d83c5a0f9e038a358` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/image_1792390801393.png` | 101452 | `f9a210d45292d0c727975ea9075272ba891ccacae7dcc27d89cc2efdf77b2e62` | Uploaded reference/evidence asset; content not reproduced here. |
+| `attached_assets/image_1792394429049.png` | 256590 | `99981973e58177ca0ca22424e91047bd14fcba69c11d5f6195988033b11b08d5` | Uploaded reference/evidence asset; content not reproduced here. |
 | `deploy/app-config.mjs` | 3639 | `76f336b8bd3fbe2e0a077964b21600cf8e8d1ce38db09553c9cf8e6005fdaf93` | Deployment configuration/tool: app-config.mjs; see deployment chapter and runbooks. |
 | `deploy/app-config.test.mjs` | 3964 | `992a3d9bf3a91795d59aa33467cff58b75d283f42b80511e74a926656cee2f0b` | Regression tests for app-config; local checks, not hosted evidence. |
 | `deploy/app-entrypoint.mjs` | 665 | `62eaea1cda8f23f2d87fc62e8dcfe68c2a94e4f145049ba88e791e61620ba923` | Deployment configuration/tool: app-entrypoint.mjs; see deployment chapter and runbooks. |
@@ -1087,6 +1097,7 @@ to publish: review repository assets before release.
 | `docs/mainnet-and-capacity.md` | 9136 | `57430c0a1d0d3b13cf5b403aa8fad650c80aff1883d574c5837ca7541f5f38d2` | Detailed mainnet and capacity runbook/status reference; respect dated evidence. |
 | `docs/mainnet-sync-monitor.md` | 1687 | `1aec872da31af91d241d5575f1034813b9179f4498d63a2c81ecb8c505d4bce2` | Detailed mainnet sync monitor runbook/status reference; respect dated evidence. |
 | `docs/receive-readiness.md` | 2926 | `ed851ccc6e98853b4468a3e82ef5c363fc1fcfc5205118aeea128b6606350b8d` | Detailed receive readiness runbook/status reference; respect dated evidence. |
+| `docs/request-recovery.md` | 2568 | `842926f8da879ba667c434e0c5dd0305c4312cf61ac500611ce36aa3bba2e207` | Detailed request recovery runbook/status reference; respect dated evidence. |
 | `docs/server-held-custody.md` | 4265 | `d9785925e1ccf930279868dbcd503e7ce0b69391870463504e8c2f3421ce3f4a` | Detailed server held custody runbook/status reference; respect dated evidence. |
 | `docs/temporary-wallet-storage.md` | 8254 | `4158aea070887d148cba974cb9fbfe97ba2bc5a85fcb85799c6ba5d219c03b23` | Detailed temporary wallet storage runbook/status reference; respect dated evidence. |
 | `docs/vault-build-status.md` | 2772 | `66b43982b6d201d484671ce23448aa2d23bab295c081e98eaa78a02fd3957753` | Detailed vault build status runbook/status reference; respect dated evidence. |
@@ -1096,7 +1107,7 @@ to publish: review repository assets before release.
 | `docs/vault-operations.md` | 12192 | `f203dab0c9abbd7ff916a825bc8bcfaa664493b0e30c6a7b5eff4149d283e3ed` | Detailed vault operations runbook/status reference; respect dated evidence. |
 | `es.txt` | 1 | `01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b` | Legacy root text asset; not an executable entrypoint; purpose requires owner review. |
 | `lib/api-client-react/package.json` | 265 | `ae70f97a12d1f7e7cbb291b5ffd1d6893f0d7a0ff7721a21e615d47bccfad789` | Package identity, dependencies and runnable scripts. |
-| `lib/api-client-react/src/custom-fetch.ts` | 11615 | `3455e24d5ceaed1b3f3cebf8609ff7d804f2a3902c37f112a653ce7c5d4d19e8` | Client HTTP transport and request/session integration. |
+| `lib/api-client-react/src/custom-fetch.ts` | 12068 | `2eeece990a8dc1145a09fa2b88aa95dd1e2218d6d296988600f70e632711b1a7` | Client HTTP transport and request/session integration. |
 | `lib/api-client-react/src/generated/api.schemas.ts` | 6923 | `ec1e04c36f0698507747173951e654ff5347cc27137aa8349e737b3ed1374c71` | Generated api.schemas.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-client-react/src/generated/api.ts` | 80657 | `a6f7523236b814cda8fb9e0839e7632f3eca1dbe362bcb5310c7cd4ae2ecb368` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-client-react/src/index.ts` | 208 | `708d0a9abb7cc7cc6c4873185fb57bc1873f82521c7dff78bbf3c0939d83e21f` | index.ts module in lib/api-client-react/src; see the owning subsystem above. |
