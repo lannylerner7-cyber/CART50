@@ -25,3 +25,14 @@ Show mainnet synchronization progress after login without requiring repeated ter
 **Why:** The user asked for in-app progress while mainnet is still syncing and the wallet remains on Signet. Monitoring must not prematurely enable real-Bitcoin transfers.
 
 **How to apply:** Keep monitoring read-only, label freshness and unavailable data explicitly, and distinguish blockchain synchronization from custody readiness.
+
+The owner wants the Live/Sandbox redesign drafted for their Figma agent first,
+including separate environment screens, responsive device guidance, passkey
+states and logo directions to choose among.
+
+**Why:** They explicitly chose their Figma design handoff instead of a direct
+redesign here, to avoid building the same interface twice.
+
+**How to apply:** Prepare the brief and wait for the Figma design handoff before
+implementing the visual redesign. Do not describe a written brief as generated
+Figma screens, logos or a completed app.

@@ -70,3 +70,17 @@ mtime_ms = 1792226813521
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/9a34f480-01ac-412a-aa1b-483920716226/bab7e405-3a40-4d67-afd1-34307c60687a"
 storage_version_token = "1792226879955903"
 content_type = "audio/mpeg"
+
+[[outputs]]
+id = "Qf9DKNSRn4VflYldHm_XV"
+uri = "file://docs/strongroom-figma-handoff.html"
+type = "html"
+title = "Strongroom — Complete Figma Design Brief"
+description = "Copy-ready handoff with separate Live and Sandbox screens, three logo directions, device layouts, passkey flows, colors, typography and graphic prompts. Open it and choose Copy full brief."
+logical_id = "bca48c6c-451f-477e-9c24-9a27e23c37a3"
+content_hash = "sha256:1f27678f79f6e7e42f3905bcb4583b380b2e4f96687611fcff67df9c3f0fadc6"
+size = 20206
+mtime_ms = 1793056355484
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/bca48c6c-451f-477e-9c24-9a27e23c37a3/733324f9-6e3c-4c72-8e53-f84a5cd62307"
+storage_version_token = "1793056388464322"
+content_type = "text/html"

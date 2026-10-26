@@ -1,0 +1,245 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Strongroom — Figma Design Handoff</title><style>body{margin:0;background:#08090b;color:#f5f7fa;font:16px/1.65 system-ui,sans-serif}main{max-width:940px;margin:auto;padding:40px 24px}header{border-bottom:1px solid #303540;padding-bottom:24px;margin-bottom:28px}.tag{color:#ffc568;font-size:12px;letter-spacing:2px;text-transform:uppercase}h1{font-size:clamp(28px,5vw,44px);line-height:1.15}p{color:#a9b1c0}button{border:1px solid #303540;background:#315be8;color:#fff;padding:13px 20px;border-radius:12px;font:inherit;cursor:pointer;margin:4px 8px 4px 0}button.secondary{background:#1d2027}button:focus-visible{outline:3px solid #ffc568;outline-offset:3px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:15px/1.8 system-ui,sans-serif;background:#14161b;border:1px solid #303540;border-radius:20px;padding:28px}#status{min-height:24px;color:#a9b1c0;font-size:14px}@media(max-width:600px){main{padding:24px 16px}pre{padding:20px 16px}}@media print{body{background:white;color:black}main{max-width:none;padding:0}button,#status{display:none}pre{background:white;border:0;padding:0;font-size:10pt;color:black}header{margin-bottom:12px}p,.tag{color:#333}}</style></head><body><main><header><span class="tag">Design handoff · Live + Sandbox</span><h1>Strongroom<br>Figma design brief</h1><p>Copy the full brief into your Figma agent. Includes three logo directions, responsive screen requirements, passkey states, original asset prompts and safety boundaries. No implementation or production changes are performed by this document.</p><button id="copy">Copy full brief</button><button class="secondary" onclick="window.print()">Print / save PDF</button><div id="status" role="status"></div></header><pre id="brief"># Strongroom — Figma Design Handoff
+
+## START HERE — instructions for the Figma agent
+
+Design the existing Strongroom personal Bitcoin vault as a premium, approachable fintech web experience. Produce editable Figma screens, reusable components, responsive prototypes and exportable brand assets. This is a design handoff, not authorization to change production, reconnect services or move funds.
+
+Keep Live and Sandbox unmistakably separate. Start with three logo concepts for owner selection, then apply the selected direction to both environments using shared components. Preserve the existing login methods, Bitcoin rain and warm morning-edge lighting. Do not replace the product with a generic bank, exchange or multi-user platform.
+
+Work in this order:
+1. Brand exploration: three meaningfully different logo concepts.
+2. Shared design tokens, navigation and accessible components.
+3. Live experience, including every loading/error/readiness state.
+4. Separate Sandbox experience with its own test-only identity.
+5. Interactive journeys, responsive checks and developer handoff.
+
+Do not create a second application backend. Do not make promotional claims about insurance, guaranteed returns, transaction safety or completed backups. Demo data in prototypes must be annotated as illustrative, not production data.
+
+## 01 — Figma pages and deliverables
+
+Organize the file into:
+- `00 — Read Me &amp; Safety Boundaries`
+- `01 — Logo Directions`
+- `02 — Tokens &amp; Components`
+- `03 — Shared Login &amp; Passkeys`
+- `04 — Live Vault`
+- `05 — Sandbox`
+- `06 — Heroes, Banners &amp; Flyers`
+- `07 — Interactive Journeys`
+- `08 — Developer Handoff`
+
+Deliver editable Auto Layout frames, component variants, color/type/spacing variables, SVG logos and icons, optimized image exports, and annotations mapping each component to its data and states. No flattened screenshot-only handoff.
+
+## 02 — Three logo directions to choose among
+
+The logo must identify Strongroom at small sizes, feel credible without implying guaranteed security, and remain recognizable in monochrome. Keep the name Strongroom fixed. Vary the symbol concept and silhouette, not just its color.
+
+**A. Aperture Vault — protection-led**
+An original circular vault aperture with restrained geometric segments and a subtle central negative-space opening. Pair it with a confident wordmark. This most directly communicates the vault concept, but must avoid looking like a generic security badge.
+
+**B. Strongroom Monogram — brand-led**
+An original S built from two interlocking geometric strokes or a negative-space doorway. Compact, distinctive, suitable for a favicon and mobile header. This prioritizes brand recognition rather than literal Bitcoin imagery.
+
+**C. Open Frame — clarity-led**
+A squared architectural frame with a small warm circular inset, suggesting an organized personal space for Bitcoin. More approachable and less industrial; verify that it does not resemble an existing wallet or bank mark.
+
+For each direction provide:
+- Symbol alone, horizontal wordmark and stacked lockup.
+- Dark/light, one-color and small-size versions at 16, 24 and 48px.
+- Header, login and receipt applications on the same comparison board.
+- Clear-space rules and a short explanation of the concept and trade-off.
+
+Use one selected master logo for both environments. Sandbox receives a textual TEST/SIGNET badge, not a different brand. Do not imitate Coinbase, Cash App or other existing financial logos. Bitcoin's symbol may appear in product illustrations, but the main identity must be original. Do not claim trademark clearance.
+
+## 03 — Visual system
+
+Color tokens:
+- Canvas: `#08090B`
+- Card: `#14161B`
+- Elevated surface: `#1D2027`
+- Border: `#303540`
+- Primary text: `#F5F7FA`
+- Secondary text: `#A9B1C0`
+- Live primary action: `#315BE8` with white text
+- Bitcoin accent: `#FF9B38`
+- Sandbox accent: `#FFC568` with dark text
+- Positive: `#6CDEAD`
+- Warning: `#FFD27A`
+- Error: `#FF8797`
+
+Validate final contrast combinations; these are starting tokens, not a substitute for accessibility checks. Never distinguish Live/Sandbox, success/error or pending/confirmed by color alone.
+
+Typography:
+- **Inter:** forms, navigation, body copy and financial amounts.
+- **Space Grotesk:** hero and display headings.
+- **IBM Plex Mono:** addresses, transaction IDs and technical receipt fields.
+- Body: 16px/24px. Supporting copy: 12–14px with readable contrast.
+- Section headings: 22–28px. Hero: approximately 36px phone, 56px desktop.
+- Use tabular numerals. Avoid tiny gray text and all-caps paragraphs.
+
+Spacing: 4/8/12/16/24/32/48px. Cards: 20–24px radius. Fields: 12–16px radius. Main controls: at least 48px high. Restrained shadows and illustration glows; financial text sits on clean, quiet surfaces.
+
+## 04 — Device-specific behavior
+
+This is a responsive website, not a native iOS or Android app.
+
+**Phone: 390 × 844; also test 360px width**
+Single-column hierarchy; safe-area spacing; compact hero; reachable bottom navigation and primary actions. Sticky controls must never cover the last transaction row or receipt. Keyboard opening must not hide the address or amount field. Do not use horizontal scrolling for essential information.
+
+**Tablet/iPad portrait: 768 × 1024**
+Allow a compact navigation rail or tablet navigation. Use two columns only when both stay readable; send details and review can stack. Preserve touch-size controls and accommodate browser chrome.
+
+**iPad landscape: 1024 × 768**
+Use adaptive navigation and balanced content widths. Sheets can become centered dialogs or side panels. Never simply enlarge the phone layout.
+
+**Windows/desktop: 1440 × 900; also test 1280px width**
+Sidebar navigation, constrained reading width, and appropriate side-by-side payment/review layout. Full keyboard access, visible focus, accessible dialogs and printable receipts.
+
+**All devices**
+Support 200% text zoom, long addresses, large amounts, empty lists, offline mode and portrait/landscape changes. Design for Safari, Chrome and Edge behavior without assuming identical passkey prompts. Include reduced-motion states and WCAG AA contrast targets.
+
+## 05 — Shared login and passkeys
+
+Preserve keyfile upload, 86-character secret entry and enrolled passkey login. Do not add usernames, passwords, seed-phrase entry or email recovery.
+
+Hero: gold Bitcoin rain with warm sunrise light along the upper edge. Keep animation secondary to the form. Preserve a looping 15-second coin-sound concept with mute/manual-play controls; autoplay is subject to browser restrictions, especially on mobile. Include static/reduced-motion and sound-blocked states.
+
+Passkey states:
+1. Ready: **Use enrolled passkey**.
+2. Starting: preparing the system sign-in request.
+3. Waiting: **Complete sign-in on your device**.
+4. Success: proceed to the authenticated vault.
+5. Cancelled: **Passkey sign-in cancelled. Try again or use your keyfile.**
+6. Timeout or unavailable browser/device: show a retry and keyfile/secret fallback.
+7. No matching credential: explain the fallback without suggesting the owner is locked out permanently.
+8. Wrong-domain guidance: passkeys are tied to the site where they were enrolled; use the saved keyfile/secret on the new site, then enroll there.
+9. Server/offline failure: distinguish it from an invalid credential.
+
+The biometric/PIN dialog belongs to the browser/OS. In the prototype, use a labeled placeholder, not a fake functional biometric form. Never ask the user to type a device PIN into Strongroom. Do not claim Strongroom stores fingerprints or face data.
+
+Live Settings: Add passkey, name/list credentials, registration pending/success/failure, confirmed removal, and recovery-key guidance. Do not advise deleting the only working passkey before verifying fallback access. Preserve session expiry, cooldown, origin/CSRF protections and security locking.
+
+## 06 — LIVE: real vault experience
+
+Create these distinct Live screens:
+- Home/overview: network identity, balance, pending/available breakdown, sync progress, wallet summary and recent activity.
+- Wallets/list/detail: supported main/spending/temporary wallet information and actual status.
+- Receive: network-correct address and QR, copy/share controls and explicit network warning.
+- Existing send/review flow: source, amount, fee, total, destination and explicit approval; unavailable/readiness-blocked states.
+- Activity/detail: grouped records and accurate transaction lifecycle.
+- Market: available, stale and unavailable price/history states.
+- Explorer: its supported query results and limitations.
+- Settings: security, passkeys, sessions, service status, policy and recovery guidance.
+
+Navigation: Home, Wallets, Send, Market, Activity; Explorer and Settings accessible in the menu. Put **Switch to Sandbox** in the owner menu or a clear environment control. Keep visible Logout on Live.
+
+Use LIVE/MAINNET branding only when backend configuration actually reports mainnet. If the existing wallet connection is still Signet during commissioning, say so. A mainnet read-only monitor does not mean mainnet payments are enabled.
+
+Balance rules: real zero shows `$0.00`. Unknown balance or missing price shows **Unavailable**, not zero. Show BTC/sats and two-decimal USD values with quote freshness. Do not introduce fake cash balances, interest, altcoins or free Bitcoin.
+
+Sync states: connecting, fresh, reconnecting with last-known reading, stale, unavailable and complete. Keep the original observation time. No invented finish date or manually fixed percentage. The reported 57.43% is not a value to hard-code.
+
+## 07 — SANDBOX: separate test experience
+
+Persistent banner: **SIGNET — TEST COINS, NO REAL VALUE**.
+Always-visible action: **Return to Live**.
+No visible Logout inside Sandbox, as requested. Session expiry and security locking still apply in Sandbox; hiding Logout is not a security mechanism.
+
+Create Sandbox Home, Test Wallet, Receive, Send/Withdraw, Activity/Receipt and Test Status screens. Reuse the shared components with clear environment labeling rather than making a second unrelated brand.
+
+Provide one stable assigned test-wallet address:
+- Full address view, copy button, QR when genuinely provisioned, and **Use my test address**.
+- The paste field accepts only this assigned destination.
+- Reject other addresses explicitly; do not silently replace user input.
+- Show provisioning/unavailable states; never invent a spendable address or functional QR.
+
+Show two separate concepts:
+1. **$3,000.00 simulated test credit** — demo only, no real value, not withdrawable as real Bitcoin.
+2. **Actual Signet balance** — genuine test coins, possibly zero or awaiting funding.
+
+The simulated balance comes from the sandbox ledger. A public blockchain indexer cannot report that fictitious credit. Never add it to Live assets or present it as actual on-chain UTXOs.
+
+Sending coins back to the same wallet is a **self-transfer**; it does not increase net wealth and generally costs a fee. Describe sandbox send/withdraw as tests, not a cash-out product. Real incoming-payment verification requires a controlled funding source outside that self-transfer.
+
+## 08 — Address checking and payment states
+
+Flow: paste assigned test address → validate → check sandbox balance and available Signet address data → enter amount → review → explicit approval → result/receipt.
+
+Provide the requested 5–8-second checking presentation. Display a spinner and truthful labels; at 8 seconds, an unfinished request says **Taking longer than usual**. Never fabricate success because a timer ended. Explain that this is information lookup, not identity or double-spend verification.
+
+Cancel outdated lookups and invalidate review when the address or environment changes. Distinguish empty/unused address from a failed lookup. Provide wrong-address, wrong-network, rate-limited, timeout, stale and unavailable variants.
+
+Indexer panel: address-level confirmed balance, signed unconfirmed change, recent paginated transactions and current unspent outputs, with provider and observation time. Separate it visually from simulated credit. Explain that queries disclose the address to a third-party provider and do not reveal the recipient's entire wallet.
+
+Review: source wallet, full destination, network, amount, fee, total debit and explicit confirmation. Include insufficient funds, expired review, fee-limit rejection, disconnected node and ambiguous response. A lookup result does not authorize a send.
+
+## 09 — Terminal receipts
+
+Use a restrained paper-feed animation from a digital terminal slot. The receipt remains a real accessible UI component, not a raster image.
+
+Fields: receipt/reference ID, environment, timestamp, destination, amount, fee, total, transaction ID when real, and confirmation state. Support reopen from Activity, copy ID, downloadable receipt and browser print.
+
+States:
+- **Simulation complete** — demo ledger only; no invented blockchain transaction ID.
+- **Broadcast — awaiting confirmations** — accepted real Signet/Bitcoin broadcast, not final confirmation.
+- **Confirmed** — actual observed confirmations.
+- **Replaced / conflicted / dropped** — explicit changed status.
+- **Outcome unknown — checking transaction** — no success claim and no blind resubmission.
+
+Sandbox receipts carry **TEST — NO MONETARY VALUE**. Include a no-motion receipt variant and clean monochrome print layout. Never trigger a physical printer automatically. No seed, secret, token or private key appears in a receipt.
+
+## 10 — Heroes, banners and flyer prompts
+
+Keep text as editable Figma layers. Prefer SVG for icons and simple shapes; use optimized transparent raster assets for rich illustrations. Provide alt-text guidance and mobile crops. Decorative graphics must not obstruct financial actions.
+
+**Login hero prompt**
+Original premium fintech illustration for Strongroom: sculpted gold Bitcoin coins falling through soft morning edge light against near-black, restrained brushed-metal detail, warm upper-edge glow, ample negative space for authentication form, no slogans, no embedded UI, no bank logos. Produce portrait and landscape crops and a still-frame version.
+
+**Live dashboard banner prompt**
+Compact architectural vault illustration, charcoal materials, warm orange rim light with small cobalt accents, calm and precise, wide negative space for editable copy. No charts, price labels, rockets, guaranteed-security badges or wealth claims.
+Suggested overlay: **Your Bitcoin, clearly tracked.**
+
+**Sandbox banner prompt**
+Amber geometric test-lab illustration, a small stylized test-token motif on charcoal, approachable and precise, visibly distinct from live finance, no dollar bills and no real-money promise.
+Overlay: **Practice with test funds.** Supporting text: **No real Bitcoin value.**
+
+**Educational flyer set**
+Create three original vector-led concepts: **Protect your recovery key**, **Check the network before sending**, and **Understand confirmations**. Provide an in-app compact card, 1200 × 628 landscape, 1080 × 1080 square and 1080 × 1920 portrait export. Use accurate short copy and no unsupported offers. External flyers have no private balances, addresses or account data.
+
+**Receipt illustration**
+Original slim terminal silhouette with a warm-white paper slip and subtle perforation. Actual payment details remain editable UI text. Avoid excessive animation, confetti or celebratory finality while confirmations are pending.
+
+## 11 — Skills and tools requested
+
+Use these capabilities where available:
+- Fintech UX and information architecture.
+- Logo concept exploration, vector construction and iconography.
+- Figma Auto Layout, Variables, component sets, variants and responsive constraints.
+- Interactive prototyping with state transitions and developer annotations.
+- Accessible color/type/focus/error design and reduced-motion alternatives.
+- Image generation for original decorative assets, with editable text overlays.
+- Motion design for coin rain and receipt feed without hiding real state.
+- Developer handoff with asset exports and a token/component inventory.
+
+Briefing tags:
+`#FintechUX #DesignSystems #ResponsiveWeb #PasskeyUX #AccessibleDesign #LogoExploration #VectorIllustration #ImageGeneration #MotionDesign #DeveloperHandoff`
+
+These tags are descriptive labels, not installed plugins or executable skills. Use only tools available to the assigned Figma agent; disclose unavailable capabilities rather than inventing output.
+
+## 12 — Acceptance checklist
+
+- Three distinct logo directions are presented before choosing the master identity.
+- Live and Sandbox are separate Figma pages and separate prototype flows.
+- Sandbox has one assigned address and clearly separated simulated/actual test funds.
+- All requested screens include loading, empty, stale, offline, error and success states where applicable.
+- Passkey system prompts are annotated honestly, with all fallback states.
+- Mainnet readiness is never inferred from the read-only sync percentage.
+- No design operation restarts Core, changes volumes, deletes chain data or changes production credentials.
+- Responsive behavior is checked at phone, tablet, iPad landscape and desktop sizes.
+- Receipt states do not confuse broadcast, confirmation and simulation.
+- QR images and addresses used as placeholders are visibly marked and not presented as live destinations.
+- No secrets, seed phrases or real account data appear in assets or prototypes.
+- Deliver Figma file link, selected component/node links, exported assets and interaction notes.
+
+After the design is reviewed, hand it back for integration into the existing application once. Do not independently deploy a second app.
+</pre></main><script>document.getElementById("copy").addEventListener("click",async()=>{const el=document.getElementById("brief");try{await navigator.clipboard.writeText(el.textContent);document.getElementById("status").textContent="Full brief copied. Paste it into your Figma agent."}catch{const range=document.createRange();range.selectNodeContents(el);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);document.getElementById("status").textContent="Brief selected. Use your device’s Copy command."}});</script></body></html>
