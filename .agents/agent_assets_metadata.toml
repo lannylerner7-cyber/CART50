@@ -84,3 +84,17 @@ mtime_ms = 1793056355484
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/bca48c6c-451f-477e-9c24-9a27e23c37a3/733324f9-6e3c-4c72-8e53-f84a5cd62307"
 storage_version_token = "1793056388464322"
 content_type = "text/html"
+
+[[outputs]]
+id = "b6Rst6xVddf4AhSjYNPfT"
+uri = "file://docs/strongroom-complete-figma-design-brief.txt"
+type = "text"
+title = "Strongroom — Complete Figma UX Brief (TXT)"
+description = "Download and upload this complete TXT to your Figma agent. Covers Live and Sandbox, every major screen and edge state, expired wallets and sessions, logo options, graphics prompts, exact asset filenames and future app-path mapping."
+logical_id = "1236a7bd-b20f-4b76-bbea-a361c8e8b95a"
+content_hash = "sha256:4a24439cedc7fd09cdfcaed70c23fb7d17ddbafa349d5f8e1d97e3a2f5dcab5f"
+size = 52877
+mtime_ms = 1793057140679
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/1236a7bd-b20f-4b76-bbea-a361c8e8b95a/070570ba-bdd7-497a-aad4-69aef0e50fe6"
+storage_version_token = "1793057171311371"
+content_type = "text/plain"

@@ -707,11 +707,11 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-506 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+507 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
-| `.agents/agent_assets_metadata.toml` | 3680 | `b847fae514fc9cec0e4a7a31b5a187210d644036601f8723af13696e3fb0df3a` | Workspace asset metadata; not application logic. |
+| `.agents/agent_assets_metadata.toml` | 4468 | `64cbe45d733a8844207c8fc008a1685b6877b36687dfd39ce5b198b57433e5cd` | Workspace asset metadata; not application logic. |
 | `.agents/memory/MEMORY.md` | 1533 | `e95d472c2ed7c60e018197b95dc8bb7ef5c6b7481cf75b69711826b0d1f6b69f` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
@@ -723,7 +723,7 @@ to publish: review repository assets before release.
 | `.agents/memory/schema-evolution.md` | 828 | `103fdc6b2118e431650e2bed193e5284ab99f3263a29b5f9c71dda8dfb2a31cd` | Durable project decision/lesson: schema-evolution. |
 | `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
 | `.agents/memory/temporary-wallet-destruction.md` | 2255 | `308fab6c2e98bb62dc6f2cdc25c5f5716eb296a98b7f81af7c4e57bca7a4c538` | Durable project decision/lesson: temporary-wallet-destruction. |
-| `.agents/memory/wallet-presentation.md` | 2751 | `d0da1288534143c4d06cd5dccd5cd1130c882de561f2ad2e43096cc3fe3efb4c` | Durable project decision/lesson: wallet-presentation. |
+| `.agents/memory/wallet-presentation.md` | 3368 | `ba0b9e00e7f35f16203640d7c9b08c21873a0f59f53a1bb3ca0a5e390256c4fe` | Durable project decision/lesson: wallet-presentation. |
 | `.dockerignore` | 1308 | `baee3e84520fdf1074ee278b752611522e467dcdbe2216b14446893ba068863d` | Repository/tool configuration: .dockerignore. |
 | `.gitignore` | 911 | `04d7c0ec9e25280c87ff990c90b57492be5958258114a213e713fb01732857bd` | Repository/tool configuration: .gitignore. |
 | `.npmrc` | 56 | `1ded4f26f4851b35dae702edd5719d1be5ff31db6983858d088d5e6593ea7c99` | Repository/tool configuration: .npmrc. |
@@ -1099,6 +1099,7 @@ to publish: review repository assets before release.
 | `docs/receive-readiness.md` | 2926 | `ed851ccc6e98853b4468a3e82ef5c363fc1fcfc5205118aeea128b6606350b8d` | Detailed receive readiness runbook/status reference; respect dated evidence. |
 | `docs/request-recovery.md` | 2568 | `842926f8da879ba667c434e0c5dd0305c4312cf61ac500611ce36aa3bba2e207` | Detailed request recovery runbook/status reference; respect dated evidence. |
 | `docs/server-held-custody.md` | 4265 | `d9785925e1ccf930279868dbcd503e7ce0b69391870463504e8c2f3421ce3f4a` | Detailed server held custody runbook/status reference; respect dated evidence. |
+| `docs/strongroom-complete-figma-design-brief.txt` | 52877 | `4a24439cedc7fd09cdfcaed70c23fb7d17ddbafa349d5f8e1d97e3a2f5dcab5f` | Detailed strongroom complete figma design brief.txt runbook/status reference; respect dated evidence. |
 | `docs/strongroom-figma-handoff.html` | 20206 | `1f27678f79f6e7e42f3905bcb4583b380b2e4f96687611fcff67df9c3f0fadc6` | Detailed strongroom figma handoff.html runbook/status reference; respect dated evidence. |
 | `docs/strongroom-figma-handoff.md` | 17770 | `43f7f4573bd3968d71cb610358c30324e1bbfcc663d81aca32238208dc08eda5` | Detailed strongroom figma handoff runbook/status reference; respect dated evidence. |
 | `docs/temporary-wallet-storage.md` | 8254 | `4158aea070887d148cba974cb9fbfe97ba2bc5a85fcb85799c6ba5d219c03b23` | Detailed temporary wallet storage runbook/status reference; respect dated evidence. |

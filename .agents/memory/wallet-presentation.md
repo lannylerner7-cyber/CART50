@@ -36,3 +36,15 @@ redesign here, to avoid building the same interface twice.
 **How to apply:** Prepare the brief and wait for the Figma design handoff before
 implementing the visual redesign. Do not describe a written brief as generated
 Figma screens, logos or a completed app.
+
+Deliver the complete Figma brief as a downloadable TXT, including edge states and
+an explicit asset export tree and future app-path mapping. The owner will return
+the Figma files for review and adaptation before implementation.
+
+**Why:** The owner corrected an HTML handoff and specifically requested a TXT to
+upload to their Figma agent, with asset filenames rather than restructuring the
+app in advance.
+
+**How to apply:** Keep export package paths separate from actual runtime files;
+do not create empty asset folders, claim artwork exists or replace current logos
+before the owner reviews the generated designs.
