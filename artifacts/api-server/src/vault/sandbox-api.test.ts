@@ -14,6 +14,9 @@ test("sandbox HTTP isolation, session/CSRF, persistence and concurrent duplicate
   delete process.env.CF_D1_DATABASE_ID;
   delete process.env.VAULT_ENGINE_URL;
   delete process.env.VAULT_ENGINE_TOKEN;
+  delete process.env.SANDBOX_SIGNET_ENABLED;
+  delete process.env.SANDBOX_ENGINE_URL;
+  delete process.env.SANDBOX_ENGINE_TOKEN;
   process.env.NODE_ENV = "development";
   process.env.VAULT_DATA_DIR = temporary;
   const credential = randomBytes(64);
@@ -37,6 +40,16 @@ test("sandbox HTTP isolation, session/CSRF, persistence and concurrent duplicate
     assert.equal(login.status, 200);
     cookie = login.headers.get("set-cookie")!.split(";")[0]!;
     csrf = (await login.json() as { csrfToken: string }).csrfToken;
+    const session = await (await call("/session")).json() as { network: string };
+    assert.equal(session.network, "main");
+    const dashboard = await (await call("/dashboard")).json() as { node: { network: string; connected: boolean }; wallets: unknown[] };
+    assert.equal(dashboard.node.network, "main");
+    assert.equal(dashboard.node.connected, false);
+    assert.deepEqual(dashboard.wallets, []);
+    const signet = await (await call("/sandbox/signet")).json() as { available: boolean; wallet: unknown };
+    assert.equal(signet.available, false);
+    assert.equal(signet.wallet, null);
+    assert.equal((await call("/sandbox/signet/payments", "POST", { reviewId: "not-approved", confirmed: true })).status, 409);
     const before = structuredClone(await readState());
     const initial = await (await call("/sandbox")).json() as { assignedAddress: string; simulatedCreditCents: number; signetAvailable: boolean };
     assert.equal(initial.simulatedCreditCents, 300000);

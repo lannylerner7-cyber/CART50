@@ -15,6 +15,7 @@ export type Alert = {
 export type SessionRecord = { hash: string; csrf: string; expiresAt: string; createdAt: string };
 export type StoredPasskey = { id: string; name: string; createdAt: string; publicKey: string; counter: number; transports?: WebAuthnCredential["transports"] };
 export type State = {
+  sandboxSignetReviews?: { id: string; sessionHash: string; walletId: string; address: string; expiresAt: string }[];
   sandbox?: SandboxLedger;
   authVersion?: number;
   loginSecurity?: LoginSecurity;
@@ -56,7 +57,10 @@ async function query(sql: string, params: (string | number)[] = []): Promise<Rec
 let schemaReady: Promise<void> | undefined;
 export function initializeMetadata(): Promise<void> {
   if (!schemaReady) {
-    schemaReady = ensureMetadataSchema(query).catch(error => {
+    schemaReady = (async () => {
+      await ensureMetadataSchema(query);
+      await query("INSERT OR IGNORE INTO vault_state(id,version,data) VALUES(1,0,?)", [JSON.stringify(initial())]);
+    })().catch(error => {
       schemaReady = undefined;
       throw error;
     });
@@ -65,7 +69,6 @@ export function initializeMetadata(): Promise<void> {
 }
 async function readVersion(): Promise<{ version: number; state: State }> {
   await initializeMetadata();
-  await query("INSERT OR IGNORE INTO vault_state(id,version,data) VALUES(1,0,?)", [JSON.stringify(initial())]);
   const rows = await query("SELECT version,data FROM vault_state WHERE id=1");
   if (!rows[0]) throw new Error("Metadata state missing");
   return { version: Number(rows[0].version), state: JSON.parse(String(rows[0].data)) };

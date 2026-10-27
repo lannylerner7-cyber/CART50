@@ -4,24 +4,39 @@ import { configuredNetwork } from "./network";
 import { ReadFlight } from "./read-flight";
 
 let active = 0;
-const reads = new Map(["/status", "/settings", "/wallets", "/transactions"].map(key => [key, new ReadFlight<unknown>()]));
+export type EngineEnvironment = "live" | "sandbox";
+const reads = new Map(["live", "sandbox"].flatMap(scope => ["/status", "/settings", "/wallets", "/transactions"].map(key => [`${scope}:${key}`, new ReadFlight<unknown>()] as const)));
 
-export async function engine<T>(endpoint: string, body?: unknown): Promise<T> {
-  // A wrong-network signer must never receive a mutation, in either direction.
-  if (body !== undefined) {
-    const status = await engine<{ network: string }>("/status");
-    if (status.network !== configuredNetwork()) throw new HttpError(503, "Signer network mismatch; operation blocked");
+function connection(scope: EngineEnvironment) {
+  if (scope === "live" && configuredNetwork() !== "main") throw new HttpError(503, "Live mainnet signer is not commissioned. Read-only mainnet monitoring remains available.");
+  if (scope === "sandbox" && process.env.SANDBOX_SIGNET_ENABLED !== "true") throw new HttpError(503, "Signet connection is disabled pending isolated commissioning.");
+  const url = scope === "live" ? process.env.VAULT_ENGINE_URL : process.env.SANDBOX_ENGINE_URL;
+  const token = scope === "live" ? process.env.VAULT_ENGINE_TOKEN : process.env.SANDBOX_ENGINE_TOKEN;
+  if (!url || !token) throw new HttpError(503, "Private signer connection is not configured.");
+  if (scope === "sandbox" && process.env.BITCOIN_NETWORK === "main" &&
+      (url === process.env.VAULT_ENGINE_URL || token === process.env.VAULT_ENGINE_TOKEN))
+    throw new HttpError(503, "Sandbox requires a separate signer URL and token.");
+  return { url, token, network: scope === "live" ? "main" : "signet" };
+}
+
+export async function engine<T>(endpoint: string, body?: unknown, scope: EngineEnvironment = "live"): Promise<T> {
+  // Check reads as well as writes: no Signet balances/history may leak into Live.
+  connection(scope);
+  if (endpoint !== "/status") {
+    const status = await engine<{ network: string; connected?: boolean }>("/status", undefined, scope);
+    if (status.network !== (scope === "live" ? "main" : "signet")) throw new HttpError(503, "Signer network mismatch; operation blocked");
+    if (body !== undefined && status.connected !== true) throw new HttpError(503, "Signer is not ready; operation blocked");
   }
-  const flight = body === undefined ? reads.get(endpoint) : undefined;
-  if (flight) return flight.read(() => requestEngine<T>(endpoint)) as Promise<T>;
+  const flight = body === undefined ? reads.get(`${scope}:${endpoint}`) : undefined;
+  if (flight) return flight.read(() => requestEngine<T>(endpoint, undefined, scope)) as Promise<T>;
   if (body !== undefined) for (const read of reads.values()) read.clear();
-  try { return await requestEngine<T>(endpoint, body); }
+  try { return await requestEngine<T>(endpoint, body, scope); }
   finally { if (body !== undefined) for (const read of reads.values()) read.clear(); }
 }
-async function requestEngine<T>(endpoint: string, body?: unknown): Promise<T> {
-  if (!process.env.VAULT_ENGINE_URL || !process.env.VAULT_ENGINE_TOKEN) throw new HttpError(503, "Bitcoin engine not connected. Configure your private engine first.");
-  const base = new URL(process.env.VAULT_ENGINE_URL);
-  if (base.protocol !== "https:" && !(base.protocol === "http:" && ["127.0.0.1", "localhost", "vault-engine", "vault-mainnet-engine"].includes(base.hostname))) {
+async function requestEngine<T>(endpoint: string, body: unknown, scope: EngineEnvironment): Promise<T> {
+  const config = connection(scope);
+  const base = new URL(config.url);
+  if (base.username || base.password || (base.protocol !== "https:" && !(base.protocol === "http:" && ["127.0.0.1", "localhost", "vault-engine", "vault-mainnet-engine", "vault-signet-engine"].includes(base.hostname)))) {
     throw new HttpError(503, "Engine URL requires HTTPS or a local private service");
   }
   if (active >= 16) throw new HttpError(503, "Signer request capacity reached. Reconcile payments before retrying.");
@@ -29,13 +44,13 @@ async function requestEngine<T>(endpoint: string, body?: unknown): Promise<T> {
   try {
     const response = await fetch(new URL(endpoint, base), {
       method: body === undefined ? "GET" : "POST",
-      headers: { Authorization: `Bearer ${process.env.VAULT_ENGINE_TOKEN}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${config.token}`, "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
       signal: AbortSignal.timeout(endpoint === "/wallets/create" ? 120000 : 20000),
     });
     const data = await response.json() as T & { error?: string };
     if (!response.ok) throw new HttpError(response.status, data.error || "Engine rejected the operation");
-    if (endpoint === "/status" && (data as {network?: string}).network !== configuredNetwork()) throw new HttpError(503, "Signer network mismatch");
+    if (endpoint === "/status" && (data as {network?: string}).network !== config.network) throw new HttpError(503, "Signer network mismatch");
     return data;
   } catch (e) {
     if (e instanceof HttpError) throw e;
@@ -47,7 +62,7 @@ async function requestEngine<T>(endpoint: string, body?: unknown): Promise<T> {
 export async function nodeStatus() {
   try { return await engine<Record<string, unknown>>("/status"); }
   catch {
-    return { connected: false, network: configuredNetwork(), blocks: null, headers: null, syncProgress: null, peers: null, lastSync: null, message: "Private node unavailable or network mismatch. No node data is assumed.", recoveryStatus: "waiting_for_connection" };
+    return { connected: false, network: "main", blocks: null, headers: null, syncProgress: null, peers: null, lastSync: null, message: "Mainnet wallet connection is not ready. Sync monitoring remains independent; balances and transfers are unavailable until commissioning.", recoveryStatus: "waiting_for_connection" };
   }
 }
 export async function operationalSettings() {

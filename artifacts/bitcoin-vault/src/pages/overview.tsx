@@ -12,7 +12,7 @@ import { LIVE_HERO } from '@/lib/assets';
 import { cn } from '@/lib/utils';
 
 const isMainnet = (n: string) => /^(main|mainnet|bitcoin)$/i.test(n);
-const netLabel = (n: string) => (isMainnet(n) ? 'Bitcoin Mainnet' : `${n} · test network`);
+const netLabel = (n: string) => (isMainnet(n) ? 'Bitcoin Mainnet' : 'Live engine not commissioned');
 
 /** USD valuation from a real provider quote; integer cents via BigInt, no invented figure. */
 function usdOf(sats: string, price: number | null | undefined, currency: string): string | null {
@@ -39,13 +39,14 @@ export default function Overview() {
   const mask = (v: ReactNode) => (hide ? <span aria-label="hidden">••••••</span> : v);
 
   return (
-    <div className="mx-auto max-w-[760px] space-y-5 lg:max-w-none">
+    <div className="mx-auto min-w-0 w-full max-w-[760px] space-y-5 lg:max-w-none">
       <header className="rise">
         <div className="text-[12.5px] font-medium text-muted-foreground">Live · {d ? netLabel(d.node.network) : 'connecting'}</div>
         <h1 className="font-display mt-1 text-[1.95rem] font-bold leading-tight tracking-tight md:text-[2.35rem]" data-testid="text-page-title">Your vault</h1>
         <p className="mt-1 text-[15px] text-muted-foreground">A clear view of your Bitcoin.</p>
       </header>
 
+      <NodeSync />
       {q.isError && <ErrorPanel error={q.error} onRetry={() => q.refetch()} title={d ? 'Reconnecting: showing last loaded data' : 'Vault dashboard unavailable'} />}
       {q.isLoading && <div className="grid gap-4" data-testid="status-loading"><Skel className="h-80" /><Skel className="h-56" /></div>}
 
@@ -58,8 +59,8 @@ export default function Overview() {
         const prog = n.syncProgress != null ? Math.max(0, Math.min(1, n.syncProgress)) : null;
         const ready = !unknown && d.wallets.some((w) => !receiveBlock(w, fresh, online));
         return (
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
-            <div className="space-y-5">
+          <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
+            <div className="min-w-0 space-y-5">
               <section className="rise rounded-[20px] border border-card-border bg-card p-5 md:p-6" data-testid="card-balance">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -79,7 +80,7 @@ export default function Overview() {
                       <div className="break-words font-mono text-[1.8rem] font-semibold leading-none tracking-tight tabular-nums md:text-[2.4rem]">{mask(`${satsToBtc(available)} BTC`)}</div>
                       <div className="mt-2 font-mono text-[14px] text-muted-foreground">{mask(`${satsGrouped(available)} sats available`)}</div>
                       <div className="mt-1 text-[13px] text-muted-foreground" data-testid="text-usd-value">
-                        {!isMainnet(n.network) ? 'Test coins have no monetary value.' : usd ? <>{mask(`≈ ${usd}`)} · {m.data?.source}</> : `${m.data?.currency?.toUpperCase() ?? 'USD'}: Unavailable · ${m.isError ? 'price feed unreachable' : m.data?.stale ? 'quote is stale' : 'no current quote'}`}
+                        {!isMainnet(n.network) ? 'Valuation unavailable until the live mainnet engine is commissioned.' : usd ? <>{mask(`≈ ${usd}`)} · {m.data?.source}</> : `${m.data?.currency?.toUpperCase() ?? 'USD'}: Unavailable · ${m.isError ? 'price feed unreachable' : m.data?.stale ? 'quote is stale' : 'no current quote'}`}
                       </div>
                     </>
                   )}
@@ -90,10 +91,10 @@ export default function Overview() {
                 </div>
                 <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">Pending funds are excluded from available until confirmed. Spending limits come from your server policy.</p>
                 <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-                  <button disabled={!ready} onClick={() => setPicker(true)} className="h-12 rounded-[14px] bg-primary text-[15px] font-semibold text-primary-foreground transition-transform active:scale-[0.98] disabled:opacity-50" data-testid="button-action-receive">{isMainnet(n.network) ? 'Receive Bitcoin' : 'Receive test Bitcoin'}</button>
+                  <button disabled={!ready} onClick={() => setPicker(true)} className="h-12 rounded-[14px] bg-primary text-[15px] font-semibold text-primary-foreground transition-transform active:scale-[0.98] disabled:opacity-50" data-testid="button-action-receive">Receive Bitcoin</button>
                   <Link href="/spending" className="grid h-12 place-items-center rounded-[14px] bg-primary/90 text-[15px] font-semibold text-primary-foreground transition-transform active:scale-[0.98]" data-testid="link-action-send">Send</Link>
                 </div>
-                <p className="mt-3 text-[12.5px] text-muted-foreground" data-testid="text-readiness">Receive: {ready ? 'ready' : 'not ready, a fresh node connection is required'} · Send: checks run at review.</p>
+                <p className="mt-3 text-[12.5px] text-muted-foreground" data-testid="text-readiness">Receive: {ready ? 'ready' : 'not ready, a fresh node connection is required'} · Send: enabled only when the live engine passes policy and signer checks at review. Full sync alone does not enable transfers.</p>
               </section>
 
               <Panel title="Recent activity" meta={<Link href="/transactions" className="font-semibold text-foreground underline underline-offset-4" data-testid="link-all-tx">View all</Link>}>
@@ -119,8 +120,7 @@ export default function Overview() {
               </Panel>
             </div>
 
-            <div className="space-y-5">
-              <NodeSync />
+            <div className="min-w-0 space-y-5">
               <Panel title="Workspace status" meta={<Pill tone={n.connected ? 'ok' : 'bad'} dot testId="status-node">{n.connected ? 'Node live' : 'Node offline'}</Pill>}>
                 <p className="rounded-[16px] bg-muted p-4 text-[13.5px] leading-relaxed" data-testid="text-node-message">{n.message}</p>
                 <div className="mt-4">
@@ -139,9 +139,9 @@ export default function Overview() {
                   <Pill tone={d.destructionEnabled ? 'ember' : 'neutral'}>destruction {d.destructionEnabled ? 'on' : 'disabled'}</Pill>
                 </div>
                 {d.services.length > 0 && (
-                  <ul className="mt-4 grid gap-2">
+                  <ul className="mt-4 grid min-w-0 grid-cols-1 gap-2">
                     {d.services.map((s) => (
-                      <li key={s.name} className="flex items-start justify-between gap-2 rounded-[14px] border border-border px-3.5 py-2.5" data-testid={`card-service-${s.name}`}>
+                      <li key={s.name} className="flex min-w-0 items-start justify-between gap-2 rounded-[14px] border border-border px-3.5 py-2.5" data-testid={`card-service-${s.name}`}>
                         <div className="min-w-0"><div className="text-[13.5px] font-medium">{s.name}</div><div className="truncate text-[12px] text-muted-foreground">{s.message}</div></div>
                         <Pill tone={statusTone(s.status)}>{s.status}</Pill>
                       </li>

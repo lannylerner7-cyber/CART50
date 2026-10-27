@@ -9,6 +9,7 @@ import { getMarket } from "../vault/market";
 import { checkCredential, loginCooldown } from "../vault/login-security";
 import { mainnetSync } from "../vault/node-sync";
 import { sandboxRouter } from "./sandbox";
+import { sandboxSignetRouter } from "./sandbox-signet";
 
 const router = Router();
 router.use((_req, res, next) => {
@@ -34,6 +35,7 @@ router.post("/logout", async (req, res) => {
   clearSessionCookie(res); res.json({ ok: true, message: "Vault locked" });
 });
 router.use(requireOwner);
+router.use("/sandbox/signet", sandboxSignetRouter);
 router.use("/sandbox", sandboxRouter);
 router.get("/node/sync", async (_req, res) => res.json(await mainnetSync()));
 router.post("/security/revoke", async (_req, res) => {

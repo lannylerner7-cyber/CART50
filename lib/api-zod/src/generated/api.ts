@@ -7,6 +7,96 @@
 import * as zod from 'zod';
 
 
+export const GetSandboxSignetResponse = zod.object({
+  "available": zod.boolean(),
+  "network": zod.enum(['signet']),
+  "message": zod.string(),
+  "wallet": zod.union([zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "address": zod.string().nullable(),
+  "kind": zod.enum(['temporary', 'cold', 'reserve', 'spending']),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string().nullable(),
+  "status": zod.string(),
+  "destructionStatus": zod.string(),
+  "confirmedSats": zod.string(),
+  "unconfirmedSats": zod.string(),
+  "availableSats": zod.string(),
+  "totalReceivedSats": zod.string(),
+  "totalSweptSats": zod.string(),
+  "lastSync": zod.string().nullable()
+}),zod.null()]),
+  "node": zod.union([zod.object({
+  "connected": zod.boolean(),
+  "network": zod.string(),
+  "blocks": zod.number().int().nullable(),
+  "headers": zod.number().int().nullable(),
+  "syncProgress": zod.number().nullable(),
+  "peers": zod.number().int().nullable(),
+  "lastSync": zod.string().nullable(),
+  "message": zod.string(),
+  "recoveryStatus": zod.string()
+}),zod.null()]),
+  "transactions": zod.array(zod.object({
+  "txid": zod.string(),
+  "walletId": zod.string(),
+  "direction": zod.string(),
+  "amountSats": zod.string(),
+  "feeSats": zod.string().nullable(),
+  "firstSeen": zod.string(),
+  "confirmations": zod.number().int(),
+  "status": zod.string(),
+  "address": zod.string().nullable(),
+  "replacedBy": zod.string().nullable()
+}))
+})
+
+
+export const reviewSandboxSignetPaymentBodyAddressMin = 14;
+export const reviewSandboxSignetPaymentBodyAddressMax = 100;
+
+export const reviewSandboxSignetPaymentBodyAmountSatsRegExp = new RegExp('^[0-9]{1,16}$');
+export const reviewSandboxSignetPaymentBodyFeeRateRegExp = new RegExp('^[0-9]{1,5}(\\.[0-9]{1,3})?$');
+
+
+export const ReviewSandboxSignetPaymentBody = zod.object({
+  "address": zod.string().min(reviewSandboxSignetPaymentBodyAddressMin).max(reviewSandboxSignetPaymentBodyAddressMax),
+  "amountSats": zod.string().regex(reviewSandboxSignetPaymentBodyAmountSatsRegExp),
+  "feeRate": zod.string().regex(reviewSandboxSignetPaymentBodyFeeRateRegExp)
+})
+
+export const ReviewSandboxSignetPaymentResponse = zod.object({
+  "walletId": zod.string().optional().describe('Source wallet pinned to this payment review.'),
+  "id": zod.string(),
+  "address": zod.string(),
+  "amountSats": zod.string(),
+  "feeSats": zod.string(),
+  "totalSats": zod.string(),
+  "expiresAt": zod.string(),
+  "network": zod.string()
+})
+
+
+export const SendSandboxSignetPaymentBody = zod.object({
+  "reviewId": zod.string(),
+  "confirmed": zod.boolean()
+})
+
+export const SendSandboxSignetPaymentResponse = zod.object({
+  "txid": zod.string(),
+  "walletId": zod.string(),
+  "direction": zod.string(),
+  "amountSats": zod.string(),
+  "feeSats": zod.string().nullable(),
+  "firstSeen": zod.string(),
+  "confirmations": zod.number().int(),
+  "status": zod.string(),
+  "address": zod.string().nullable(),
+  "replacedBy": zod.string().nullable()
+})
+
+
 export const getSandboxAddressQueryDestinationMax = 128;
 
 

@@ -13,6 +13,7 @@ import { useCsrf, stamp, errMsg } from '@/lib/vault';
 import type { ReactNode } from 'react';
 import { demoUsd, outcomeUnknown, parseCents } from '@/lib/sandbox';
 import NotFound from '@/pages/not-found';
+import SignetPage, { SignetSummary, useSignet } from '@/pages/sandbox/signet';
 import { SANDBOX_HERO } from '@/lib/assets';
 
 const KEY = getGetSandboxQueryKey();
@@ -26,18 +27,6 @@ function Loader({ children }: { children: (d: SandboxSnapshot) => ReactNode }) {
   if (q.isLoading) return <div className="grid gap-4" data-testid="status-loading"><Skel className="h-56" /><Skel className="h-40" /></div>;
   if (q.isError || !q.data) return <ErrorPanel error={q.error} onRetry={() => q.refetch()} title="Sandbox ledger unavailable" />;
   return <div className="space-y-5"><Reconnecting fetching={q.isRefetching} />{children(q.data)}</div>;
-}
-
-function SignetUnavailable() {
-  return (
-    <SandboxCard title="Actual Signet balance" tag={<TestTag>On-chain service · setup required</TestTag>} testId="card-signet">
-      <div className="flex items-start gap-3 text-[14px] text-muted-foreground">
-        <Ban className="mt-0.5 h-4 w-4 shrink-0 text-warn" />
-        <p>Signet is not commissioned on this server. No Signet balance, address or on-chain test payment is available, and none is shown. Setup must be completed by the operator.</p>
-      </div>
-      <Button disabled className="mt-4 rounded-full" data-testid="button-signet-disabled">On-chain Signet test · unavailable</Button>
-    </SandboxCard>
-  );
 }
 
 function Home() {
@@ -55,7 +44,7 @@ function Home() {
       <p className="mt-3 text-[12px] text-muted-foreground">{d.message}</p>
     </SandboxCard>
     <div className="grid gap-5 md:grid-cols-2">
-      <SignetUnavailable />
+      <SignetSummary />
       <SandboxCard title="Keep the modes separate">
         <dl className="grid gap-3 text-[14px]">
           <div><dt className="text-muted-foreground">Simulation source</dt><dd className="font-semibold">Sandbox demo ledger · {demoUsd(d.simulatedCreditCents)}</dd></div>
@@ -77,7 +66,7 @@ function Wallet() {
         <p className="mt-4 rounded-2xl border border-warn/30 bg-warn/5 p-3.5 text-[13px] text-muted-foreground">This identifier only exists in the sandbox ledger. Do not send Bitcoin to it; it cannot receive coins on any network.</p>
       </>) : <Empty icon={<Ban className="h-5 w-5" />} title="No identifier assigned" body="The server has not assigned a simulation destination. Simulated payments stay disabled." />}
     </SandboxCard>
-    <SignetUnavailable />
+    <SignetSummary />
   </>)}</Loader>;
 }
 
@@ -152,7 +141,7 @@ function SendFlow({ d }: { d: SandboxSnapshot }) {
       <SandboxCard title={rv ? 'Review simulated payment' : 'Simulation details'} className={rv ? 'sandbox-card' : ''} testId="card-send">
         {!rv ? (<div className="grid gap-4">
           <div className="rounded-2xl border border-warn/40 bg-warn/5 p-3.5 text-[14px]"><div className="font-semibold text-warn">Simulated exercise · TEST</div><div className="mt-0.5 text-muted-foreground">Internal ledger only. No Bitcoin is signed or sent.</div></div>
-          <div className="rounded-2xl border border-border p-3.5 text-[14px] opacity-60"><div className="font-semibold">On-chain Signet test · unavailable</div><div className="mt-0.5 text-muted-foreground">Signet is not commissioned. Setup required.</div></div>
+          <Link href="/sandbox/signet" className="rounded-2xl border border-border p-3.5 text-[14px] hover:bg-muted" data-testid="link-send-signet"><div className="font-semibold">On-chain Signet test · separate page</div><div className="mt-0.5 text-muted-foreground">Real Signet test transactions, when the server reports it available.</div></Link>
           <div className="grid gap-1.5"><Label>Source ledger · TEST</Label><div className="rounded-2xl border border-border bg-background px-3.5 py-3 text-[14px]" data-testid="text-source">Simulator ledger · {demoUsd(d.simulatedCreditCents)}</div></div>
           <div className="grid gap-1.5">
             <Label htmlFor="sb-dest">Destination · must match the assigned identifier exactly</Label>
@@ -258,19 +247,20 @@ function ReceiptPage() {
 
 function StatusPage() {
   const q = useSnap();
+  const sg = useSignet();
   return <Loader>{(d) => (<>
     <SandboxHeader title="Sandbox status" />
     <SandboxCard title="Services">
       <ul className="grid gap-3 text-[14px]">
         <li className="flex justify-between gap-3"><span>Simulation ledger</span><Pill tone="ok" dot>available</Pill></li>
         <li className="flex justify-between gap-3"><span>Assigned identifier</span><Pill tone={d.assignedAddress ? 'ok' : 'warn'}>{d.assignedAddress ? 'assigned' : 'not assigned'}</Pill></li>
-        <li className="flex justify-between gap-3"><span>Signet node and indexer</span><Pill tone="warn">setup required</Pill></li>
+        <li className="flex justify-between gap-3"><span>Signet node and wallet</span><Pill tone={sg.isError ? 'bad' : sg.data?.available ? 'ok' : 'warn'}>{sg.isLoading ? 'checking' : sg.isError ? 'unreachable' : sg.data?.available ? 'available' : 'setup required'}</Pill></li>
         <li className="flex justify-between gap-3"><span>Live API and signing engine</span><Pill tone="neutral">not connected to Sandbox</Pill></li>
       </ul>
       <p className="mt-4 text-[13px] text-muted-foreground" data-testid="text-sandbox-message">{d.message}</p>
       <p className="mt-2 text-[12px] text-muted-foreground">Last snapshot {q.dataUpdatedAt ? stamp(new Date(q.dataUpdatedAt).toISOString()) : '—'}</p>
     </SandboxCard>
-    <SignetUnavailable />
+    <SignetSummary />
   </>)}</Loader>;
 }
 
@@ -283,6 +273,7 @@ export default function SandboxRouter() {
       <Route path="/sandbox/activity" component={ActivityPage} />
       <Route path="/sandbox/receipt/:id" component={ReceiptPage} />
       <Route path="/sandbox/status" component={StatusPage} />
+      <Route path="/sandbox/signet" component={SignetPage} />
       <Route component={NotFound} />
     </Switch>
   );

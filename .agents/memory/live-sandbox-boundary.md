@@ -23,3 +23,13 @@ specified a single assigned test destination.
 **How to apply:** Keep simulation distinctly labelled until real Signet is
 separately commissioned. Do not claim a simulated receipt verifies on-chain
 double-spend protection, deposits or withdrawals.
+
+The user now requires login and Live to contain no Signet/test context; all
+Signet belongs to Sandbox, while mainnet progress stays visible in Live.
+
+**Why:** The owner explicitly requested this separation rather than a
+single-network website with test warnings on its main dashboard.
+
+**How to apply:** Enforce the boundary on the server, not by relabelling Signet
+balances as mainnet. Never silently switch deployed network settings. An
+uncommissioned Live signer must show unavailable balances, not test data.

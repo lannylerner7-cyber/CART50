@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
-import { ArrowLeft, Home, Send, Wallet as WalletIcon, History, Activity } from 'lucide-react';
+import { ArrowLeft, Home, Send, Wallet as WalletIcon, History, Activity, Radio } from 'lucide-react';
 import { BRAND_MARK } from '@/lib/assets';
 import { useSession, remaining } from '@/lib/vault';
 import { cn } from '@/lib/utils';
@@ -17,7 +17,7 @@ export function SandboxShell({ children }: { children: ReactNode }) {
   const [loc] = useLocation();
   const session = useSession();
   useEffect(() => {
-    const cur = [...SNAV].reverse().find((n) => loc === n.href || loc.startsWith(n.href + '/'));
+    const cur = [...SNAV, { href: '/sandbox/signet', label: 'Signet' }].reverse().find((n) => loc === n.href || loc.startsWith(n.href + '/'));
     document.title = `Sandbox ${cur && cur.href !== '/sandbox' ? cur.label : loc.startsWith('/sandbox/receipt') ? 'Receipt' : 'Home'} · main_vault`;
   }, [loc]);
   const active = (h: string) => (h === '/sandbox' ? loc === '/sandbox' : loc.startsWith(h));
@@ -38,7 +38,7 @@ export function SandboxShell({ children }: { children: ReactNode }) {
         <span className="text-muted-foreground" data-testid="text-sandbox-session">Session {remaining(session.expiresAt).label}</span>
       </div>
       <nav aria-label="Sandbox" className="no-print mx-auto mt-4 hidden max-w-[1100px] gap-1 px-10 md:flex">
-        {SNAV.map((n) => (
+        {[...SNAV, { href: '/sandbox/signet', label: 'Signet', icon: Radio }].map((n) => (
           <Link key={n.href} href={n.href} aria-current={active(n.href) ? 'page' : undefined} data-testid={`link-sandbox-${n.label.toLowerCase()}`}
             className={cn('flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold', active(n.href) ? 'bg-warn/15 text-warn' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}>
             <n.icon className="h-4 w-4" /> {n.label}

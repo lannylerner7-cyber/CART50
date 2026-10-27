@@ -21,3 +21,15 @@ repeated token rotation or be reported as a successful deployment.
 
 **How to apply:** Verify upload responses and read back Worker existence; use an
 operator-authorized deployment path when the proxy upload remains challenged.
+
+Pin each replication Worker to one explicit network and keep credentials and
+queues distinct; health sequence keys and backup object prefixes must include
+that network.
+
+**Why:** A shared legacy engine-health ID would allow one network's higher
+sequence to suppress the other network's updates and acknowledge the wrong
+stream. Unscoped backup filenames can also collide.
+
+**How to apply:** Verify the network before deploying a Worker upgrade. Retain
+legacy data and only associate old encrypted backups with a network after an
+operator verifies their origin; never guess or delete them automatically.

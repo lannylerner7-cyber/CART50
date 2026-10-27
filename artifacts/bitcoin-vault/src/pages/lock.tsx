@@ -12,8 +12,7 @@ import { cn } from '@/lib/utils';
 import { LoginBitcoinHero } from '@/components/login-bitcoin-hero';
 
 export default function LockScreen({ session }: { session: Session }) {
-  const isMain = /^(main|mainnet|bitcoin)$/i.test(session.network);
-  const note = isMain ? 'Bitcoin mainnet · real funds. Verify network and destination before sending.' : 'Test network only. Do not send real Bitcoin.';
+  const note = 'Secure access to your Bitcoin mainnet vault. Check this site address before entering your keyfile or secret.';
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-background">
       <div className="relative mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 pb-10 pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-6 lg:min-h-[100dvh] lg:grid-cols-[1fr_440px] lg:content-center lg:gap-x-16 lg:gap-y-8 lg:px-10">
@@ -26,7 +25,7 @@ export default function LockScreen({ session }: { session: Session }) {
           <h1 className="font-display mt-1.5 text-[2rem] font-bold leading-[1.1] tracking-tight text-foreground sm:text-[2.4rem] lg:text-[3.2rem]">{session.configured ? <>Your Bitcoin.<br /> Your space.</> : 'Vault not set up'}</h1>
           <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-muted-foreground">{session.configured ? 'Unlock your personal vault to view your wallets and activity.' : 'An owner has not been installed on this server yet.'}</p>
           <div className="mt-4 flex flex-wrap gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground" data-testid="badge-network"><span className={cn('h-1.5 w-1.5 rounded-full', isMain ? 'bg-primary' : 'bg-warn')} />{isMain ? 'Bitcoin Mainnet' : `${session.network} · test network`}</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground" data-testid="badge-network"><span className="h-1.5 w-1.5 rounded-full bg-primary" />Bitcoin Mainnet</span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-muted-foreground"><Lock className="h-3 w-3" aria-hidden /> Locked</span>
           </div>
         </header>

@@ -160,7 +160,6 @@ function LiveReceipt({ r, onClose }: { r: { tx: Transaction; rv: PaymentReview; 
   return (
     <section className="rise rounded-[20px] border border-ok/30 bg-[hsl(220_16%_3%)] p-5 font-mono text-[13px] md:p-6" data-testid="card-live-receipt" aria-live="polite">
       <div className="flex items-center justify-between gap-2 text-[11.5px] uppercase tracking-[0.18em] text-ok"><span>&gt; payment receipt</span><span className={confirmed ? 'text-ok' : 'text-warn'}>{tx.status}</span></div>
-      {!/^(main|mainnet|bitcoin)$/i.test(rv.network) && <p className="mt-3 text-warn">TEST NETWORK · No real Bitcoin value</p>}
       <p className="mt-2 text-muted-foreground">Submission snapshot, not a live confirmation count. Open Activity for the current status.</p>
       <div className="mt-4 text-muted-foreground">txid</div>
       <div className="break-all text-foreground" data-testid="text-receipt-txid">{tx.txid}</div>

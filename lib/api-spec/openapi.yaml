@@ -10,6 +10,26 @@
     }
   ],
   "paths": {
+    "/vault/sandbox/signet": {
+      "get": {
+        "operationId": "getSandboxSignet",
+        "responses": { "200": { "description": "Isolated Signet readiness and assigned wallet", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SandboxSignetStatus" } } } } }
+      }
+    },
+    "/vault/sandbox/signet/reviews": {
+      "post": {
+        "operationId": "reviewSandboxSignetPayment",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SandboxSignetInput" } } } },
+        "responses": { "200": { "description": "Session-bound Signet review", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaymentReview" } } } } }
+      }
+    },
+    "/vault/sandbox/signet/payments": {
+      "post": {
+        "operationId": "sendSandboxSignetPayment",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaymentApproval" } } } },
+        "responses": { "200": { "description": "Actual Signet transaction, not real BTC", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Transaction" } } } } }
+      }
+    },
     "/vault/sandbox/address": {
       "get": {
         "operationId": "getSandboxAddress",
@@ -1810,6 +1830,27 @@
   },
   "components": {
     "schemas": {
+      "SandboxSignetStatus": {
+        "type": "object",
+        "required": ["available", "network", "message", "wallet", "node", "transactions"],
+        "properties": {
+          "available": { "type": "boolean" },
+          "network": { "type": "string", "enum": ["signet"] },
+          "message": { "type": "string" },
+          "wallet": { "anyOf": [{ "$ref": "#/components/schemas/Wallet" }, { "type": "null" }] },
+          "node": { "anyOf": [{ "$ref": "#/components/schemas/NodeStatus" }, { "type": "null" }] },
+          "transactions": { "type": "array", "items": { "$ref": "#/components/schemas/Transaction" } }
+        }
+      },
+      "SandboxSignetInput": {
+        "type": "object",
+        "required": ["address", "amountSats", "feeRate"],
+        "properties": {
+          "address": { "type": "string", "minLength": 14, "maxLength": 100 },
+          "amountSats": { "type": "string", "pattern": "^[0-9]{1,16}$" },
+          "feeRate": { "type": "string", "pattern": "^[0-9]{1,5}(\\.[0-9]{1,3})?$" }
+        }
+      },
       "HealthStatus": {
         "type": "object",
         "properties": {

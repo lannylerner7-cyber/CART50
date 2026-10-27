@@ -1,5 +1,9 @@
 # Coolify deployment — test networks only
 
+> Historical single-network setup. For the current Live/Sandbox website split,
+> read [live-sandbox-storage.md](live-sandbox-storage.md) first. Legacy Signet
+> website variables no longer authorize Live wallet reads or writes.
+
 This is an **operator-run deployment package**, not evidence of a commissioned
 vault. No Coolify login is needed by the agent. The root Dockerfile packages the
 dashboard and API together. The optional signer image is separate; neither image

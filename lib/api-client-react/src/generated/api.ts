@@ -44,6 +44,8 @@ import type {
   SandboxReceipt,
   SandboxReview,
   SandboxReviewInput,
+  SandboxSignetInput,
+  SandboxSignetStatus,
   SandboxSnapshot,
   Session,
   Settings,
@@ -82,6 +84,241 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetSandboxSignetUrl = () => {
+
+
+
+
+  return `/api/vault/sandbox/signet`
+}
+
+export const getSandboxSignet = async ( options?: Parameters<typeof customFetch>[1]): Promise<SandboxSignetStatus> => {
+
+  return customFetch<SandboxSignetStatus>(getGetSandboxSignetUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSandboxSignetQueryKey = () => {
+    return [
+    `/api/vault/sandbox/signet`
+    ] as const;
+    }
+
+
+export const getGetSandboxSignetQueryOptions = <TData = Awaited<ReturnType<typeof getSandboxSignet>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSandboxSignet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSandboxSignetQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSandboxSignet>>> = ({ signal }) => getSandboxSignet({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSandboxSignet>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSandboxSignetQueryResult = NonNullable<Awaited<ReturnType<typeof getSandboxSignet>>>
+export type GetSandboxSignetQueryError = ErrorType<unknown>
+
+
+
+export function useGetSandboxSignet<TData = Awaited<ReturnType<typeof getSandboxSignet>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSandboxSignet>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSandboxSignetQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReviewSandboxSignetPaymentUrl = () => {
+
+
+
+
+  return `/api/vault/sandbox/signet/reviews`
+}
+
+export const reviewSandboxSignetPayment = async (sandboxSignetInput: SandboxSignetInput, options?: Parameters<typeof customFetch>[1]): Promise<PaymentReview> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<PaymentReview>(getReviewSandboxSignetPaymentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(sandboxSignetInput)
+  }
+);}
+
+
+
+
+
+export const getReviewSandboxSignetPaymentMutationKey = () => ['reviewSandboxSignetPayment'] as const;
+
+export const getReviewSandboxSignetPaymentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewSandboxSignetPayment>>, TError,ReviewSandboxSignetPaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewSandboxSignetPayment>>, TError,ReviewSandboxSignetPaymentMutationVariables, TContext> => {
+
+const mutationKey = getReviewSandboxSignetPaymentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewSandboxSignetPayment>>, ReviewSandboxSignetPaymentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  reviewSandboxSignetPayment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewSandboxSignetPaymentMutationResult = NonNullable<Awaited<ReturnType<typeof reviewSandboxSignetPayment>>>
+    export type ReviewSandboxSignetPaymentMutationBody = BodyType<SandboxSignetInput>
+    export type ReviewSandboxSignetPaymentMutationError = ErrorType<unknown>
+    export type ReviewSandboxSignetPaymentMutationVariables = {data: BodyType<SandboxSignetInput>}
+
+    export const useReviewSandboxSignetPayment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewSandboxSignetPayment>>, TError,ReviewSandboxSignetPaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reviewSandboxSignetPayment>>,
+        TError,
+        ReviewSandboxSignetPaymentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReviewSandboxSignetPaymentMutationOptions(options));
+    }
+
+export const getSendSandboxSignetPaymentUrl = () => {
+
+
+
+
+  return `/api/vault/sandbox/signet/payments`
+}
+
+export const sendSandboxSignetPayment = async (paymentApproval: PaymentApproval, options?: Parameters<typeof customFetch>[1]): Promise<Transaction> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<Transaction>(getSendSandboxSignetPaymentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(paymentApproval)
+  }
+);}
+
+
+
+
+
+export const getSendSandboxSignetPaymentMutationKey = () => ['sendSandboxSignetPayment'] as const;
+
+export const getSendSandboxSignetPaymentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendSandboxSignetPayment>>, TError,SendSandboxSignetPaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendSandboxSignetPayment>>, TError,SendSandboxSignetPaymentMutationVariables, TContext> => {
+
+const mutationKey = getSendSandboxSignetPaymentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendSandboxSignetPayment>>, SendSandboxSignetPaymentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendSandboxSignetPayment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendSandboxSignetPaymentMutationResult = NonNullable<Awaited<ReturnType<typeof sendSandboxSignetPayment>>>
+    export type SendSandboxSignetPaymentMutationBody = BodyType<PaymentApproval>
+    export type SendSandboxSignetPaymentMutationError = ErrorType<unknown>
+    export type SendSandboxSignetPaymentMutationVariables = {data: BodyType<PaymentApproval>}
+
+    export const useSendSandboxSignetPayment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendSandboxSignetPayment>>, TError,SendSandboxSignetPaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendSandboxSignetPayment>>,
+        TError,
+        SendSandboxSignetPaymentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSendSandboxSignetPaymentMutationOptions(options));
+    }
 
 export const getGetSandboxAddressUrl = (params: GetSandboxAddressParams,) => {
   const normalizedParams = new URLSearchParams();

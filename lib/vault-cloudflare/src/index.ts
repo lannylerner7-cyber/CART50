@@ -9,8 +9,14 @@ interface Env {
   REPLICA: { send(message: unknown): Promise<void> };
   REPLICA_TOKEN: string;
   MARKET_ENABLED: string;
+  REPLICA_NETWORK?: string;
+  LEGACY_BACKUP_NETWORK?: string;
 }
 type Checkpoint = { id: "engine-health"; sequence: number; data: { network: "main" | "signet" | "regtest"; blocks: number; recoveryStatus: string; lastSync: string } };
+function namespace(env: Env) {
+  if (!["main", "signet", "regtest"].includes(env.REPLICA_NETWORK ?? "")) throw new Error("Explicit replica network required");
+  return env.REPLICA_NETWORK!;
+}
 async function boundedText(req: Request): Promise<string | null> {
   if (!req.body) return "";
   const reader = req.body.getReader();
@@ -73,19 +79,24 @@ export default {
         }, { headers: { "Cache-Control": "public, max-age=30", "X-Content-Type-Options": "nosniff" } });
       }
       if (!await authorized(req, env)) return Response.json({error: "Unauthorized"}, {status: 401});
+      const network = namespace(env);
       if (req.method === "GET" && url.pathname === "/replica") {
-        const { results } = await env.DB.prepare("SELECT sequence FROM replica WHERE id = ?").bind("engine-health").all<{sequence: number}>();
-        return Response.json({sequence: results[0]?.sequence ?? 0}, {headers: {"Cache-Control": "no-store"}});
+        const { results } = await env.DB.prepare("SELECT sequence FROM replica WHERE id = ? OR (id = 'engine-health' AND json_extract(data, '$.network') = ?) ORDER BY sequence DESC LIMIT 1").bind(`engine-health:${network}`, network).all<{sequence: number}>();
+        return Response.json({sequence: results[0]?.sequence ?? 0, network}, {headers: {"Cache-Control": "no-store"}});
       }
       if (req.method === "POST" && url.pathname === "/replicate") {
         if (Number(req.headers.get("content-length") ?? 0) > 4096) return new Response("Too large", {status: 413});
         const text = await boundedText(req);
         if (text === null) return new Response("Too large", {status: 413});
-        await env.REPLICA.send(validateCheckpoint(JSON.parse(text)));
+        const checkpoint = validateCheckpoint(JSON.parse(text));
+        if (checkpoint.data.network !== network) return Response.json({error: "Network mismatch"}, {status: 400});
+        await env.REPLICA.send(checkpoint);
         return Response.json({queued: true}, {status: 202});
       }
       if (req.method === "GET" && /^\/backups\/[a-zA-Z0-9_-]{1,80}\.vault$/.test(url.pathname)) {
-        const object = await env.BACKUPS.get(url.pathname.slice(9));
+        let object = await env.BACKUPS.get(`backups/${network}/${url.pathname.slice(9)}`);
+        // Legacy unscoped objects are never guessed to belong to a network.
+        if (!object && env.LEGACY_BACKUP_NETWORK === network) object = await env.BACKUPS.get(url.pathname.slice(9));
         if (!object) return new Response("Backup not found", {status: 404, headers: {"Cache-Control": "no-store"}});
         if (object.size < 32 || object.size > 16 * 1024 * 1024) return new Response("Invalid backup size", {status: 413});
         return new Response(object.body, {headers: {
@@ -102,7 +113,7 @@ export default {
         const encrypted = await req.arrayBuffer();
         if (encrypted.byteLength !== size || new TextDecoder().decode(encrypted.slice(0, 8)) !== "VAULTB01") return new Response("Encrypted backup format required", {status: 400});
         // Encryption key is offline and never a Worker binding.
-        await env.BACKUPS.put(url.pathname.slice(9), encrypted, { httpMetadata: {contentType: "application/octet-stream"} });
+        await env.BACKUPS.put(`backups/${network}/${url.pathname.slice(9)}`, encrypted, { httpMetadata: {contentType: "application/octet-stream"} });
         return Response.json({stored: true});
       }
       return new Response("Not found", {status: 404});
@@ -114,7 +125,8 @@ export default {
     for (const message of batch.messages) {
       try {
         const c = validateCheckpoint(message.body);
-        await env.DB.prepare("INSERT INTO replica(id,sequence,data) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET sequence=excluded.sequence,data=excluded.data WHERE excluded.sequence > replica.sequence").bind(c.id, c.sequence, JSON.stringify(c.data)).run();
+        if (c.data.network !== namespace(env)) throw new Error("Queue network mismatch");
+        await env.DB.prepare("INSERT INTO replica(id,sequence,data) VALUES(?,?,?) ON CONFLICT(id) DO UPDATE SET sequence=excluded.sequence,data=excluded.data WHERE excluded.sequence > replica.sequence").bind(`${c.id}:${c.data.network}`, c.sequence, JSON.stringify(c.data)).run();
         message.ack();
       } catch { message.retry(); }
     }

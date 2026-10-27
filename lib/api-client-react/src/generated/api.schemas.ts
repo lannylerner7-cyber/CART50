@@ -4,6 +4,97 @@
  * Api
  * OpenAPI spec version: 0.1.0
  */
+export type SandboxSignetStatusNetwork = typeof SandboxSignetStatusNetwork[keyof typeof SandboxSignetStatusNetwork];
+
+
+export const SandboxSignetStatusNetwork = {
+  signet: 'signet',
+} as const;
+
+export type WalletKind = typeof WalletKind[keyof typeof WalletKind];
+
+
+export const WalletKind = {
+  temporary: 'temporary',
+  cold: 'cold',
+  reserve: 'reserve',
+  spending: 'spending',
+} as const;
+
+export interface Wallet {
+  id: string;
+  label: string;
+  /** @nullable */
+  address: string | null;
+  kind: WalletKind;
+  createdAt: string;
+  /** @nullable */
+  expiresAt: string | null;
+  status: string;
+  destructionStatus: string;
+  confirmedSats: string;
+  unconfirmedSats: string;
+  availableSats: string;
+  totalReceivedSats: string;
+  totalSweptSats: string;
+  /** @nullable */
+  lastSync: string | null;
+}
+
+export interface NodeStatus {
+  connected: boolean;
+  network: string;
+  /** @nullable */
+  blocks: number | null;
+  /** @nullable */
+  headers: number | null;
+  /** @nullable */
+  syncProgress: number | null;
+  /** @nullable */
+  peers: number | null;
+  /** @nullable */
+  lastSync: string | null;
+  message: string;
+  recoveryStatus: string;
+}
+
+export interface Transaction {
+  txid: string;
+  walletId: string;
+  direction: string;
+  amountSats: string;
+  /** @nullable */
+  feeSats: string | null;
+  firstSeen: string;
+  confirmations: number;
+  status: string;
+  /** @nullable */
+  address: string | null;
+  /** @nullable */
+  replacedBy: string | null;
+}
+
+export interface SandboxSignetStatus {
+  available: boolean;
+  network: SandboxSignetStatusNetwork;
+  message: string;
+  wallet: Wallet | null;
+  node: NodeStatus | null;
+  transactions: Transaction[];
+}
+
+export interface SandboxSignetInput {
+  /**
+     * @minLength 14
+     * @maxLength 100
+     */
+  address: string;
+  /** @pattern ^[0-9]{1,16}$ */
+  amountSats: string;
+  /** @pattern ^[0-9]{1,5}(\.[0-9]{1,3})?$ */
+  feeRate: string;
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -45,36 +136,6 @@ export interface RotationInput {
   newCredential: string;
 }
 
-export type WalletKind = typeof WalletKind[keyof typeof WalletKind];
-
-
-export const WalletKind = {
-  temporary: 'temporary',
-  cold: 'cold',
-  reserve: 'reserve',
-  spending: 'spending',
-} as const;
-
-export interface Wallet {
-  id: string;
-  label: string;
-  /** @nullable */
-  address: string | null;
-  kind: WalletKind;
-  createdAt: string;
-  /** @nullable */
-  expiresAt: string | null;
-  status: string;
-  destructionStatus: string;
-  confirmedSats: string;
-  unconfirmedSats: string;
-  availableSats: string;
-  totalReceivedSats: string;
-  totalSweptSats: string;
-  /** @nullable */
-  lastSync: string | null;
-}
-
 export interface WalletInput {
   /**
      * @minLength 1
@@ -96,22 +157,6 @@ export interface WalletUpdate {
   label: string;
 }
 
-export interface Transaction {
-  txid: string;
-  walletId: string;
-  direction: string;
-  amountSats: string;
-  /** @nullable */
-  feeSats: string | null;
-  firstSeen: string;
-  confirmations: number;
-  status: string;
-  /** @nullable */
-  address: string | null;
-  /** @nullable */
-  replacedBy: string | null;
-}
-
 export interface NodeSync {
   available: boolean;
   message: string;
@@ -126,23 +171,6 @@ export interface NodeSync {
   verificationProgress: number | null;
   /** @nullable */
   initialBlockDownload: boolean | null;
-}
-
-export interface NodeStatus {
-  connected: boolean;
-  network: string;
-  /** @nullable */
-  blocks: number | null;
-  /** @nullable */
-  headers: number | null;
-  /** @nullable */
-  syncProgress: number | null;
-  /** @nullable */
-  peers: number | null;
-  /** @nullable */
-  lastSync: string | null;
-  message: string;
-  recoveryStatus: string;
 }
 
 export interface Service {

@@ -107,6 +107,37 @@ Never run two active signers against the same state.
 
 # Application walkthrough
 
+## Live/Sandbox connections and cloud isolation — 2026-10-27
+
+The website's Live workspace is now mainnet-only. Existing Signet configuration
+is not silently converted: Live wallet operations fail closed until explicit
+mainnet commissioning, while read-only mainnet sync remains visible. Separate
+Sandbox Signet endpoints, credentials, assigned-wallet restriction and
+session-bound payment review references are implemented. DemoUSD remains a
+separate simulation, never a real Signet balance. No hosted stack was restarted.
+
+The existing four metadata tables are retained, not renamed or duplicated.
+Sandbox data is logically separated within the versioned metadata row.
+The redundant per-read initial-row insertion was moved to initialization.
+Worker health IDs and encrypted R2 backup keys are now network-namespaced.
+The Worker requires an explicit REPLICA_NETWORK at rollout; legacy records and
+objects are preserved, not guessed or deleted. See
+`docs/live-sandbox-storage.md` for the ownership matrix, migration gates,
+runtime variables, caching boundaries and single-signer constraint.
+
+Live cloud resource verification via the available connector was unsuccessful;
+source configuration is not proof of deployed bindings. Host capacity,
+actual Signet send/receive, mainnet acceptance, Worker rollout and restore
+verification still require hosted access/authorization.
+
+Local checks: 31 API regression tests and four Worker namespace/backup tests
+passed. Workspace types and production frontend build passed. A disposable
+local owner/database browser fixture verified login at five widths and signed-in
+Live mainnet/unknown-balance boundaries. It found intrinsic-width overflow in the
+service list; explicit zero-minimum grid sizing was applied. That final layout
+fix and the remaining authenticated Sandbox journeys have not been browser
+reverified; do not describe this as complete end-to-end acceptance.
+
 ## Figma integration and separated Sandbox — 2026-10-27
 
 **Source:** The approved main_vault visual foundation is integrated into the
@@ -753,7 +784,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-532 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+539 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -761,9 +792,9 @@ to publish: review repository assets before release.
 | `.agents/memory/MEMORY.md` | 1698 | `a4e5764968611f9e5c668d69bca5c40cfdd114ff6717cd26cf593a3311581a95` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
-| `.agents/memory/health-replication.md` | 1196 | `a960703d098ebe5dabcd92a0cb3b5d01b5cef3c1e5ed1328e9d326b642f30471` | Durable project decision/lesson: health-replication. |
+| `.agents/memory/health-replication.md` | 1800 | `aad23f8bb7617230fdb6288caa355cc666fed0c98efa6c636af87f4eba065dca` | Durable project decision/lesson: health-replication. |
 | `.agents/memory/hosting-scope.md` | 4384 | `7b0ad7d558e79a77db161c532edf37035879cf2a010dd67e006f63b2e82ab3b0` | Durable project decision/lesson: hosting-scope. |
-| `.agents/memory/live-sandbox-boundary.md` | 1165 | `5faebffed06d8fc0bf7b91830e6a6e7922ed489c5038d3afcd05c48b74d970e6` | Durable project decision/lesson: live-sandbox-boundary. |
+| `.agents/memory/live-sandbox-boundary.md` | 1679 | `69e4a051d861740507ffd4de221624796f8e3ea06e632245ce626785a5cd54ec` | Durable project decision/lesson: live-sandbox-boundary. |
 | `.agents/memory/owner-access.md` | 1808 | `159d57009f9e05cc3a71f1adaf0eb452995a20aa1fe57e837629feb5d9d29088` | Durable project decision/lesson: owner-access. |
 | `.agents/memory/production-scope.md` | 2445 | `cecdac2d450084208b00f01f47c42811cc070069aeab74fe05b7e39cd73913af` | Durable project decision/lesson: production-scope. |
 | `.agents/memory/request-recovery.md` | 799 | `b846c19420be7142cbc24bae022a1dd8c9f207f1dcb4fc21d855d1dfe7ffd876` | Durable project decision/lesson: request-recovery. |
@@ -788,17 +819,18 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/middlewares/admission.ts` | 745 | `bed05bed36e4379b502ad75ab15abb973d4de2b9f79b1409cc94a52f09c3c004` | admission.ts module in artifacts/api-server/src/middlewares; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/health.ts` | 288 | `0386ceddb4ff4bff220af72ca38a62191ad95a2f41fd619df3bb9ceffce03db2` | health.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/index.ts` | 171 | `957c7d2e44a720dc48ffc511a738c57bb7659a3ab273c8b64b919a9d2a06b232` | index.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
+| `artifacts/api-server/src/routes/sandbox-signet.ts` | 4073 | `c0ae7d2740314783d30b3870aeca7915120d55f2246f707c0647088791448930` | sandbox-signet.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/sandbox.ts` | 2753 | `372c1c31e79a21bd84e31173ce709a4837873b6b8021eab3ef0f0b3ae84b4a5c` | sandbox.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
-| `artifacts/api-server/src/routes/vault.ts` | 9538 | `8facf622ae335824f09dfb3d2168e522b3f87b5cfea80761961bdfee268998fc` | Owner-gated vault API endpoints and contract validation. |
+| `artifacts/api-server/src/routes/vault.ts` | 9646 | `240e0edcc3a9cbbd042646430a95928bf52066ad74a5cc9ce8802e2b97b56d38` | Owner-gated vault API endpoints and contract validation. |
 | `artifacts/api-server/src/smtp-check.ts` | 2672 | `2181f6e32c377c4ff424a7fff89b78655b5ca61d3b975a191b07702fc490d2fc` | smtp-check.ts module in artifacts/api-server/src; see the owning subsystem above. |
 | `artifacts/api-server/src/static.test.ts` | 3297 | `3b58e56f5d98beaa539129d82dffeade2abd826cb85174169173ad53e96195c7` | Regression tests for static; local checks, not hosted evidence. |
 | `artifacts/api-server/src/static.ts` | 1528 | `90483b8a79a78f60d353ad953d35cce4b2c7372b2a705b26a7f59f5d42f52a55` | static.ts module in artifacts/api-server/src; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/access.test.ts` | 6837 | `bb0a19f80249c165158aa00bd8c2f0e7027a84b62c9bda6b6a15a626a1865052` | Regression tests for access; local checks, not hosted evidence. |
-| `artifacts/api-server/src/vault/auth.ts` | 4610 | `60cc11578f7fd999767b88e66002bd6ff6643ca0c08599457db6e9e9c3bb2c9d` | Owner-key verification, session authentication and request protections. |
+| `artifacts/api-server/src/vault/auth.ts` | 4597 | `e4782f3b8f9aace32f74fa604bf6f58f6b8896e41bc8c49f430d0407569d1402` | Owner-key verification, session authentication and request protections. |
 | `artifacts/api-server/src/vault/burst.test.ts` | 2353 | `f3e520a039e6803da77f02911aade92559648b200b64d9af2adc92a4f42a07ff` | Regression tests for burst; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/credential.test.ts` | 1405 | `b55efa6443b025f1b0e3f9be9dd46873d6abcda8a4d00c4d403dd857ee1e4f04` | Regression tests for credential; local checks, not hosted evidence. |
-| `artifacts/api-server/src/vault/engine.test.ts` | 3109 | `9d455f742e5fe8331dd3916dc1afd912ac4dd6a2da3d77348d48ec2a8ebc7b99` | Regression tests for engine; local checks, not hosted evidence. |
-| `artifacts/api-server/src/vault/engine.ts` | 3557 | `976187f41efbeb43921442992a2bb0eb1c5cd2d8f096fe8b6c2bdb863aa59302` | Private signer client and node readiness adapter. |
+| `artifacts/api-server/src/vault/engine.test.ts` | 5617 | `2bf584913c05496ef7bf698e41c0c99152817629133ce917f367b180d9f471c8` | Regression tests for engine; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/engine.ts` | 4923 | `9a2315973fd2ffeb8693cf68df4514d7c53760bd0f7633dc99d3b6e74302f86d` | Private signer client and node readiness adapter. |
 | `artifacts/api-server/src/vault/login-security.test.ts` | 5051 | `df18c40288b82e0e73f8b8433319f97e44ab12851866781b6d75bf20eae4bd26` | Regression tests for login-security; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/login-security.ts` | 4108 | `13ca1fb8ccb409d3104f92f8c7af64ecaeea6bac36755883ccb56904a03a9ac9` | Login attempt tracking and access restrictions. |
 | `artifacts/api-server/src/vault/market.test.ts` | 1172 | `32e98a536b8de783a48055cd1ff738b5d0ca8dd63f33533bda9ad8932fad2816` | Regression tests for market; local checks, not hosted evidence. |
@@ -809,7 +841,7 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/vault/passkeys.ts` | 6143 | `1e13f0c38ec58fa624eff64f28f14c3d421c6434e5233545c8d3054564789cc2` | WebAuthn passkey enrollment, authentication and management. |
 | `artifacts/api-server/src/vault/read-flight.test.ts` | 2078 | `dd8f7ec226b44d685661049a827b1eb0b40db8bff731d18c8cf02fd0e88bf746` | Regression tests for read-flight; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/read-flight.ts` | 523 | `f5753228cb365a378c1dad710d5fbc395ca5d11d7f86c460b74dc5621c80da18` | read-flight.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
-| `artifacts/api-server/src/vault/sandbox-api.test.ts` | 5372 | `16ba01673980df890affd008191d341f17cb11fafd9349192c2ec0524c3645eb` | Regression tests for sandbox-api; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/sandbox-api.test.ts` | 6225 | `c9c09630c4564d08c947d95aa4b90664568fa5c16eb33b2a2e1a906e671b2f0f` | Regression tests for sandbox-api; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/sandbox-ledger.test.ts` | 2708 | `fca6174b0661d3538600b26c0cde8d5abdb091623a2e4e7da7eed7a33437c15f` | Regression tests for sandbox-ledger; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/sandbox-ledger.ts` | 4396 | `1f4b78e47d94bfec3346554852da6f61cf1f7deb89147add55f356aecba9ac44` | sandbox-ledger.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/schema.test.ts` | 4126 | `ecb73f63f9bac16f591d6890316c593037f2e132c15f6a911d51895110f90cd5` | Regression tests for schema; local checks, not hosted evidence. |
@@ -817,7 +849,7 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/vault/security-mail.ts` | 2034 | `1b625e27ca0d77d96fca66cf44633a2d64069930cfcf792f4958e66b0102d0de` | Security-event mail coordination. |
 | `artifacts/api-server/src/vault/smtp.test.ts` | 1306 | `8f99832fc6b62622254a129a431c390bd15691f81db9dd6891c53b767ca4678b` | Regression tests for smtp; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/smtp.ts` | 1981 | `54a2a9c5ef47fe207b0ca65447488271f9601a8fd92591f6a45a3e80d4fbfc93` | SMTP delivery transport. |
-| `artifacts/api-server/src/vault/store.ts` | 5275 | `2172509e5d35da4f0c055eee83a8a3b07ae5cf87b16757ee2b48da67da59de69` | Metadata persistence adapters and application-state access. |
+| `artifacts/api-server/src/vault/store.ts` | 5434 | `9d29d2c1d09508b557621510bb7ff7bdf83bc2619e6c25c8f0369bb2ac1e91fc` | Metadata persistence adapters and application-state access. |
 | `artifacts/api-server/tsconfig.json` | 335 | `aa300909ccd1d4282761b5d6549a174717b663bb56cb0f59d107d4b3d96cb009` | TypeScript compilation/project-reference configuration. |
 | `artifacts/bitcoin-vault/.replit-artifact/artifact.toml` | 770 | `8ffc0ab0be434d79fa9639b72cde3be4bf299f71dd6692b49640f13852b9195d` | Managed artifact service/routing configuration; update through artifact tooling. |
 | `artifacts/bitcoin-vault/components.json` | 434 | `3a5d5af62f05e6e3de6c5085f31ed4f49273d57cfeae4d69d00a2568c91f54f9` | UI component tooling and import/style configuration. |
@@ -841,7 +873,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/price-chart.tsx` | 4344 | `fd3204d36d0667a55fc4d1d74aca4a32eab9c084b2be0e2d77abd84ff11580a2` | price-chart.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/receive.tsx` | 15007 | `2f88d80c8eb203b428a80570e248419644be65167d873bbdf7b60a9a0c1a608d` | Receive dialog, QR code, network warning, copy/share and readiness gating. |
 | `artifacts/bitcoin-vault/src/components/sandbox-kit.tsx` | 1895 | `b0fd1c4ccc7fb01f37bef38500aebf86b1e6d336d9918d9b43c20bb060b4237d` | sandbox-kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/components/sandbox-shell.tsx` | 3825 | `99e2d61fa7edf4fd0951d121d0bb3efa1cd162499a09806dd8b54c828342835d` | sandbox-shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/sandbox-shell.tsx` | 3942 | `26351459876c4c10b33d0a69a3c9408fce739673db25db1b91a52ac1ac5df96e` | sandbox-shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/sheet.tsx` | 2748 | `ebc64aa8cd585f254e5b45e5f858e73b66809a2b4ba3f3c958192800f5299992` | sheet.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/shell.tsx` | 7911 | `591b87a8a977c3827c91bb845d026be357565dbfc705d12cc446e6781113aafd` | shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/tx-row.tsx` | 2730 | `5c82f6b311c84afc3559efb1786a1a3136bd2c94d4ed2547b18a34ad6a82f07c` | tx-row.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
@@ -918,13 +950,14 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/vault.tsx` | 3543 | `4aad0cc8f08811709b537612bb3f3331469751a5952290f6245e1a342023b61e` | vault.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/main.tsx` | 446 | `e7e03b61f962dc1787ea029d4941424475455366b5a4f079c8fcb4f5df4d076c` | React browser mount entrypoint. |
 | `artifacts/bitcoin-vault/src/pages/explorer.tsx` | 4021 | `b3436ef0e64030e1756ef5f0f488aa7a86fd3c6a99f7e0a5604f5328f4927c70` | explorer wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/lock.tsx` | 13888 | `096553884c44d87bd32f99f9d78daf21b3906a81b0a90eeef3d3adf4cfa93f89` | lock wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/lock.tsx` | 13711 | `df1a82927f9fbd72587a42bdbf1441f4ebca8d93b8567bfe9738f35d0e4d6b1e` | lock wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/market.tsx` | 12977 | `8f8a651cf5e84043dbea9bd5e769f056fb72b950d3cbde2088e56e15c5c6f52a` | market wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/not-found.tsx` | 1147 | `74653c0b180b50c89622040611f5050e5d4d14cf908f756bccdd44d6009b7bbe` | not found wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/overview.tsx` | 16288 | `29942792042288a8906b99b94f4c8be1b224a71eef9c987156c4714c009f5f37` | overview wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/sandbox/index.tsx` | 24127 | `5c00578a211122c09bd7d950caf212a875f9085046609a76774cdd0de3990f40` | index wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/overview.tsx` | 16447 | `b2e2b663f19aa745b781a9b90a25a974cfed1d644e61721ae6294606c072b03f` | overview wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/sandbox/index.tsx` | 23842 | `f9cb890e1f634ce3d186a8a88d50176794742f9c57ac5089e11bc0be9531a632` | index wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/sandbox/signet.tsx` | 17393 | `7625b9a4db6752ace59404f95e772411a8612d766133066dc1a26ec8e46d8b7f` | signet wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/settings.tsx` | 13397 | `b6b635bbf5304acc0fd00dbb3115f95bfd3f03ea940332fa819f782fbd26f6f6` | settings wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/spending.tsx` | 15821 | `bcf92658d593bd06c21e0dc5174ad4ca3b4df3e102eff5db2dd324f7bd49d4f7` | spending wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/spending.tsx` | 15692 | `a388101c95673ab62d29d177b07bb17a193e91b2ed2b66801bc425f9f5bdfa23` | spending wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 13645 | `bf143717bf45e4ca251194d3b850548eef81cad963cb8441f12504a7d4a3cb89` | transactions wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallet-detail.tsx` | 13031 | `d446af86cc5666932bf3ea1ec0dcfb06c490220d6d14d8f0e857eee80fc79762` | wallet detail wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallets.tsx` | 9598 | `ccdcf0a80728ec23bc9a147c2394e8d919a9c9c14d2714b1b7f7ba98f0f12284` | wallets wallet screen. |
@@ -1149,9 +1182,10 @@ to publish: review repository assets before release.
 | `deploy/vault-regtest.Dockerfile` | 768 | `556ac4df33192ce5b22af6fc3948f367b4b7096141f8b6e4a5df2a5a308c3e41` | Deployment configuration/tool: vault-regtest.Dockerfile; see deployment chapter and runbooks. |
 | `deploy/vault-regtest.Dockerfile.dockerignore` | 126 | `c87f626c7c5177a00915301822c369b06aba4b800dbb9cc96bfb24f80b130094` | Deployment configuration/tool: vault-regtest.Dockerfile.dockerignore; see deployment chapter and runbooks. |
 | `docs/coolify-bitcoin-setup.md` | 6457 | `79ea5ce97c779418b08abb5b0005cbee3bef98d72c9d7fe244dbad369b932e08` | Detailed coolify bitcoin setup runbook/status reference; respect dated evidence. |
-| `docs/coolify-deployment.md` | 13300 | `54c615f5401cab319d7a03b48a41f11a1f7d83f0f52ea8434518f126ec2b3470` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
+| `docs/coolify-deployment.md` | 13528 | `69d9278f3667c63efda3a002c625539b1a680d77a6eb1371fe19bff6d524e9c7` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
 | `docs/database-schema.md` | 3150 | `83c765f8d07d3008a0813094dd0ea961dbd923a960a3fee98537ad4ca494c47c` | Detailed database schema runbook/status reference; respect dated evidence. |
 | `docs/github-readiness.md` | 11521 | `10908f86e6a211ff20ae51d92f6e0c11938d131426fdfa100a3c4f1979d82c65` | Detailed github readiness runbook/status reference; respect dated evidence. |
+| `docs/live-sandbox-storage.md` | 6083 | `9faef15b9e15c7bc8ba56916972278d2bd721053acabeeb0b02ed1f33b13b13f` | Detailed live sandbox storage runbook/status reference; respect dated evidence. |
 | `docs/live-session-readiness.md` | 3430 | `ef1e8eecf530e98a45c922f3af036cc4febd62117e59edaab5d447c7b75384a5` | Detailed live session readiness runbook/status reference; respect dated evidence. |
 | `docs/login-security.md` | 6803 | `3759d7aa17f02836e9f4ca921a06b0e964fc0f04e246c6368b3ce4c0385c9abf` | Detailed login security runbook/status reference; respect dated evidence. |
 | `docs/mainnet-and-capacity.md` | 9136 | `57430c0a1d0d3b13cf5b403aa8fad650c80aff1883d574c5837ca7541f5f38d2` | Detailed mainnet and capacity runbook/status reference; respect dated evidence. |
@@ -1171,15 +1205,15 @@ to publish: review repository assets before release.
 | `es.txt` | 1 | `01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b` | Legacy root text asset; not an executable entrypoint; purpose requires owner review. |
 | `lib/api-client-react/package.json` | 265 | `ae70f97a12d1f7e7cbb291b5ffd1d6893f0d7a0ff7721a21e615d47bccfad789` | Package identity, dependencies and runnable scripts. |
 | `lib/api-client-react/src/custom-fetch.ts` | 12068 | `2eeece990a8dc1145a09fa2b88aa95dd1e2218d6d296988600f70e632711b1a7` | Client HTTP transport and request/session integration. |
-| `lib/api-client-react/src/generated/api.schemas.ts` | 9003 | `3bc3d88659295926ee26803888002a2316daa69b252c9ab070cf6bce23631c3b` | Generated api.schemas.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-client-react/src/generated/api.ts` | 91635 | `7297f78b2662ab92d61fc9322379c7b46d69685b747d62105c14159937e2f981` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-client-react/src/generated/api.schemas.ts` | 9640 | `3f43394b22c039db9f589d1ccdc76519fd721f6b1d738bb53578d28df04d7a51` | Generated api.schemas.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-client-react/src/generated/api.ts` | 100335 | `1b2ec0ecd2700c25789c1197330000959a02f784336c4ec599a7c3b17746a911` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-client-react/src/index.ts` | 208 | `708d0a9abb7cc7cc6c4873185fb57bc1873f82521c7dff78bbf3c0939d83e21f` | index.ts module in lib/api-client-react/src; see the owning subsystem above. |
 | `lib/api-client-react/tsconfig.json` | 267 | `a00fda842228e3478705abcf2c76d9641f5d6263cd5d2df0b613d5379088ad73` | TypeScript compilation/project-reference configuration. |
-| `lib/api-spec/openapi.yaml` | 70733 | `ea1b922c706331d2c39e485f4e23f5dbd677eb92ac9e4b61e4bc6ce13a4325dd` | Authoritative HTTP API contract. |
+| `lib/api-spec/openapi.yaml` | 72989 | `b588a9c6f9940680394872fe23e627ed06cac47c55d522cfc377def29e21f207` | Authoritative HTTP API contract. |
 | `lib/api-spec/orval.config.ts` | 2051 | `17bbe15ed439c69c5a900398b2a146e4c8d8c79365479cb0ca9adc4dd4058776` | orval.config.ts module in lib/api-spec; see the owning subsystem above. |
 | `lib/api-spec/package.json` | 228 | `2c0f6e86a51350d26ad83e057f0ae4a886b1d8fd484965b34a6a762c0495f088` | Package identity, dependencies and runnable scripts. |
 | `lib/api-zod/package.json` | 189 | `07009861b2ba8decccb4e9d78d743cb7273bd91915231b5eb1463b296efca13e` | Package identity, dependencies and runnable scripts. |
-| `lib/api-zod/src/generated/api.ts` | 20461 | `cfe6a6eaf37ae04496c10e623b398d3070d780688d04dfd0c6fe7fe32d83eef8` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/api.ts` | 23422 | `07b4df3dc8f4542c87ea52155359de78d75243516a27c75f35630fed7587a1c9` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/activity.ts` | 220 | `6a40ba64d552dccf6f83273d142b81fa514c03fae4d38bf900bb214880154ce1` | Generated activity.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/alert.ts` | 367 | `416ac7eeea3c9e6b301029cbc01bb4ce0e01b39d84f00c94f2ddb930192fa228` | Generated alert.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/alertInput.ts` | 512 | `4917d8e0399d7c90b3894594ea1f09668c57e888566d82af7a0a3eb6720be2a2` | Generated alertInput.ts contract/registry output; update its source generator rather than hand-editing. |
@@ -1193,7 +1227,7 @@ to publish: review repository assets before release.
 | `lib/api-zod/src/generated/types/explorerDetails.ts` | 157 | `61cf7f255b34f7689e7e5f0dee1f8a59ed696c1ab15d1f3eb7d90c352cdcc136` | Generated explorerDetails.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/getSandboxAddressParams.ts` | 205 | `a26a1836efcef1523c4573fc38115ff16665a0d097f316ae29ae4d7021bf8831` | Generated getSandboxAddressParams.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/healthStatus.ts` | 151 | `6ccf17c2dc7f498c00627c8568bea6f04963b1954d3db765d8b4278bf343ca66` | Generated healthStatus.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/index.ts` | 1722 | `db22fb65f7c0269c8f78a0526e2194aacacdf153e1772aa1d4f4aa4faf698dcd` | Generated index.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/index.ts` | 1845 | `468d61a5b150ceb75073e536d3f0367e298628cb7b749f8a1b7efc785721bd4f` | Generated index.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/market.ts` | 408 | `233be950c911aca8a078cce723369b48047274d4fae3c7ccb16f3911d64894fd` | Generated market.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/marketHistoryItem.ts` | 169 | `26fd394071ba2518780d96392359e8376bef0ae5575e21c7b9d6ef60f7afe61b` | Generated marketHistoryItem.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/nodeStatus.ts` | 445 | `fc4c73ed90dc8a3ed388751d00b5e2be962510f1cff370bb186fa9419185ad76` | Generated nodeStatus.ts contract/registry output; update its source generator rather than hand-editing. |
@@ -1216,6 +1250,9 @@ to publish: review repository assets before release.
 | `lib/api-zod/src/generated/types/sandboxReview.ts` | 380 | `d1088d617e2e876e1117a2766304b5405ffb7788a726004cb1b792ae8ea8c680` | Generated sandboxReview.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/sandboxReviewInput.ts` | 264 | `3ed25e7424d255ea61f0484d7f69af5f1d28c7bb0361c36a8bbee8b9eaa9dea5` | Generated sandboxReviewInput.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/sandboxReviewStatus.ts` | 292 | `7c0616875ac659449ac633e52b56b1efadbe38107940d6519c09317cbd79221c` | Generated sandboxReviewStatus.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/sandboxSignetInput.ts` | 334 | `b6de74ed962d7b6c29c434025d923fe272c54790d76835de03ddc4a50943e1ef` | Generated sandboxSignetInput.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/sandboxSignetStatus.ts` | 521 | `c6737d3ed85a0bee72e456d79a97a7ed9b4eaef0af6bf57275f07cd152b24ea4` | Generated sandboxSignetStatus.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/sandboxSignetStatusNetwork.ts` | 294 | `4a86f54c6f2c0e9e2e91436954fa9e6e16f6739f2bfbb3cc5da32ad0157e2b93` | Generated sandboxSignetStatusNetwork.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/sandboxSnapshot.ts` | 561 | `d7498338431f940254d863896e09e62421424af4e37c48600dc6464019d27bc8` | Generated sandboxSnapshot.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/sandboxSnapshotEnvironment.ts` | 296 | `f9e983beb0b7f98b79d736f8229f0c1c864ebd4eb67c00b6a7d601345cba3a95` | Generated sandboxSnapshotEnvironment.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/service.ts` | 181 | `87215d33d32554bbc8f066096f221e6b1aff8d3f83e9bf28f4f67e498fcdf8e2` | Generated service.ts contract/registry output; update its source generator rather than hand-editing. |
@@ -1239,14 +1276,14 @@ to publish: review repository assets before release.
 | `lib/db/tsconfig.json` | 244 | `69c976d11de35f0ac391934625beeccdd1b2689ba5d0f14c54b5384d4c30a9c9` | TypeScript compilation/project-reference configuration. |
 | `lib/vault-cloudflare/migrations/0001.sql` | 532 | `387731a6f6023e05672a2fe92627b9ba51ce39252074b99a4c83afe4a688a8c5` | 0001.sql module in lib/vault-cloudflare/migrations; see the owning subsystem above. |
 | `lib/vault-cloudflare/package.json` | 146 | `218a4b8aa29ff20e55bba282480f0028ce6828c484ac413a3b6bab298e16a498` | Package identity, dependencies and runnable scripts. |
-| `lib/vault-cloudflare/src/index.test.mjs` | 4029 | `d3ea6991a85d1969d23ab9df68adf1a550f05a5e3084e03d30abace8c8fb99de` | Regression tests for index; local checks, not hosted evidence. |
-| `lib/vault-cloudflare/src/index.ts` | 7797 | `79ea108f147c6a5574535924df3aa775b3e5a084498eff3048f74968b23cb046` | Cloudflare Worker price and health-replication endpoints. |
+| `lib/vault-cloudflare/src/index.test.mjs` | 5740 | `67b8145fb7bc2800f97698cf694e874ca4bbf58ed90d0f87f6ef561fc295abb2` | Regression tests for index; local checks, not hosted evidence. |
+| `lib/vault-cloudflare/src/index.ts` | 8722 | `5be6e5ec0620b075f174e22671f5bce44d83e0a849e6da674663d79a7a23d96c` | Cloudflare Worker price and health-replication endpoints. |
 | `lib/vault-cloudflare/tsconfig.json` | 206 | `71f61c1494eae268125f8cb1af3530c1d205b784f0b4b1f04fc8e30c4799dd28` | TypeScript compilation/project-reference configuration. |
 | `lib/vault-cloudflare/wrangler.jsonc` | 734 | `5999164a4e53708fa087e3353560a56bf1435c8ae971ca4d6c0570a91d74550d` | wrangler.jsonc module in lib/vault-cloudflare; see the owning subsystem above. |
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 217466 | `018d20477671da22053ead662ed00688d83d8988570ce54e56a747955d32f497` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 44125 | `9707b77d2a89a8dcbee5fc877276c5f5be034a46cc2c39191c00cd93852c952e` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 46040 | `5c85f022521b2319d13ed146cb6ba97ff027eaeb27e819d7a68172f5a3ed0a7f` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
@@ -1267,6 +1304,7 @@ to publish: review repository assets before release.
 | `scripts/vault-live-probe.test.mjs` | 2036 | `3d39bce9677f184c6e13a5c8c985cb55be158965a9b9cc316e19fd4b956a4731` | Regression tests for vault-live-probe; local checks, not hosted evidence. |
 | `scripts/vault-package.test.mjs` | 5244 | `3fca7c9c48ac9353fd55293d75ff09149dbcc83b6185c0eb0adab65d18125147` | Regression tests for vault-package; local checks, not hosted evidence. |
 | `scripts/vault-release.sh` | 2413 | `7bb1b6fd9606776f9d10b239ae3d973f2d5221f91632972550d41e3563f1a362` | Operator/build utility: vault-release.sh; inspect flags before invoking. |
+| `scripts/vault-ui-fixture.mts` | 1602 | `dc2b869951ed2e12f49043d2c9c6e6ee246bbe9eaa8693ecd0fbcecd0bd3a07e` | Operator/build utility: vault-ui-fixture.mts; inspect flags before invoking. |
 | `scripts/vault-verify.sh` | 1278 | `ae4084c55e5282f05fc2e74665530dafe0132ae22458b13c1c626c58c8056d86` | Operator/build utility: vault-verify.sh; inspect flags before invoking. |
 | `services/vault-engine/admission.go` | 679 | `75535c621e210d79a5e9b54e102490bafeef0f19dbe926b9a74049a4ab6dcf87` | admission.go module in services/vault-engine; see the owning subsystem above. |
 | `services/vault-engine/admission_test.go` | 1981 | `4359fa9b2e35332a0f7f2a3ad241dd7691f7b3f0b30658d036507f7622e58baf` | Regression tests for admission; local checks, not hosted evidence. |

@@ -44,7 +44,7 @@ export function clearSessionCookie(res: Response) {
 }
 export const sessionPayload = (session?: SessionRecord, configured = true) => ({
   authenticated: !!session, configured, csrfToken: session?.csrf ?? null, expiresAt: session?.expiresAt ?? null,
-  network: configuredNetwork(),
+  network: "main",
 });
 export function expectedOrigin(req: Request) {
   // Pin PUBLIC_ORIGIN in production. Host fallback is for same-origin development only.
