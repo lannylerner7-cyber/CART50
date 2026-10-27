@@ -17,6 +17,15 @@ not arbitrary recipients. Actual Signet was stopped in Coolify while mainnet
 was syncing; a visual redesign does not authorize restarting it or altering
 mainnet storage.
 
+The owner explicitly chose “Keep Signet paused” rather than upgrading the
+existing server or using a separate Signet server.
+
+**Why:** The user selected this option after reviewing host capacity.
+
+**How to apply:** Do not restart the hosted Signet stack or enable its website
+connection without renewed authorization. Sandbox simulation can remain
+available and must not be presented as a connected Signet wallet.
+
 **Why:** The owner is concerned about losing the long-running mainnet sync and
 specified a single assigned test destination.
 
