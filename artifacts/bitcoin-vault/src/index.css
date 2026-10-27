@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @plugin "@tailwindcss/typography";
@@ -60,7 +60,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-:root {
+:root, .dark {
   color-scheme: dark;
   --button-outline: rgba(255, 255, 255, 0.1);
   --badge-outline: rgba(255, 255, 255, 0.06);
@@ -68,30 +68,31 @@
   --elevate-1: rgba(255, 255, 255, 0.04);
   --elevate-2: rgba(255, 255, 255, 0.08);
 
-  --background: 228 12% 4%;
-  --foreground: 220 14% 95%;
-  --border: 225 8% 16%;
-  --card: 225 9% 9%;
-  --card-foreground: 220 14% 95%;
-  --card-border: 225 8% 15%;
+  /* Single source of theme values: no legacy theme override. */
+  --background: 220 15.789% 3.725%;
+  --foreground: 216 33.333% 97.059%;
+  --border: 221.25 14.286% 21.961%;
+  --card: 222.857 14.894% 9.216%;
+  --card-foreground: var(--foreground);
+  --card-border: var(--border);
   --sidebar: 228 12% 6%;
   --sidebar-foreground: 220 10% 80%;
   --sidebar-border: 225 8% 14%;
-  --sidebar-primary: 27 90% 56%;
-  --sidebar-primary-foreground: 228 12% 6%;
+  --sidebar-primary: 226.23 79.13% 55.098%;
+  --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 225 9% 13%;
   --sidebar-accent-foreground: 220 14% 96%;
   --sidebar-ring: 224 86% 62%;
   --popover: 225 10% 11%;
   --popover-foreground: 220 14% 95%;
   --popover-border: 225 8% 18%;
-  --primary: 224 86% 60%;
-  --primary-foreground: 220 30% 98%;
-  --secondary: 225 9% 14%;
+  --primary: 226.23 79.13% 55.098%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 222 14.706% 13.333%;
   --secondary-foreground: 220 14% 95%;
-  --muted: 225 9% 14%;
-  --muted-foreground: 222 7% 58%;
-  --accent: 27 90% 56%;
+  --muted: 222 14.706% 13.333%;
+  --muted-foreground: 219.13 15.433% 70.784%;
+  --accent: 30 100% 61%;
   --accent-foreground: 228 12% 6%;
   --destructive: 2 74% 60%;
   --destructive-foreground: 220 30% 98%;
@@ -103,15 +104,15 @@
   --chart-4: 40 80% 58%;
   --chart-5: 222 10% 60%;
   --ok: 146 46% 54%;
-  --warn: 33 92% 60%;
+  --warn: 36.954 100% 70.392%;
   --cold: 224 86% 66%;
   --sheet: 225 7% 13%;
 
-  --app-font-sans: 'Plus Jakarta Sans', ui-sans-serif, sans-serif;
+  --app-font-sans: 'Inter', ui-sans-serif, sans-serif;
   --app-font-serif: Georgia, serif;
-  --app-font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --app-font-display: 'Plus Jakarta Sans', sans-serif;
-  --radius: 1rem;
+  --app-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --app-font-display: 'Space Grotesk', 'Inter', sans-serif;
+  --radius: 0.875rem;
   --shadow-2xs: 0 1px 0 0 hsl(30 30% 30% / 0.05);
   --shadow-xs: 0 1px 0 0 hsl(30 30% 30% / 0.06);
   --shadow-sm: 0 1px 2px 0 hsl(30 30% 20% / 0.07);
@@ -139,56 +140,11 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
-.dark {
-  --button-outline: rgba(255, 255, 255, 0.1);
-  --badge-outline: rgba(255, 255, 255, 0.05);
-  --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(255, 255, 255, 0.04);
-  --elevate-2: rgba(255, 255, 255, 0.09);
-  --background: 224 36% 8%;
-  --foreground: 38 25% 88%;
-  --border: 224 24% 18%;
-  --card: 224 34% 11%;
-  --card-foreground: 38 25% 88%;
-  --card-border: 224 24% 18%;
-  --sidebar: 224 40% 6%;
-  --sidebar-foreground: 38 25% 84%;
-  --sidebar-border: 224 26% 14%;
-  --sidebar-primary: 22 92% 52%;
-  --sidebar-primary-foreground: 40 45% 97%;
-  --sidebar-accent: 224 30% 14%;
-  --sidebar-accent-foreground: 38 40% 95%;
-  --sidebar-ring: 22 92% 52%;
-  --popover: 224 34% 11%;
-  --popover-foreground: 38 25% 88%;
-  --popover-border: 224 24% 18%;
-  --primary: 22 92% 52%;
-  --primary-foreground: 224 36% 8%;
-  --secondary: 224 26% 16%;
-  --secondary-foreground: 38 25% 88%;
-  --muted: 224 26% 15%;
-  --muted-foreground: 224 12% 62%;
-  --accent: 200 40% 18%;
-  --accent-foreground: 196 40% 86%;
-  --destructive: 356 68% 52%;
-  --destructive-foreground: 40 45% 97%;
-  --input: 224 22% 26%;
-  --ring: 22 92% 52%;
-  --chart-1: 22 92% 52%;
-  --chart-2: 196 50% 55%;
-  --chart-3: 152 40% 50%;
-  --chart-4: 40 80% 55%;
-  --chart-5: 224 30% 60%;
-  --ok: 152 45% 50%;
-  --warn: 38 90% 55%;
-  --cold: 196 50% 55%;
-}
-
 @layer base {
   * { @apply border-border; }
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    font-feature-settings: 'ss01', 'tnum';
+    font-feature-settings: 'cv11', 'tnum';
   }
   body::before {
     content: '';
@@ -277,3 +233,12 @@
 @keyframes btc-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 @media (max-width: 640px) { .btc-hero-coin svg { width: 52px; height: 52px; } .btc-drop:nth-child(n+25) { display: none; } }
 @media (prefers-reduced-motion: reduce) { .btc-drop, .btc-spin, .btc-hero-coin { animation: none !important; } .btc-drop { transform: translateY(18vh); } .btc-drop:nth-child(2n) { transform: translateY(42vh); } }
+
+/* main_vault sandbox */
+.sandbox-band { background: hsl(var(--warn)); color: hsl(225 14% 5%); }
+.sandbox-card { border-color: hsl(var(--warn) / .35); background: linear-gradient(180deg, hsl(var(--warn) / .07), hsl(var(--card)) 60%); }
+@media print {
+  body::before, .no-print { display: none !important; }
+  body { background: #fff; color: #111; }
+  .print-sheet { border: 1px solid #999 !important; background: #fff !important; color: #111 !important; }
+}

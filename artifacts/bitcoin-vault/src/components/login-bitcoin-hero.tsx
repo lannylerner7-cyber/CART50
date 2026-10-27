@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import { Pause, Play, Volume2, VolumeX } from 'lucide-react';
 import { useCoinAudio } from '@/hooks/use-coin-audio';
+import { LOGIN_HERO } from '@/lib/assets';
 
 const COINS = Array.from({ length: 42 }, (_, i) => {
   const r = (n: number) => ((Math.sin((i + 1) * n) + 1) / 2);
@@ -43,24 +44,23 @@ export function LoginBitcoinHero() {
           </span>
         ))}
       </div>
-      <div className="btc-hero relative mt-6 flex items-center gap-4" data-testid="hero-bitcoin">
-        <div aria-hidden className={`btc-hero-coin pointer-events-none shrink-0 ${still ? 'is-still' : ''}`}>
-          <CoinSvg size={72} />
-        </div>
-        <div className="flex flex-wrap gap-2">
+      <figure className="btc-hero relative" data-testid="hero-bitcoin">
+        <img src={LOGIN_HERO} alt="" aria-hidden className="aspect-[16/10] w-full rounded-[20px] border border-border object-cover" data-testid="img-login-hero" />
+        <figcaption className="mt-2 text-[12px] text-muted-foreground">Decorative image{still ? ' · coin motion paused' : ''}. {sound ? 'Coin sound is looping.' : 'If autoplay is blocked, press play to listen.'}</figcaption>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" onClick={toggleSound} aria-pressed={sound} data-testid="button-toggle-coin-sound"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-card px-4 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted aria-pressed:border-accent/60 aria-pressed:text-accent">
+            {sound ? <Volume2 className="h-4 w-4" aria-hidden /> : <VolumeX className="h-4 w-4" aria-hidden />}
+            {sound ? 'Mute coin rain sound' : 'Play coin rain sound'}
+          </button>
           <button type="button" onClick={() => setPaused((p) => !p)} aria-pressed={paused} disabled={reduced} data-testid="button-toggle-coin-motion"
             title={reduced ? 'Motion reduced by system setting' : undefined}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-card/80 px-3.5 text-[12px] font-semibold text-muted-foreground backdrop-blur transition-colors hover:text-foreground disabled:opacity-50">
-            {still ? <Play className="h-3.5 w-3.5" aria-hidden /> : <Pause className="h-3.5 w-3.5" aria-hidden />}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-card px-4 text-[13px] font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-50">
+            {still ? <Play className="h-4 w-4" aria-hidden /> : <Pause className="h-4 w-4" aria-hidden />}
             {reduced ? 'Motion reduced' : paused ? 'Resume coins' : 'Pause coins'}
           </button>
-          <button type="button" onClick={toggleSound} aria-pressed={sound} data-testid="button-toggle-coin-sound"
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-border bg-card/80 px-3.5 text-[12px] font-semibold text-muted-foreground backdrop-blur transition-colors hover:text-foreground aria-pressed:border-[#f7931a]/60 aria-pressed:text-[#f7b14d]">
-            {sound ? <Volume2 className="h-3.5 w-3.5" aria-hidden /> : <VolumeX className="h-3.5 w-3.5" aria-hidden />}
-            {sound ? 'Sound on' : 'Coin rain sound'}
-          </button>
         </div>
-      </div>
+      </figure>
       {audioErr && <p role="status" className="mt-2 text-[11.5px] text-warn" data-testid="text-audio-error">{audioErr}</p>}
     </>
   );

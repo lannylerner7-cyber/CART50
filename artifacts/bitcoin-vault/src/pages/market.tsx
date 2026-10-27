@@ -125,7 +125,7 @@ function AlertDialogForm({ initial, title, pending, error, onClose, onSave }: { 
           <div className="grid gap-1.5"><Label>Name</Label><Input value={v.name} maxLength={80} onChange={(e) => setV({ ...v, name: e.target.value })} data-testid="input-alert-name" /></div>
           <div className="grid grid-cols-2 gap-1 rounded-md border border-border p-1 font-mono text-[11px] uppercase">
             {(['below', 'percent_drop'] as const).map((k) => (
-              <button key={k} type="button" onClick={() => setV({ ...v, kind: k })} className={cn('rounded-sm py-1.5 transition-colors', v.kind === k ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')} data-testid={`button-kind-${k}`}>{k === 'below' ? 'price below' : 'percent drop'}</button>
+              <button key={k} type="button" onClick={() => setV({ ...v, kind: k })} className={cn('rounded-xl py-1.5 transition-colors', v.kind === k ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')} data-testid={`button-kind-${k}`}>{k === 'below' ? 'price below' : 'percent drop'}</button>
             ))}
           </div>
           <div className="grid grid-cols-3 gap-3">

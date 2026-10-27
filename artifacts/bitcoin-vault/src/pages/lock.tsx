@@ -6,35 +6,38 @@ import { getGetVaultSessionQueryKey, setCsrfToken, useUnlockVault, usePasskeyLog
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ErrorPanel } from '@/components/kit';
-import { VaultMark } from '@/components/shell';
+import { BRAND_MARK } from '@/lib/assets';
 import { CREDENTIAL_RE } from '@/lib/vault';
 import { cn } from '@/lib/utils';
 import { LoginBitcoinHero } from '@/components/login-bitcoin-hero';
 
 export default function LockScreen({ session }: { session: Session }) {
   const isMain = /^(main|mainnet|bitcoin)$/i.test(session.network);
+  const note = isMain ? 'Bitcoin mainnet · real funds. Verify network and destination before sending.' : 'Test network only. Do not send real Bitcoin.';
   return (
     <div className="relative min-h-[100dvh] overflow-hidden bg-background">
-      <div className="login-sunrise" aria-hidden="true" />
-      <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,hsl(var(--primary)/0.16),transparent_65%)] lg:left-[28%]" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-48 right-[-120px] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle,hsl(var(--accent)/0.10),transparent_65%)]" />
-      <div className="relative mx-auto grid min-h-[100dvh] max-w-6xl grid-cols-1 gap-8 px-5 pb-8 pt-[max(2.5rem,env(safe-area-inset-top))] lg:grid-cols-[1fr_440px] lg:items-center lg:gap-16 lg:px-10">
-        <header className="rise flex flex-col items-center text-center lg:items-start lg:text-left">
-          <div className="flex items-center gap-3">
-            <span className="grid h-14 w-14 place-items-center rounded-[20px] bg-accent text-accent-foreground shadow-[0_12px_32px_-12px_hsl(var(--accent)/0.6)]"><VaultMark className="h-8 w-8" /></span>
-            <span className="font-display text-[19px] font-bold tracking-tight text-foreground">Strongroom</span>
+      <div className="relative mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 pb-10 pt-[max(1.5rem,env(safe-area-inset-top))] sm:px-6 lg:min-h-[100dvh] lg:grid-cols-[1fr_440px] lg:content-center lg:gap-x-16 lg:gap-y-8 lg:px-10">
+        <header className="rise lg:col-start-1 lg:row-start-1">
+          <div className="flex items-center gap-2.5">
+            <img src={BRAND_MARK} alt="" className="h-9 w-9" />
+            <span className="font-display text-[20px] font-bold tracking-tight text-foreground">main_vault</span>
           </div>
-          <h1 className="font-display mt-7 text-[2.1rem] font-extrabold leading-[1.05] text-foreground sm:text-[2.6rem] lg:text-[3.4rem]">{session.configured ? <>Welcome<br className="hidden lg:block" /> back</> : 'Vault not set up'}</h1>
-          <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-muted-foreground">{session.configured ? 'Unlock Strongroom with your keyfile or an enrolled passkey.' : 'An owner has not been installed on this server yet.'}</p>
-          <div className="mt-5 flex flex-wrap justify-center gap-2 lg:justify-start">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground" data-testid="badge-network"><span className={cn('h-1.5 w-1.5 rounded-full', isMain ? 'bg-accent' : 'bg-warn')} />{session.network}{isMain ? '' : ' · test network'}</span>
+          <p className="mt-5 text-[13px] font-medium text-muted-foreground">Personal Bitcoin vault</p>
+          <h1 className="font-display mt-1.5 text-[2rem] font-bold leading-[1.1] tracking-tight text-foreground sm:text-[2.4rem] lg:text-[3.2rem]">{session.configured ? <>Your Bitcoin.<br /> Your space.</> : 'Vault not set up'}</h1>
+          <p className="mt-3 max-w-sm text-[15px] leading-relaxed text-muted-foreground">{session.configured ? 'Unlock your personal vault to view your wallets and activity.' : 'An owner has not been installed on this server yet.'}</p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-foreground" data-testid="badge-network"><span className={cn('h-1.5 w-1.5 rounded-full', isMain ? 'bg-primary' : 'bg-warn')} />{isMain ? 'Bitcoin Mainnet' : `${session.network} · test network`}</span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12px] font-semibold text-muted-foreground"><Lock className="h-3 w-3" aria-hidden /> Locked</span>
           </div>
-          <LoginBitcoinHero />
-          <p className="mt-8 hidden max-w-sm text-[12.5px] leading-relaxed text-muted-foreground lg:block">{session.network === 'main' ? 'Bitcoin mainnet · real funds. Verify network and destination before sending.' : 'Test network only. Do not send real Bitcoin.'}</p>
         </header>
-        <main className="rise rise-2 w-full max-w-md justify-self-center lg:max-w-none">{session.configured ? <UnlockCard retryAfter={session.loginRetryAfterSeconds ?? 0} /> : <SetupCard />}</main>
-        <p className="mt-auto text-center text-[11.5px] text-muted-foreground lg:hidden">{session.network === 'main' ? 'Bitcoin mainnet · real funds. Verify network and destination before sending.' : 'Test network only. Do not send real Bitcoin.'}</p>
+        <main className="rise rise-2 w-full lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center">
+          {session.configured ? <UnlockCard retryAfter={session.loginRetryAfterSeconds ?? 0} /> : <SetupCard />}
+          <p className="mt-4 text-[13px] leading-relaxed text-muted-foreground">There is no email reset. Use the keyfile or access secret you saved offline.</p>
+        </main>
+        <section className="rise rise-3 lg:col-start-1 lg:row-start-2" aria-label="Decorative hero">
+          <LoginBitcoinHero />
+          <p className="mt-5 text-[12.5px] text-muted-foreground">{note}</p>
+        </section>
       </div>
     </div>
   );
@@ -48,7 +51,7 @@ function SetupCard() {
     { t: 'Install the verifier', d: 'Hand only the verifier (never the secret) to the server operator, who sets it in the server environment and restarts.' },
   ];
   return (
-    <div className="rounded-[28px] border border-border bg-card p-5 shadow-2xl sm:p-7" data-testid="panel-setup">
+    <div className="rounded-[20px] border border-card-border bg-card p-5 sm:p-7" data-testid="panel-setup">
       <div className="flex items-center gap-2 text-[13px] font-semibold text-accent"><Terminal className="h-3.5 w-3.5" /> offline setup</div>
       <ol className="mt-5 space-y-4">
         {steps.map((s, i) => (
@@ -141,8 +144,8 @@ function UnlockCard({ retryAfter }: { retryAfter: number }) {
   };
 
   return (
-    <div className="rounded-[28px] border border-border bg-card p-5 shadow-2xl sm:p-7" data-testid="panel-unlock">
-      <h2 className="flex items-center gap-2.5 text-[17px] font-bold text-foreground"><span className="grid h-9 w-9 place-items-center rounded-full bg-primary/15"><KeyRound className="h-4 w-4 text-primary" aria-hidden /></span> Unlock your vault</h2>
+    <div className="rounded-[20px] border border-card-border bg-card p-5 sm:p-7" data-testid="panel-unlock">
+      <h2 className="font-display flex items-center gap-2.5 text-[22px] font-bold tracking-tight text-foreground"><KeyRound className="h-5 w-5 text-accent" aria-hidden /> Unlock your vault</h2>
       <div role="tablist" aria-label="Unlock method" className="mt-5 grid grid-cols-2 rounded-full border border-border bg-background p-1 text-[13.5px] font-semibold">
         {(['file', 'paste'] as const).map((m) => (
           <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => { setMode(m); setSecret(''); setFileName(null); setLocalErr(null); }} data-testid={`tab-${m}`}
@@ -163,7 +166,7 @@ function UnlockCard({ retryAfter }: { retryAfter: number }) {
           className={cn('mt-4 flex w-full flex-col items-center gap-2.5 rounded-3xl border-2 border-dashed px-4 py-8 transition-colors', valid ? 'border-ok/70 bg-ok/5 text-ok' : fileName ? 'border-destructive/60 text-destructive' : 'border-border bg-background/40 text-muted-foreground hover:border-primary hover:text-primary')}
         >
           <span className="grid h-12 w-12 place-items-center rounded-full bg-muted">{fileName ? <FileKey2 className="h-5 w-5" aria-hidden /> : <Upload className="h-5 w-5" aria-hidden />}</span>
-          <span className="max-w-full truncate text-[14px] font-semibold">{fileName ?? 'Drop keyfile or tap to choose'}</span>
+          <span className="max-w-full truncate text-[14px] font-semibold">{fileName ?? 'Choose your saved keyfile'}</span>
           {fileName && <span className="font-mono text-[10px] opacity-70">{secret.length} / 86 chars {valid ? 'valid' : ''}</span>}
           <input ref={fileRef} type="file" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) readFile(f); e.target.value = ''; }} />
         </button>
@@ -198,7 +201,6 @@ function UnlockCard({ retryAfter }: { retryAfter: number }) {
         <Fingerprint className="h-4 w-4 text-primary" aria-hidden /> {pkOpts.isPending || pkVerify.isPending ? 'Waiting for authenticator' : 'Use enrolled passkey'}
       </button>
       {pkErr != null && <div className="mt-3"><ErrorPanel error={pkErr} title="Passkey sign-in failed" /></div>}
-      <p className="mt-5 rounded-2xl bg-muted/60 px-4 py-3 text-center text-[12px] text-muted-foreground">Lost the keyfile? There is no reset link. Restore from your offline backup.</p>
     </div>
   );
 }

@@ -46,13 +46,13 @@ function Operational() {
       {q.isLoading && <SkelRows rows={5} />}
       {s && (
         <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4 rounded-sm bg-muted/50 p-3">
+          <div className="grid grid-cols-2 gap-4 rounded-xl bg-muted/50 p-3">
             <Stat label="network"><Pill tone="ember">{s.network}</Pill></Stat>
             <Stat label="destruction"><Pill tone="neutral">{s.destructionPolicy}</Pill></Stat>
             <Stat label="wallet expiry"><span className="font-mono text-sm">{s.expiryHours}h</span></Stat>
             <Stat label="price provider"><span className="text-sm">{s.provider} · {s.priceCurrency}</span> <Pill tone={s.externalConfigured ? 'ok' : 'neutral'}>{s.externalConfigured ? 'configured' : 'unconfigured'}</Pill></Stat>
           </div>
-          <label className="flex items-center justify-between gap-3 rounded-sm border border-border p-3">
+          <label className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
             <div><div className="text-sm font-medium">Pause sending and sweeps</div><div className="text-xs text-muted-foreground">Stop outgoing payments and automatic consolidation into your configured main or cold vault.</div></div>
             <Switch checked={f.sweepsPaused} onCheckedChange={(v) => setF({ ...f, sweepsPaused: v })} data-testid="switch-sweeps-paused" />
           </label>
@@ -168,7 +168,7 @@ function Passkeys() {
       {del.isError && <div className="mt-3"><ErrorPanel error={del.error} /></div>}
       {q.isLoading && <div className="mt-3"><SkelRows rows={2} /></div>}
       {q.data && (q.data.length === 0 ? <p className="mt-3 text-xs text-muted-foreground">No passkeys. The keyfile remains the only way in.</p> : (
-        <ul className="mt-3 divide-y divide-border rounded-sm border border-border">
+        <ul className="mt-3 divide-y divide-border rounded-xl border border-border">
           {q.data.map((p) => (
             <li key={p.id} className="flex items-center justify-between px-3 py-2" data-testid={`row-passkey-${p.id}`}>
               <div><div className="text-sm font-medium">{p.name}</div><div className="font-mono text-[10.5px] text-muted-foreground">{stamp(p.createdAt)}</div></div>

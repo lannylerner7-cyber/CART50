@@ -343,11 +343,104 @@ export interface PasskeyInput {
 
 export interface WebAuthnOptions { [key: string]: unknown }
 
+export type SandboxReceiptStatus = typeof SandboxReceiptStatus[keyof typeof SandboxReceiptStatus];
+
+
+export const SandboxReceiptStatus = {
+  simulation_complete: 'simulation_complete',
+} as const;
+
+export interface SandboxReceipt {
+  id: string;
+  amountCents: number;
+  destination: string;
+  createdAt: string;
+  status: SandboxReceiptStatus;
+  balanceAfterCents: number;
+}
+
+export type SandboxAddressInfoEnvironment = typeof SandboxAddressInfoEnvironment[keyof typeof SandboxAddressInfoEnvironment];
+
+
+export const SandboxAddressInfoEnvironment = {
+  simulation: 'simulation',
+} as const;
+
+export interface SandboxAddressInfo {
+  destination: string;
+  environment: SandboxAddressInfoEnvironment;
+  simulatedCreditCents: number;
+  transactionCount: number;
+  transactions: SandboxReceipt[];
+  checkedAt: string;
+}
+
+export interface SandboxReviewInput {
+  /**
+     * @minimum 1
+     * @maximum 300000
+     */
+  amountCents: number;
+  /** @maxLength 128 */
+  destination: string;
+}
+
+export interface SandboxExecuteInput {
+  /** @maxLength 128 */
+  reviewId: string;
+  confirmed: boolean;
+}
+
+export type SandboxReviewStatus = typeof SandboxReviewStatus[keyof typeof SandboxReviewStatus];
+
+
+export const SandboxReviewStatus = {
+  pending: 'pending',
+  complete: 'complete',
+} as const;
+
+export interface SandboxReview {
+  id: string;
+  amountCents: number;
+  destination: string;
+  createdAt: string;
+  expiresAt: string;
+  status: SandboxReviewStatus;
+  /** @nullable */
+  receiptId: string | null;
+}
+
+export type SandboxSnapshotEnvironment = typeof SandboxSnapshotEnvironment[keyof typeof SandboxSnapshotEnvironment];
+
+
+export const SandboxSnapshotEnvironment = {
+  sandbox: 'sandbox',
+} as const;
+
+export interface SandboxSnapshot {
+  environment: SandboxSnapshotEnvironment;
+  simulatedCreditCents: number;
+  /** @nullable */
+  assignedAddress: string | null;
+  signetAvailable: false;
+  message: string;
+  transactions: SandboxReceipt[];
+  reviews: SandboxReview[];
+}
+
 export type WebAuthnInputResponse = { [key: string]: unknown };
 
 export interface WebAuthnInput {
   response: WebAuthnInputResponse;
 }
+
+export type GetSandboxAddressParams = {
+/**
+ * @minLength 1
+ * @maxLength 128
+ */
+destination: string;
+};
 
 export type ExploreVaultParams = {
 query: string;

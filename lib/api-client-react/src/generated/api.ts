@@ -26,6 +26,7 @@ import type {
   Error,
   ExploreVaultParams,
   Explorer,
+  GetSandboxAddressParams,
   HealthStatus,
   Market,
   NodeStatus,
@@ -38,6 +39,12 @@ import type {
   PaymentInput,
   PaymentReview,
   RotationInput,
+  SandboxAddressInfo,
+  SandboxExecuteInput,
+  SandboxReceipt,
+  SandboxReview,
+  SandboxReviewInput,
+  SandboxSnapshot,
   Session,
   Settings,
   SettingsInput,
@@ -75,6 +82,319 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetSandboxAddressUrl = (params: GetSandboxAddressParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/vault/sandbox/address?${stringifiedParams}` : `/api/vault/sandbox/address`
+}
+
+export const getSandboxAddress = async (params: GetSandboxAddressParams, options?: Parameters<typeof customFetch>[1]): Promise<SandboxAddressInfo> => {
+
+  return customFetch<SandboxAddressInfo>(getGetSandboxAddressUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSandboxAddressQueryKey = (params?: GetSandboxAddressParams,) => {
+    return [
+    `/api/vault/sandbox/address`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetSandboxAddressQueryOptions = <TData = Awaited<ReturnType<typeof getSandboxAddress>>, TError = ErrorType<unknown>>(params: GetSandboxAddressParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSandboxAddress>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSandboxAddressQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSandboxAddress>>> = ({ signal }) => getSandboxAddress(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSandboxAddress>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSandboxAddressQueryResult = NonNullable<Awaited<ReturnType<typeof getSandboxAddress>>>
+export type GetSandboxAddressQueryError = ErrorType<unknown>
+
+
+
+export function useGetSandboxAddress<TData = Awaited<ReturnType<typeof getSandboxAddress>>, TError = ErrorType<unknown>>(
+ params: GetSandboxAddressParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSandboxAddress>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSandboxAddressQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSandboxUrl = () => {
+
+
+
+
+  return `/api/vault/sandbox`
+}
+
+export const getSandbox = async ( options?: Parameters<typeof customFetch>[1]): Promise<SandboxSnapshot> => {
+
+  return customFetch<SandboxSnapshot>(getGetSandboxUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSandboxQueryKey = () => {
+    return [
+    `/api/vault/sandbox`
+    ] as const;
+    }
+
+
+export const getGetSandboxQueryOptions = <TData = Awaited<ReturnType<typeof getSandbox>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSandbox>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSandboxQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSandbox>>> = ({ signal }) => getSandbox({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSandbox>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSandboxQueryResult = NonNullable<Awaited<ReturnType<typeof getSandbox>>>
+export type GetSandboxQueryError = ErrorType<unknown>
+
+
+
+export function useGetSandbox<TData = Awaited<ReturnType<typeof getSandbox>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSandbox>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSandboxQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReviewSandboxPaymentUrl = () => {
+
+
+
+
+  return `/api/vault/sandbox/reviews`
+}
+
+export const reviewSandboxPayment = async (sandboxReviewInput: SandboxReviewInput, options?: Parameters<typeof customFetch>[1]): Promise<SandboxReview> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SandboxReview>(getReviewSandboxPaymentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(sandboxReviewInput)
+  }
+);}
+
+
+
+
+
+export const getReviewSandboxPaymentMutationKey = () => ['reviewSandboxPayment'] as const;
+
+export const getReviewSandboxPaymentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewSandboxPayment>>, TError,ReviewSandboxPaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewSandboxPayment>>, TError,ReviewSandboxPaymentMutationVariables, TContext> => {
+
+const mutationKey = getReviewSandboxPaymentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewSandboxPayment>>, ReviewSandboxPaymentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  reviewSandboxPayment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewSandboxPaymentMutationResult = NonNullable<Awaited<ReturnType<typeof reviewSandboxPayment>>>
+    export type ReviewSandboxPaymentMutationBody = BodyType<SandboxReviewInput>
+    export type ReviewSandboxPaymentMutationError = ErrorType<unknown>
+    export type ReviewSandboxPaymentMutationVariables = {data: BodyType<SandboxReviewInput>}
+
+    export const useReviewSandboxPayment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewSandboxPayment>>, TError,ReviewSandboxPaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reviewSandboxPayment>>,
+        TError,
+        ReviewSandboxPaymentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReviewSandboxPaymentMutationOptions(options));
+    }
+
+export const getExecuteSandboxPaymentUrl = () => {
+
+
+
+
+  return `/api/vault/sandbox/payments`
+}
+
+export const executeSandboxPayment = async (sandboxExecuteInput: SandboxExecuteInput, options?: Parameters<typeof customFetch>[1]): Promise<SandboxReceipt> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<SandboxReceipt>(getExecuteSandboxPaymentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(sandboxExecuteInput)
+  }
+);}
+
+
+
+
+
+export const getExecuteSandboxPaymentMutationKey = () => ['executeSandboxPayment'] as const;
+
+export const getExecuteSandboxPaymentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executeSandboxPayment>>, TError,ExecuteSandboxPaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof executeSandboxPayment>>, TError,ExecuteSandboxPaymentMutationVariables, TContext> => {
+
+const mutationKey = getExecuteSandboxPaymentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof executeSandboxPayment>>, ExecuteSandboxPaymentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  executeSandboxPayment(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExecuteSandboxPaymentMutationResult = NonNullable<Awaited<ReturnType<typeof executeSandboxPayment>>>
+    export type ExecuteSandboxPaymentMutationBody = BodyType<SandboxExecuteInput>
+    export type ExecuteSandboxPaymentMutationError = ErrorType<unknown>
+    export type ExecuteSandboxPaymentMutationVariables = {data: BodyType<SandboxExecuteInput>}
+
+    export const useExecuteSandboxPayment = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof executeSandboxPayment>>, TError,ExecuteSandboxPaymentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof executeSandboxPayment>>,
+        TError,
+        ExecuteSandboxPaymentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getExecuteSandboxPaymentMutationOptions(options));
+    }
 
 export const getHealthCheckUrl = () => {
 

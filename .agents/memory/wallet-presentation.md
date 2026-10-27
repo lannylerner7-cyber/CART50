@@ -33,9 +33,10 @@ states and logo directions to choose among.
 **Why:** They explicitly chose their Figma design handoff instead of a direct
 redesign here, to avoid building the same interface twice.
 
-**How to apply:** Prepare the brief and wait for the Figma design handoff before
-implementing the visual redesign. Do not describe a written brief as generated
-Figma screens, logos or a completed app.
+**How to apply:** The user subsequently supplied their Figma handoff and authorized
+integration. Use that approved foundation while preserving real-data and custody
+safeguards; do not describe a written brief as generated Figma screens or a
+completed app.
 
 Deliver the complete Figma brief as a downloadable TXT, including edge states and
 an explicit asset export tree and future app-path mapping. The owner will return

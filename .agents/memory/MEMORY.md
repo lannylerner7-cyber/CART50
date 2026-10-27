@@ -9,3 +9,4 @@
 - [Coolify mount parsing](coolify-mount-parsing.md) — normal parsing lost bind safeguards; raw mode also creates host paths, so verify live Docker mounts.
 - [Schema evolution](schema-evolution.md) — automatic code-defined additive schema initialization, never columns guessed from incoming data.
 - [Request recovery](request-recovery.md) — recover monitoring reads automatically, but never blindly replay wallet writes.
+- [Live/Sandbox boundary](live-sandbox-boundary.md) — assigned test destination, no real-money claims, Return to Live before manual logout; preserve mainnet sync.

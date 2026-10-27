@@ -48,7 +48,7 @@ export default function Explorer() {
             </div>
           )}
           {Object.keys(r.details).length > 0 && (
-            <dl className="mt-5 divide-y divide-border rounded-sm border border-border">
+            <dl className="mt-5 divide-y divide-border rounded-xl border border-border">
               {Object.entries(r.details).map(([k, v]) => (
                 <div key={k} className="grid grid-cols-[160px_1fr] gap-3 px-3 py-2 text-xs">
                   <dt className="font-mono uppercase tracking-wider text-muted-foreground">{k}</dt>

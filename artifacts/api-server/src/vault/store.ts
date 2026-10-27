@@ -5,6 +5,7 @@ import type { WebAuthnCredential } from "@simplewebauthn/server";
 import type { LoginSecurity } from "./login-security";
 import { ReadFlight } from "./read-flight";
 import { ensureMetadataSchema } from "./schema";
+import type { SandboxLedger } from "./sandbox-ledger";
 
 export type Alert = {
   id: string; name: string; kind: "below" | "percent_drop"; threshold: number;
@@ -14,6 +15,7 @@ export type Alert = {
 export type SessionRecord = { hash: string; csrf: string; expiresAt: string; createdAt: string };
 export type StoredPasskey = { id: string; name: string; createdAt: string; publicKey: string; counter: number; transports?: WebAuthnCredential["transports"] };
 export type State = {
+  sandbox?: SandboxLedger;
   authVersion?: number;
   loginSecurity?: LoginSecurity;
   credentialHash: string | null;

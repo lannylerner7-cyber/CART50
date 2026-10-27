@@ -18,6 +18,8 @@ const Spending = lazy(() => import('@/pages/spending'));
 const Explorer = lazy(() => import('@/pages/explorer'));
 const Market = lazy(() => import('@/pages/market'));
 const SettingsPage = lazy(() => import('@/pages/settings'));
+const SandboxRouter = lazy(() => import('@/pages/sandbox'));
+import { SandboxShell } from '@/components/sandbox-shell';
 import { lockClient, LOCK_EVENT } from '@/lib/session-lock';
 import { retryRead, readRetryDelay, transientReadError } from '@/lib/request-recovery';
 
@@ -66,6 +68,7 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 function Gate() {
+  const [location] = useLocation();
   const s = useGetVaultSession({ query: { queryKey: SESSION_KEY, refetchInterval: 30000, refetchOnWindowFocus: true, refetchOnReconnect: true } });
   const session = s.data;
   const authed = !!session?.authenticated;
@@ -101,7 +104,7 @@ function Gate() {
   if (s.isLoading) {
     return (
       <div className="grid min-h-[100dvh] place-items-center bg-sidebar text-sidebar-foreground">
-        <div className="flex flex-col items-center gap-3"><VaultMark className="dial h-12 w-12" /><span className="font-mono text-[11px] uppercase tracking-[0.2em] opacity-60">checking the door</span></div>
+        <div className="flex flex-col items-center gap-3"><VaultMark className="h-12 w-12" /><span className="font-mono text-[11px] uppercase tracking-[0.2em] opacity-60">checking the door</span></div>
       </div>
     );
   }
@@ -116,7 +119,13 @@ function Gate() {
 
   return (
     <SessionProvider session={session}>
-      <Shell><Router /></Shell>
+      {location === '/sandbox' || location.startsWith('/sandbox/') ? (
+        <SandboxShell>
+          <RoutedErrorBoundary>
+            <Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading sandbox…</p>}><SandboxRouter /></Suspense>
+          </RoutedErrorBoundary>
+        </SandboxShell>
+      ) : <Shell><Router /></Shell>}
     </SessionProvider>
   );
 }

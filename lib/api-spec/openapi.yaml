@@ -10,6 +10,43 @@
     }
   ],
   "paths": {
+    "/vault/sandbox/address": {
+      "get": {
+        "operationId": "getSandboxAddress",
+        "parameters": [
+          { "name": "destination", "in": "query", "required": true, "schema": { "type": "string", "minLength": 1, "maxLength": 128 } }
+        ],
+        "responses": {
+          "200": { "description": "Assigned simulation ledger lookup, not blockchain data", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SandboxAddressInfo" } } } }
+        }
+      }
+    },
+    "/vault/sandbox": {
+      "get": {
+        "operationId": "getSandbox",
+        "responses": {
+          "200": { "description": "Isolated simulation state, not real funds", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SandboxSnapshot" } } } }
+        }
+      }
+    },
+    "/vault/sandbox/reviews": {
+      "post": {
+        "operationId": "reviewSandboxPayment",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SandboxReviewInput" } } } },
+        "responses": {
+          "200": { "description": "Review requiring explicit approval", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SandboxReview" } } } }
+        }
+      }
+    },
+    "/vault/sandbox/payments": {
+      "post": {
+        "operationId": "executeSandboxPayment",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SandboxExecuteInput" } } } },
+        "responses": {
+          "200": { "description": "Idempotent simulation receipt; never a blockchain transaction", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SandboxReceipt" } } } }
+        }
+      }
+    },
     "/healthz": {
       "get": {
         "operationId": "healthCheck",
@@ -2634,6 +2671,72 @@
       "WebAuthnOptions": {
         "type": "object",
         "additionalProperties": true
+      },
+      "SandboxReceipt": {
+        "type": "object",
+        "required": ["id", "amountCents", "destination", "createdAt", "status", "balanceAfterCents"],
+        "properties": {
+          "id": { "type": "string" },
+          "amountCents": { "type": "integer" },
+          "destination": { "type": "string" },
+          "createdAt": { "type": "string" },
+          "status": { "type": "string", "enum": ["simulation_complete"] },
+          "balanceAfterCents": { "type": "integer" }
+        }
+      },
+      "SandboxAddressInfo": {
+        "type": "object",
+        "required": ["destination", "environment", "simulatedCreditCents", "transactionCount", "transactions", "checkedAt"],
+        "properties": {
+          "destination": { "type": "string" },
+          "environment": { "type": "string", "enum": ["simulation"] },
+          "simulatedCreditCents": { "type": "integer" },
+          "transactionCount": { "type": "integer" },
+          "transactions": { "type": "array", "items": { "$ref": "#/components/schemas/SandboxReceipt" } },
+          "checkedAt": { "type": "string" }
+        }
+      },
+      "SandboxReviewInput": {
+        "type": "object",
+        "required": ["amountCents", "destination"],
+        "properties": {
+          "amountCents": { "type": "integer", "minimum": 1, "maximum": 300000 },
+          "destination": { "type": "string", "maxLength": 128 }
+        }
+      },
+      "SandboxExecuteInput": {
+        "type": "object",
+        "required": ["reviewId", "confirmed"],
+        "properties": {
+          "reviewId": { "type": "string", "maxLength": 128 },
+          "confirmed": { "type": "boolean" }
+        }
+      },
+      "SandboxReview": {
+        "type": "object",
+        "required": ["id", "amountCents", "destination", "createdAt", "expiresAt", "status", "receiptId"],
+        "properties": {
+          "id": { "type": "string" },
+          "amountCents": { "type": "integer" },
+          "destination": { "type": "string" },
+          "createdAt": { "type": "string" },
+          "expiresAt": { "type": "string" },
+          "status": { "type": "string", "enum": ["pending", "complete"] },
+          "receiptId": { "type": ["string", "null"] }
+        }
+      },
+      "SandboxSnapshot": {
+        "type": "object",
+        "required": ["environment", "simulatedCreditCents", "assignedAddress", "signetAvailable", "message", "transactions", "reviews"],
+        "properties": {
+          "environment": { "type": "string", "enum": ["sandbox"] },
+          "simulatedCreditCents": { "type": "integer" },
+          "assignedAddress": { "type": ["string", "null"] },
+          "signetAvailable": { "type": "boolean", "enum": [false] },
+          "message": { "type": "string" },
+          "transactions": { "type": "array", "items": { "$ref": "#/components/schemas/SandboxReceipt" } },
+          "reviews": { "type": "array", "items": { "$ref": "#/components/schemas/SandboxReview" } }
+        }
       },
       "WebAuthnInput": {
         "type": "object",

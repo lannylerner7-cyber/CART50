@@ -26,7 +26,7 @@ export function NodeSync() {
     q.isPending ? 'Connecting to mainnet…' : stale ? 'Reconnecting to mainnet…' :
     !available ? 'Mainnet monitor not connected' : d.initialBlockDownload ? 'Bitcoin is syncing' : 'Blockchain is up to date';
 
-  return <section className="rounded-[24px] border border-border bg-card p-5 sm:p-6" data-testid="mainnet-sync-card">
+  return <section className="rounded-[20px] border border-card-border bg-card p-5 sm:p-6" data-testid="mainnet-sync-card">
     <div className="flex items-start justify-between gap-3">
       <div>
         <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Mainnet · read-only monitor</p>

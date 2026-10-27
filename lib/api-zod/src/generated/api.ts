@@ -7,6 +7,98 @@
 import * as zod from 'zod';
 
 
+export const getSandboxAddressQueryDestinationMax = 128;
+
+
+
+export const GetSandboxAddressQueryParams = zod.object({
+  "destination": zod.coerce.string().min(1).max(getSandboxAddressQueryDestinationMax)
+})
+
+export const GetSandboxAddressResponse = zod.object({
+  "destination": zod.string(),
+  "environment": zod.enum(['simulation']),
+  "simulatedCreditCents": zod.number().int(),
+  "transactionCount": zod.number().int(),
+  "transactions": zod.array(zod.object({
+  "id": zod.string(),
+  "amountCents": zod.number().int(),
+  "destination": zod.string(),
+  "createdAt": zod.string(),
+  "status": zod.enum(['simulation_complete']),
+  "balanceAfterCents": zod.number().int()
+})),
+  "checkedAt": zod.string()
+})
+
+
+export const GetSandboxResponse = zod.object({
+  "environment": zod.enum(['sandbox']),
+  "simulatedCreditCents": zod.number().int(),
+  "assignedAddress": zod.string().nullable(),
+  "signetAvailable": zod.literal(false),
+  "message": zod.string(),
+  "transactions": zod.array(zod.object({
+  "id": zod.string(),
+  "amountCents": zod.number().int(),
+  "destination": zod.string(),
+  "createdAt": zod.string(),
+  "status": zod.enum(['simulation_complete']),
+  "balanceAfterCents": zod.number().int()
+})),
+  "reviews": zod.array(zod.object({
+  "id": zod.string(),
+  "amountCents": zod.number().int(),
+  "destination": zod.string(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string(),
+  "status": zod.enum(['pending', 'complete']),
+  "receiptId": zod.string().nullable()
+}))
+})
+
+
+export const reviewSandboxPaymentBodyAmountCentsMax = 300000;
+
+export const reviewSandboxPaymentBodyDestinationMax = 128;
+
+
+
+export const ReviewSandboxPaymentBody = zod.object({
+  "amountCents": zod.number().int().min(1).max(reviewSandboxPaymentBodyAmountCentsMax),
+  "destination": zod.string().max(reviewSandboxPaymentBodyDestinationMax)
+})
+
+export const ReviewSandboxPaymentResponse = zod.object({
+  "id": zod.string(),
+  "amountCents": zod.number().int(),
+  "destination": zod.string(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string(),
+  "status": zod.enum(['pending', 'complete']),
+  "receiptId": zod.string().nullable()
+})
+
+
+export const executeSandboxPaymentBodyReviewIdMax = 128;
+
+
+
+export const ExecuteSandboxPaymentBody = zod.object({
+  "reviewId": zod.string().max(executeSandboxPaymentBodyReviewIdMax),
+  "confirmed": zod.boolean()
+})
+
+export const ExecuteSandboxPaymentResponse = zod.object({
+  "id": zod.string(),
+  "amountCents": zod.number().int(),
+  "destination": zod.string(),
+  "createdAt": zod.string(),
+  "status": zod.enum(['simulation_complete']),
+  "balanceAfterCents": zod.number().int()
+})
+
+
 export const HealthCheckResponse = zod.object({
   "status": zod.string()
 })

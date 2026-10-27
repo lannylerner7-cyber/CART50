@@ -7,9 +7,9 @@ export function PageHeader({ kicker, title, desc, actions }: { kicker: string; t
   return (
     <header className="rise flex flex-col gap-4 pb-2 md:flex-row md:items-end md:justify-between">
       <div>
-        <div className="text-[13px] font-semibold text-muted-foreground">{kicker}</div>
-        <h1 className="font-display mt-1 text-[2rem] font-extrabold md:text-[2.5rem] leading-tight" data-testid="text-page-title">{title}</h1>
-        {desc && <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{desc}</p>}
+        <div className="text-[12.5px] font-medium text-muted-foreground">{kicker}</div>
+        <h1 className="font-display mt-1 text-[1.85rem] font-bold leading-tight tracking-tight md:text-[2.25rem]" data-testid="text-page-title">{title}</h1>
+        {desc && <p className="mt-1.5 max-w-2xl text-[14.5px] leading-relaxed text-muted-foreground">{desc}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </header>
@@ -70,8 +70,8 @@ export function ErrorPanel({ error, onRetry, title = 'Request failed' }: { error
         <div className="mt-0.5 break-words font-mono text-xs text-muted-foreground">{errMsg(error)}</div>
       </div>
       {onRetry && (
-        <button onClick={onRetry} data-testid="button-retry" className="inline-flex items-center gap-1 rounded-sm border border-destructive/40 px-2 py-1 font-mono text-[11px] uppercase text-destructive hover:bg-destructive/10 transition-colors">
-          <RotateCw className="h-3 w-3" /> retry
+        <button onClick={onRetry} data-testid="button-retry" className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-destructive/40 px-3 text-[12.5px] font-semibold text-destructive hover:bg-destructive/10 transition-colors">
+          <RotateCw className="h-3.5 w-3.5" /> Retry
         </button>
       )}
     </div>
@@ -80,10 +80,10 @@ export function ErrorPanel({ error, onRetry, title = 'Request failed' }: { error
 
 export function Panel({ title, meta, children, className, bodyClass }: { title?: ReactNode; meta?: ReactNode; children: ReactNode; className?: string; bodyClass?: string }) {
   return (
-    <section className={cn('rise rounded-3xl border border-card-border bg-card shadow-[0_1px_2px_hsl(232_30%_20%/0.04),0_8px_24px_-12px_hsl(232_30%_20%/0.12)]', className)}>
+    <section className={cn('rise rounded-[20px] border border-card-border bg-card', className)}>
       {title && (
-        <div className="flex items-center justify-between gap-2 px-5 pt-4 pb-1">
-          <h2 className="text-[15px] font-bold capitalize text-foreground">{title}</h2>
+        <div className="flex items-center justify-between gap-2 px-5 pt-5 pb-0">
+          <h2 className="font-display text-[19px] font-bold tracking-tight text-foreground first-letter:uppercase">{title}</h2>
           {meta && <div className="text-xs text-muted-foreground">{meta}</div>}
         </div>
       )}
@@ -93,7 +93,7 @@ export function Panel({ title, meta, children, className, bodyClass }: { title?:
 }
 
 export function Skel({ className }: { className?: string }) {
-  return <div className={cn('relative overflow-hidden rounded-2xl bg-muted animate-pulse', className)} />;
+  return <div className={cn('relative overflow-hidden rounded-[16px] bg-muted animate-pulse', className)} />;
 }
 
 export function SkelRows({ rows = 6 }: { rows?: number }) {
@@ -106,7 +106,7 @@ export function SkelRows({ rows = 6 }: { rows?: number }) {
 
 export function Empty({ icon, title, body, action }: { icon: ReactNode; title: string; body: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card/60 px-6 py-14 text-center" data-testid="status-empty">
+    <div className="flex flex-col items-center justify-center rounded-[20px] border border-dashed border-border bg-card px-6 py-12 text-center" data-testid="status-empty">
       <div className="mb-3 grid h-12 w-12 place-items-center rounded-full border border-border bg-card text-muted-foreground">{icon}</div>
       <div className="font-display text-lg font-semibold">{title}</div>
       <div className="mt-1 max-w-sm text-sm text-muted-foreground">{body}</div>
