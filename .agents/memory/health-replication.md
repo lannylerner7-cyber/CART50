@@ -33,3 +33,13 @@ stream. Unscoped backup filenames can also collide.
 **How to apply:** Verify the network before deploying a Worker upgrade. Retain
 legacy data and only associate old encrypted backups with a network after an
 operator verifies their origin; never guess or delete them automatically.
+
+Cloudflare connector proxy paths start with `/v4`; its base already includes
+`/client`.
+
+**Why:** Earlier `/accounts` and `/client/v4/accounts` calls returned route 404s
+and prevented a real deployment audit. The documented `/v4/accounts` route
+worked without changing credentials.
+
+**How to apply:** Follow the connector skill's current base-path notes before
+diagnosing missing permissions, reconnecting, or inferring absent resources.

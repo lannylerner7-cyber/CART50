@@ -109,6 +109,47 @@ Never run two active signers against the same state.
 
 # Application walkthrough
 
+## Hosted audit and focused acceptance — 2026-10-27
+
+See `docs/hosted-readiness-audit-2026-10-27.md` for the independently observed
+hosted evidence and GitHub preparation blockers. The published session endpoint
+reports Signet, while this source's Live workspace is mainnet-only. Do not treat
+the deployed website as verified mainnet custody. Signet remains paused.
+
+Cloudflare read-only access now works with the provider's `/v4` path. The expected
+D1 schema exists without duplicate application tables; the replica table is empty.
+R2 reports that it must be enabled, the returned Worker list lacks the expected
+vault Worker, and the two replica queues have no registered producers/consumers.
+No Cloudflare resources or database rows were changed.
+
+A new focused, signed-in local fixture check verified Settings save/unpause,
+recipient lookup values, hiding an observation after destination edits, hiding
+old balances after a failed refresh, explicit approval and one mock pending
+receipt, plus visible centered receive QR/logo at 390px and 1024px.
+This is UI evidence using disposable metadata and a mock signer/indexer, not
+hosted Bitcoin evidence. Receipt print/download controls were present but were
+not exercised in that portion.
+
+The continuation verified short-review expiry disabling submit; a single mock
+backend acceptance followed by a deliberately lost response; an unknown-outcome
+warning that blocked confirm/edit; and reconciliation of that txid exactly once
+in Activity. It also exercised a $10 demoUSD assigned-identifier simulation,
+downloaded and inspected its TEST/no-value/no-TXID receipt, invoked its print
+action with printing stubbed, observed Signet unavailable, returned to Live and
+revoked all sessions. Revocation produced HTTP 401 and the locked login view
+without visible private content.
+
+Remaining browser gaps: actual invocation of Live receipt print/download,
+offline connection recheck, automatic time-based session expiry and direct
+inspection of internal protected query-cache contents. The original timeboxed
+run is still not counted as passing. The current mock journey does not establish
+on-chain send/receive safety on the hosted service. QR/logo screenshots came
+from the existing built fixture; the subsequent receive-card centering CSS
+change is source/typechecked evidence, not a separate screenshot assertion.
+
+GitHub fetch is blocked by SSH public-key authentication. The cached origin
+comparison is not fresh; no push or deployment was performed.
+
 ## Wallet lookup, branded QR and readiness verification — 2026-10-27
 
 ### Source changes
@@ -845,7 +886,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-552 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+553 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -853,7 +894,7 @@ to publish: review repository assets before release.
 | `.agents/memory/MEMORY.md` | 1843 | `885448ca62dba33e94e2220063cb222856576df5acd854ec82e54c7c70a82eb0` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
-| `.agents/memory/health-replication.md` | 1800 | `aad23f8bb7617230fdb6288caa355cc666fed0c98efa6c636af87f4eba065dca` | Durable project decision/lesson: health-replication. |
+| `.agents/memory/health-replication.md` | 2239 | `4b755891aeb81242e73bea695f5657520654aaec16e1e55f7eeb7971d631b2ec` | Durable project decision/lesson: health-replication. |
 | `.agents/memory/hosting-scope.md` | 4384 | `7b0ad7d558e79a77db161c532edf37035879cf2a010dd67e006f63b2e82ab3b0` | Durable project decision/lesson: hosting-scope. |
 | `.agents/memory/live-sandbox-boundary.md` | 2098 | `ca4222c60e7fb96bf5166c19cc8d01cd5614b33f8c7d41c244a6ce75b179a0de` | Durable project decision/lesson: live-sandbox-boundary. |
 | `.agents/memory/owner-access.md` | 1808 | `159d57009f9e05cc3a71f1adaf0eb452995a20aa1fe57e837629feb5d9d29088` | Durable project decision/lesson: owner-access. |
@@ -1253,6 +1294,7 @@ to publish: review repository assets before release.
 | `docs/coolify-deployment.md` | 13528 | `69d9278f3667c63efda3a002c625539b1a680d77a6eb1371fe19bff6d524e9c7` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
 | `docs/database-schema.md` | 3150 | `83c765f8d07d3008a0813094dd0ea961dbd923a960a3fee98537ad4ca494c47c` | Detailed database schema runbook/status reference; respect dated evidence. |
 | `docs/github-readiness.md` | 11521 | `10908f86e6a211ff20ae51d92f6e0c11938d131426fdfa100a3c4f1979d82c65` | Detailed github readiness runbook/status reference; respect dated evidence. |
+| `docs/hosted-readiness-audit-2026-10-27.md` | 6062 | `6738b75606c3dfa6fe4ecf1c7965305b57ecb54bcf77c3043639bf7ac37ff80e` | Detailed hosted readiness audit 2026 10 27 runbook/status reference; respect dated evidence. |
 | `docs/live-sandbox-storage.md` | 6083 | `9faef15b9e15c7bc8ba56916972278d2bd721053acabeeb0b02ed1f33b13b13f` | Detailed live sandbox storage runbook/status reference; respect dated evidence. |
 | `docs/live-session-readiness.md` | 3430 | `ef1e8eecf530e98a45c922f3af036cc4febd62117e59edaab5d447c7b75384a5` | Detailed live session readiness runbook/status reference; respect dated evidence. |
 | `docs/login-security.md` | 6803 | `3759d7aa17f02836e9f4ca921a06b0e964fc0f04e246c6368b3ce4c0385c9abf` | Detailed login security runbook/status reference; respect dated evidence. |
@@ -1356,7 +1398,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 224175 | `714025631ddd5482406a777dd349c3e90a733500a6408bd3690890ad40c7db49` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 49921 | `c66f5f00e4e8ec717195ca7b356c94b2561fc274e2f9c04e5e18228903a7f57d` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 52421 | `bc97e4ee1aad749f7ed4a2b3b0a426aac3adbedf852798533718e09331feccbc` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
