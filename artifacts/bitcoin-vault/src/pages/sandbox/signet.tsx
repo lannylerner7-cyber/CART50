@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
-import { QRCodeSVG } from 'qrcode.react';
+import { BrandedQr } from '@/components/branded-qr';
 import { AlertTriangle, Ban, Download, RefreshCw, ShieldCheck } from 'lucide-react';
 import { useGetSandboxSignet, getGetSandboxSignetQueryKey, useReviewSandboxSignetPayment, useSendSandboxSignetPayment, type PaymentReview, type Transaction, type SandboxSignetStatus } from '@workspace/api-client-react';
 import { CopyText, ErrorPanel, Pill, Skel, Stat, statusTone } from '@/components/kit';
@@ -85,8 +85,8 @@ function SignetLive({ s, dataAt, stale }: { s: SandboxSignetStatus; dataAt: numb
         </SandboxCard>
         <SandboxCard title="Receive Signet coins" tag={<TestTag>Assigned Signet address</TestTag>} testId="card-signet-receive">
           {w.address && fresh ? (
-            <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:items-start">
-              <div className="w-fit rounded-xl bg-[#fbfaf7] p-2"><QRCodeSVG value={`bitcoin:${w.address}`} size={148} level="Q" bgColor="#fbfaf7" fgColor="#0b0b0d" title="Signet receive QR code" data-testid="img-signet-qr" /></div>
+            <div className="grid gap-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-start">
+              <BrandedQr value={`bitcoin:${w.address}`} size={168} title="Signet receive QR code" testId="img-signet-qr" className="sm:mx-0" />
               <div className="min-w-0">
                 <div className="break-all font-mono text-[13.5px]" data-testid="text-signet-address">{w.address}</div>
                 <CopyText value={w.address} display="Copy address" className="mt-2 text-[13px]" />
@@ -179,7 +179,7 @@ function SignetSend({ s, fresh }: { s: SandboxSignetStatus; fresh: boolean }) {
         <div className="grid gap-4">
           <Pill tone={exp && exp.ms > 0 ? 'warn' : 'bad'}>{exp && exp.ms > 0 ? `Review valid ${Math.ceil(exp.ms / 1000)}s` : 'Review expired'}</Pill>
           <div className="break-all rounded-xl bg-muted p-3 font-mono text-[13.5px]" data-testid="text-signet-review-address">{rv.address}</div>
-          <div className="grid grid-cols-3 gap-3 font-mono text-[13px]">
+          <div className="grid grid-cols-1 gap-3 font-mono min-[420px]:grid-cols-3 text-[13px]">
             <Stat label="Amount">{satsGrouped(rv.amountSats)} sats</Stat>
             <Stat label="Fee">{satsGrouped(rv.feeSats)} sats</Stat>
             <Stat label="Total">{satsGrouped(rv.totalSats)} sats</Stat>

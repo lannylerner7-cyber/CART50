@@ -26,6 +26,7 @@ import type {
   Error,
   ExploreVaultParams,
   Explorer,
+  GetRecipientParams,
   GetSandboxAddressParams,
   HealthStatus,
   Market,
@@ -38,6 +39,7 @@ import type {
   PaymentApproval,
   PaymentInput,
   PaymentReview,
+  RecipientObservation,
   RotationInput,
   SandboxAddressInfo,
   SandboxExecuteInput,
@@ -84,6 +86,84 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetRecipientUrl = (params: GetRecipientParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/vault/recipient?${stringifiedParams}` : `/api/vault/recipient`
+}
+
+export const getRecipient = async (params: GetRecipientParams, options?: Parameters<typeof customFetch>[1]): Promise<RecipientObservation> => {
+
+  return customFetch<RecipientObservation>(getGetRecipientUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRecipientQueryKey = (params?: GetRecipientParams,) => {
+    return [
+    `/api/vault/recipient`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetRecipientQueryOptions = <TData = Awaited<ReturnType<typeof getRecipient>>, TError = ErrorType<unknown>>(params: GetRecipientParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecipient>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRecipientQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecipient>>> = ({ signal }) => getRecipient(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRecipient>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRecipientQueryResult = NonNullable<Awaited<ReturnType<typeof getRecipient>>>
+export type GetRecipientQueryError = ErrorType<unknown>
+
+
+
+export function useGetRecipient<TData = Awaited<ReturnType<typeof getRecipient>>, TError = ErrorType<unknown>>(
+ params: GetRecipientParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecipient>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRecipientQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetSandboxSignetUrl = () => {
 

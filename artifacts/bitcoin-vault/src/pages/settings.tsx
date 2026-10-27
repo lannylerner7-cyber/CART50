@@ -16,7 +16,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader kicker="Configuration" title="Settings" desc="Operational limits and the keys to this room. Network and destruction policy are fixed server-side." />
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 [&>*]:min-w-0">
         <Operational />
         <NodePanel />
         <Rotation />
@@ -46,7 +46,7 @@ function Operational() {
       {q.isLoading && <SkelRows rows={5} />}
       {s && (
         <div className="space-y-5">
-          <div className="grid grid-cols-2 gap-4 rounded-xl bg-muted/50 p-3">
+          <div className="grid grid-cols-1 gap-4 rounded-xl min-[420px]:grid-cols-2 bg-muted/50 p-3">
             <Stat label="network"><Pill tone="ember">{s.network}</Pill></Stat>
             <Stat label="destruction"><Pill tone="neutral">{s.destructionPolicy}</Pill></Stat>
             <Stat label="wallet expiry"><span className="font-mono text-sm">{s.expiryHours}h</span></Stat>
@@ -86,9 +86,14 @@ function NodePanel() {
             <div className="mt-1.5 text-sm">{n.message}</div>
             <div className="font-mono text-[11px] text-muted-foreground">last sync {ago(n.lastSync)}</div>
           </div>
-          <Button variant="outline" className="gap-1.5" disabled={rc.isPending} onClick={() => rc.mutate(undefined, { onSuccess: () => { qc.invalidateQueries({ queryKey: getGetVaultDashboardQueryKey() }); toast({ title: 'Reconnect requested' }); } })} data-testid="button-reconnect"><PlugZap className="h-4 w-4" />{rc.isPending ? 'Reconnecting' : 'Reconnect'}</Button>
+          <Button variant="outline" className="shrink-0 gap-1.5" disabled={rc.isPending} onClick={() => rc.mutate(undefined, { onSuccess: (ns) => {
+            qc.invalidateQueries({ queryKey: getGetVaultDashboardQueryKey() });
+            if (ns.connected) toast({ title: 'Node responded', description: 'Health check passed. The vault can reach your node.' });
+            else toast({ title: 'Node still unreachable', description: ns.message || 'Health check failed. Start the node host yourself, then check again.', variant: 'destructive' });
+          } })} data-testid="button-reconnect"><PlugZap className={`h-4 w-4 ${rc.isPending ? 'animate-pulse' : ''}`} />{rc.isPending ? 'Checking' : 'Recheck connection'}</Button>
         </div>
       )}
+      <p className="mt-3 text-xs text-muted-foreground" data-testid="text-reconnect-help">Recheck asks the vault to contact your node again and report its health. It cannot start Docker, launch Bitcoin Core, or wake a stopped or sleeping host.</p>
       {rc.isError && <div className="mt-3"><ErrorPanel error={rc.error} title="Reconnect failed" /></div>}
     </Panel>
   );

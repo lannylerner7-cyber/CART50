@@ -42,9 +42,10 @@ export function Pill({ tone = 'neutral', children, dot, className, testId }: { t
 
 export function statusTone(status: string): Tone {
   const s = status.toLowerCase();
+  // Failure first, then warning, then success: "disconnected" must not match "connected", "unconfirmed" must not match "confirmed".
+  if (/(fail|error|blocked|disabled|disconnect|offline|replaced|down|rejected|conflict|destroyed|lost)/.test(s)) return 'bad';
+  if (/(expired|pending|unconfirmed|degraded|stale|paused|syncing|mempool|inactive|unknown)/.test(s)) return 'warn';
   if (/(active|confirmed|ok|healthy|connected|online|ready|enabled|synced)/.test(s)) return 'ok';
-  if (/(expired|pending|unconfirmed|degraded|stale|paused|syncing|mempool)/.test(s)) return 'warn';
-  if (/(fail|error|blocked|disabled|offline|replaced|down|rejected)/.test(s)) return 'bad';
   return 'neutral';
 }
 

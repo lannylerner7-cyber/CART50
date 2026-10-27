@@ -82,7 +82,7 @@ export default function WalletDetail() {
               <h2 className="font-display text-[22px] font-semibold">Balance</h2>
               <div className="mt-2"><Btc sats={w.availableSats} size="xl" className="font-display font-medium" /></div>
               <div className="mt-1 text-sm text-muted-foreground">available · last sync {ago(w.lastSync)}</div>
-              <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5">
+              <dl className="mt-6 grid grid-cols-1 gap-x-6 min-[420px]:grid-cols-2 gap-y-5">
                 <div><dt className="dotted-label text-[13px] text-muted-foreground">Confirmed</dt><dd className="mt-1"><Btc sats={w.confirmedSats} size="md" /></dd></div>
                 <div><dt className="dotted-label text-[13px] text-muted-foreground">Pending</dt><dd className="mt-1"><Btc sats={w.unconfirmedSats} size="md" className="text-warn" /></dd></div>
                 <div><dt className="dotted-label text-[13px] text-muted-foreground">Total received</dt><dd className="mt-1"><Btc sats={w.totalReceivedSats} size="md" className="text-ok" /></dd></div>

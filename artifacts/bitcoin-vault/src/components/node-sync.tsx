@@ -45,7 +45,7 @@ export function NodeSync() {
         className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
         <div className={`h-full rounded-full transition-[width] ${stale ? 'bg-muted-foreground' : 'bg-primary'}`} style={{ width: `${progress}%` }} />
       </div>
-      <dl className="mt-4 grid grid-cols-2 gap-4 text-sm">
+      <dl className="mt-4 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 text-sm">
         <div><dt className="text-muted-foreground">Blocks verified</dt><dd className="mt-1 font-mono">{d?.blocks?.toLocaleString()}</dd></div>
         <div><dt className="text-muted-foreground">Known headers</dt><dd className="mt-1 font-mono">{d?.headers?.toLocaleString()}</dd></div>
       </dl>

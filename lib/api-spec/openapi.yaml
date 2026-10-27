@@ -10,6 +10,13 @@
     }
   ],
   "paths": {
+    "/vault/recipient": {
+      "get": {
+        "operationId": "getRecipient",
+        "parameters": [{"name":"address","in":"query","required":true,"schema":{"type":"string","minLength":14,"maxLength":90}}],
+        "responses": {"200":{"description":"Public mainnet address observation, not wallet ownership verification","content":{"application/json":{"schema":{"$ref":"#/components/schemas/RecipientObservation"}}}}}
+      }
+    },
     "/vault/sandbox/signet": {
       "get": {
         "operationId": "getSandboxSignet",
@@ -1830,6 +1837,31 @@
   },
   "components": {
     "schemas": {
+      "RecipientObservation": {
+        "type":"object",
+        "required":["address","network","provider","observedAt","confirmedSats","unconfirmedSats","transactionCount","historyLimited","transactions"],
+        "properties":{
+          "address":{"type":"string"},
+          "network":{"type":"string","enum":["main"]},
+          "provider":{"type":"string","enum":["mempool.space"]},
+          "observedAt":{"type":"string","format":"date-time"},
+          "confirmedSats":{"type":"string"},
+          "unconfirmedSats":{"type":"string"},
+          "transactionCount":{"type":"integer"},
+          "historyLimited":{"type":"boolean"},
+          "transactions":{"type":"array","items":{"$ref":"#/components/schemas/RecipientTransaction"}}
+        }
+      },
+      "RecipientTransaction": {
+        "type":"object",
+        "required":["txid","confirmed","netSats","blockTime"],
+        "properties":{
+          "txid":{"type":"string"},
+          "confirmed":{"type":"boolean"},
+          "netSats":{"type":"string"},
+          "blockTime":{"type":["integer","null"]}
+        }
+      },
       "SandboxSignetStatus": {
         "type": "object",
         "required": ["available", "network", "message", "wallet", "node", "transactions"],

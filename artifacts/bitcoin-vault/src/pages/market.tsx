@@ -128,7 +128,7 @@ function AlertDialogForm({ initial, title, pending, error, onClose, onSave }: { 
               <button key={k} type="button" onClick={() => setV({ ...v, kind: k })} className={cn('rounded-xl py-1.5 transition-colors', v.kind === k ? 'bg-primary text-primary-foreground' : 'text-muted-foreground')} data-testid={`button-kind-${k}`}>{k === 'below' ? 'price below' : 'percent drop'}</button>
             ))}
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="grid gap-1.5"><Label>{v.kind === 'below' ? 'Price' : 'Drop %'}</Label><Input value={v.threshold} onChange={(e) => setV({ ...v, threshold: e.target.value })} className="font-mono" data-testid="input-alert-threshold" /></div>
             <div className="grid gap-1.5"><Label>Window (min)</Label><Input value={v.windowMinutes} onChange={(e) => setV({ ...v, windowMinutes: e.target.value })} className="font-mono" data-testid="input-alert-window" /></div>
             <div className="grid gap-1.5"><Label>Cooldown (min)</Label><Input value={v.cooldownMinutes} onChange={(e) => setV({ ...v, cooldownMinutes: e.target.value })} className="font-mono" data-testid="input-alert-cooldown" /></div>

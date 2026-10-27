@@ -4,6 +4,40 @@
  * Api
  * OpenAPI spec version: 0.1.0
  */
+export type RecipientObservationNetwork = typeof RecipientObservationNetwork[keyof typeof RecipientObservationNetwork];
+
+
+export const RecipientObservationNetwork = {
+  main: 'main',
+} as const;
+
+export type RecipientObservationProvider = typeof RecipientObservationProvider[keyof typeof RecipientObservationProvider];
+
+
+export const RecipientObservationProvider = {
+  mempoolspace: 'mempool.space',
+} as const;
+
+export interface RecipientTransaction {
+  txid: string;
+  confirmed: boolean;
+  netSats: string;
+  /** @nullable */
+  blockTime: number | null;
+}
+
+export interface RecipientObservation {
+  address: string;
+  network: RecipientObservationNetwork;
+  provider: RecipientObservationProvider;
+  observedAt: string;
+  confirmedSats: string;
+  unconfirmedSats: string;
+  transactionCount: number;
+  historyLimited: boolean;
+  transactions: RecipientTransaction[];
+}
+
 export type SandboxSignetStatusNetwork = typeof SandboxSignetStatusNetwork[keyof typeof SandboxSignetStatusNetwork];
 
 
@@ -461,6 +495,14 @@ export type WebAuthnInputResponse = { [key: string]: unknown };
 export interface WebAuthnInput {
   response: WebAuthnInputResponse;
 }
+
+export type GetRecipientParams = {
+/**
+ * @minLength 14
+ * @maxLength 90
+ */
+address: string;
+};
 
 export type GetSandboxAddressParams = {
 /**

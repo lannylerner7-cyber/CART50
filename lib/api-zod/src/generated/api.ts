@@ -7,6 +7,33 @@
 import * as zod from 'zod';
 
 
+export const getRecipientQueryAddressMin = 14;
+export const getRecipientQueryAddressMax = 90;
+
+
+
+export const GetRecipientQueryParams = zod.object({
+  "address": zod.coerce.string().min(getRecipientQueryAddressMin).max(getRecipientQueryAddressMax)
+})
+
+export const GetRecipientResponse = zod.object({
+  "address": zod.string(),
+  "network": zod.enum(['main']),
+  "provider": zod.enum(['mempool.space']),
+  "observedAt": zod.coerce.date(),
+  "confirmedSats": zod.string(),
+  "unconfirmedSats": zod.string(),
+  "transactionCount": zod.number().int(),
+  "historyLimited": zod.boolean(),
+  "transactions": zod.array(zod.object({
+  "txid": zod.string(),
+  "confirmed": zod.boolean(),
+  "netSats": zod.string(),
+  "blockTime": zod.number().int().nullable()
+}))
+})
+
+
 export const GetSandboxSignetResponse = zod.object({
   "available": zod.boolean(),
   "network": zod.enum(['signet']),

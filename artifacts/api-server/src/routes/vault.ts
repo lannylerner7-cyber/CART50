@@ -10,6 +10,7 @@ import { checkCredential, loginCooldown } from "../vault/login-security";
 import { mainnetSync } from "../vault/node-sync";
 import { sandboxRouter } from "./sandbox";
 import { sandboxSignetRouter } from "./sandbox-signet";
+import { recipientObservation } from "../vault/recipient";
 
 const router = Router();
 router.use((_req, res, next) => {
@@ -35,6 +36,10 @@ router.post("/logout", async (req, res) => {
   clearSessionCookie(res); res.json({ ok: true, message: "Vault locked" });
 });
 router.use(requireOwner);
+router.get("/recipient", rateLimit, async (req, res) => {
+  const { address } = Z.GetRecipientQueryParams.parse(req.query);
+  res.json(await recipientObservation(address));
+});
 router.use("/sandbox/signet", sandboxSignetRouter);
 router.use("/sandbox", sandboxRouter);
 router.get("/node/sync", async (_req, res) => res.json(await mainnetSync()));

@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, ShieldCheck, Send, Download, AlertTriangle } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Send, Download, AlertTriangle, Printer } from 'lucide-react';
 import { Link } from 'wouter';
 import { outcomeUnknown } from '@/lib/sandbox';
 import { useGetVaultDashboard, useGetVaultSettings, useReviewPayment, useSendPayment, getGetVaultDashboardQueryKey, getGetVaultSettingsQueryKey, getListTransactionsQueryKey, type PaymentReview, type Transaction } from '@workspace/api-client-react';
@@ -12,6 +12,8 @@ import { PolicyError, Btc, ErrorPanel, PageHeader, Panel, Pill, Skel, Stat } fro
 import { POLL_MS, btcToSats, remaining, toBig, useCsrf, satsToBtc, stamp } from '@/lib/vault';
 import { CopyText } from '@/components/kit';
 import { useToast } from '@/hooks/use-toast';
+import { RecipientCheck } from '@/components/recipient-check';
+import { printText } from '@/lib/print';
 
 export default function Spending() {
   const qc = useQueryClient();
@@ -39,21 +41,39 @@ export default function Spending() {
   const s = settings.data;
   const sources = d?.wallets.filter((w) => (w.kind === 'spending' || w.kind === 'reserve') && w.status === 'active') ?? [];
   const source = sources.find((w) => w.id === walletId);
-  const balKnown = !!source && !!d?.node.connected && !dash.isError;
+  const balKnown = !!source && !!d?.node.connected && !dash.isError &&
+    !!dash.dataUpdatedAt && Date.now() - dash.dataUpdatedAt <= POLL_MS * 3;
   const hot = source ? toBig(source.availableSats) : 0n;
-  const blocked = settings.isError ? 'Spending policy unavailable. Sending is disabled.' : !d ? 'Loading node status' : !d.node.connected ? 'Node disconnected. Spending is disabled.' : d.node.network === 'main' || d.node.network === 'mainnet' ? (d.mainnetEnabled ? null : 'Mainnet spending is disabled.') : null;
+  const mainnet = !!d && (d.node.network === 'main' || d.node.network === 'mainnet');
+  const stale = !dash.dataUpdatedAt || Date.now() - dash.dataUpdatedAt > POLL_MS * 3 || !settings.dataUpdatedAt;
+  const blocked = settings.isError ? 'Spending policy unavailable. Sending is disabled.' : dash.isError ? 'Node status unavailable. Sending is disabled.' : !d || !s ? 'Loading node status and policy' : stale ? 'Node status is stale. Sending is paused until a fresh sync.' : !d.node.connected ? 'Node disconnected. Spending is disabled.' : !mainnet ? 'The live mainnet engine is not commissioned. Review and sending are disabled.' : !d.mainnetEnabled ? 'Mainnet spending is disabled.' : s.sweepsPaused ? 'Sending is paused in Settings.' : null;
+  const inputKey = `${walletId}|${address.trim()}|${sats ?? ''}|${feeRate}|${replacesTxid.trim()}`;
+  const reviewKey = useRef<string | null>(null);
+  const reviewReq = useRef(0);
   const valid = !!source && address.trim().length >= 14 && address.trim().length <= 100 && !!sats && toBig(sats) > 0n && /^[0-9]+(\.[0-9]{1,3})?$/.test(feeRate);
   const exp = rv ? remaining(rv.expiresAt) : null;
 
-  const doReview = () => review.mutate({ data: { walletId, address: address.trim(), amountSats: sats!, feeRate, ...(replacesTxid.trim() ? { replacesTxid: replacesTxid.trim() } : {}) } }, { onSuccess: (r) => { setRv(r); setAck(false); send.reset(); } });
-  const doSend = () => rv && !unknownId && send.mutate({ data: { reviewId: rv.id, confirmed: true } }, {
+  // A review is only valid for the exact inputs it priced. Drop it (and any in-flight review) when inputs change or sending becomes unavailable.
+  // An unknown-outcome submission keeps its review pinned so nothing can be resubmitted.
+  useEffect(() => {
+    if (unknownId || send.isPending) return;
+    if ((rv && (reviewKey.current !== inputKey || blocked)) || (review.isPending && reviewKey.current !== inputKey)) {
+      reviewReq.current++; reviewKey.current = null; setRv(null); setAck(false); review.reset(); send.reset();
+    }
+  }, [inputKey, blocked, rv, unknownId, send.isPending, review.isPending]); // eslint-disable-line react-hooks/exhaustive-deps
+  const doReview = () => {
+    if (blocked || unknownId) return;
+    const my = ++reviewReq.current; reviewKey.current = inputKey;
+    review.mutate({ data: { walletId, address: address.trim(), amountSats: sats!, feeRate, ...(replacesTxid.trim() ? { replacesTxid: replacesTxid.trim() } : {}) } }, { onSuccess: (r) => { if (my !== reviewReq.current || reviewKey.current !== inputKey) return; setRv(r); setAck(false); send.reset(); } });
+  };
+  const doSend = () => rv && !unknownId && !blocked && exp && exp.ms > 0 && reviewKey.current === inputKey && send.mutate({ data: { reviewId: rv.id, confirmed: true } }, {
     onError: (e) => { if (outcomeUnknown(e)) setUnknownId(rv.id); },
     onSuccess: (r) => {
       setReceipt({ tx: r, rv, at: new Date().toISOString() });
-      toast({ title: r.status === 'confirmed' ? 'Payment confirmed' : 'Payment submitted', description: `Status: ${r.status}` });
+      toast({ title: r.status === 'confirmed' ? 'Payment confirmed' : 'Payment status received', description: r.status === 'confirmed' ? `Status: ${r.status}` : `Status: ${r.status} · not confirmed; check Activity` });
       qc.invalidateQueries({ queryKey: getListTransactionsQueryKey() });
       qc.invalidateQueries({ queryKey: getGetVaultDashboardQueryKey() });
-      setRv(null); setAddress(''); setAmount(''); setReplacesTxid(''); setAck(false);
+      reviewKey.current = null; setRv(null); setAddress(''); setAmount(''); setReplacesTxid(''); setAck(false);
     },
   });
 
@@ -64,11 +84,11 @@ export default function Spending() {
       {dash.isError && <ErrorPanel error={dash.error} onRetry={() => dash.refetch()} title="Node status unavailable" />}
       {settings.isError && <PolicyError error={settings.error} onRetry={() => settings.refetch()} />}
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_380px]">
-        <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="min-w-0 space-y-4">
           <Panel title={<span className="flex items-center gap-2"><span className={rv ? 'text-muted-foreground' : 'text-primary'}>1 · Details</span><ArrowRight className="h-3 w-3" /><span className={rv ? 'text-primary' : ''}>2 · Confirm</span></span>}>
             {blocked && <div className="mb-4 rounded-xl border border-warn/40 bg-warn/10 px-3 py-2 text-sm text-warn" data-testid="text-spend-blocked">{blocked}</div>}
-            <fieldset disabled={!!blocked || !!rv} className="grid gap-4 disabled:opacity-60">
+            <fieldset disabled={!!rv || send.isPending || !!unknownId} className="grid min-w-0 grid-cols-1 gap-4 disabled:opacity-60">
               <div className="grid gap-1.5">
                 <Label htmlFor="payment-source">From wallet</Label>
                 <select id="payment-source" data-testid="select-payment-source" className="h-12 rounded-2xl border border-border bg-background px-3 text-sm" value={walletId} onChange={(e) => { setWalletId(e.target.value as typeof walletId); setReplacesTxid(''); review.reset(); }}>
@@ -78,10 +98,11 @@ export default function Spending() {
               </div>
               <details className="text-sm"><summary className="cursor-pointer text-muted-foreground">Replace a pending payment (RBF)</summary><div className="mt-3 space-y-2"><Label>Original spending transaction ID</Label><Input value={replacesTxid} onChange={(e) => setReplacesTxid(e.target.value)} placeholder="64-character transaction ID; leave blank for a new payment" className="font-mono" /><p className="text-xs text-muted-foreground">Enter the original recipient and amount below, with a higher fee rate. The engine preserves the recipient and amount. The review shows the replacement's total fee, not just its increase.</p></div></details>
               <div className="grid gap-1.5"><Label>Destination address</Label><Input value={address} onChange={(e) => setAddress(e.target.value)} className="h-12 rounded-2xl font-mono" placeholder={d?.node.network === 'main' ? 'bc1q…' : d?.node.network === 'regtest' ? 'bcrt1q…' : 'tb1q…'} spellCheck={false} data-testid="input-address" /></div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <RecipientCheck address={address} mainnet={mainnet} />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label>Amount</Label>
-                  <div className="flex">
+                  <div className="flex min-w-0">
                     <Input value={amount} onChange={(e) => setAmount(e.target.value.trim())} className="h-12 rounded-l-2xl rounded-r-none font-mono text-lg" placeholder={unit === 'btc' ? '0.00100000' : '100000'} data-testid="input-amount" />
                     <button type="button" onClick={() => { setUnit(unit === 'btc' ? 'sats' : 'btc'); setAmount(''); }} className="rounded-r-2xl border border-l-0 border-input bg-muted px-4 text-[12px] font-bold uppercase" data-testid="button-toggle-unit">{unit}</button>
                   </div>
@@ -92,14 +113,14 @@ export default function Spending() {
               </div>
             </fieldset>
             {review.isError && <div className="mt-4"><ErrorPanel error={review.error} title="Review rejected" /></div>}
-            {!rv && <Button className="mt-5 h-12 w-full gap-2 rounded-full text-[15px] font-bold sm:w-auto sm:px-8" disabled={!!blocked || !valid || review.isPending} onClick={doReview} data-testid="button-review"><ShieldCheck className="h-4 w-4" />{review.isPending ? 'Pricing' : 'Review payment'}</Button>}
+            {!rv && <Button className="mt-5 h-12 w-full gap-2 rounded-full text-[15px] font-bold sm:w-auto sm:px-8" disabled={!!blocked || !valid || review.isPending || !!unknownId} onClick={doReview} data-testid="button-review"><ShieldCheck className="h-4 w-4" />{review.isPending ? 'Pricing' : 'Review payment'}</Button>}
           </Panel>
 
           {rv && (
             <Panel title="Check every character" className="border-primary/50" meta={<span className={`font-mono ${exp && exp.ms <= 0 ? 'text-destructive' : ''}`}>{exp?.ms && exp.ms > 0 ? `valid ${Math.ceil(exp.ms / 1000)}s` : 'expired'}</span>}>
               <p className="mb-3 text-sm" data-testid="text-review-source">From: {d?.wallets.find((w) => w.id === (rv.walletId ?? 'vault-spending'))?.label ?? rv.walletId ?? 'Spending vault'}</p>
               <div className="rounded-xl bg-muted/60 p-3 font-mono text-sm break-all" data-testid="text-review-address">{rv.address}</div>
-              <div className="mt-4 grid grid-cols-3 gap-4">
+              <div className="mt-4 grid grid-cols-1 gap-4 min-[420px]:grid-cols-3">
                 <Stat label="amount"><Btc sats={rv.amountSats} /></Stat>
                 <Stat label="fee"><Btc sats={rv.feeSats} className="text-muted-foreground" /></Stat>
                 <Stat label="total debit"><Btc sats={rv.totalSats} className="font-bold text-primary" /></Stat>
@@ -116,14 +137,14 @@ export default function Spending() {
                 </div>
               ) : send.isError && <div className="mt-3"><ErrorPanel error={send.error} title="Send rejected" /></div>}
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button className="h-11 gap-2 rounded-full px-6 font-bold" disabled={!ack || send.isPending || !!unknownId || !exp || exp.ms <= 0} onClick={doSend} data-testid="button-confirm-send"><Send className="h-4 w-4" />{send.isPending ? 'Submitting' : 'Confirm and send'}</Button>
+                <Button className="h-11 gap-2 rounded-full px-6 font-bold" disabled={!ack || send.isPending || !!unknownId || !!blocked || !exp || exp.ms <= 0} onClick={doSend} data-testid="button-confirm-send"><Send className="h-4 w-4" />{send.isPending ? 'Submitting' : 'Confirm and send'}</Button>
                 <Button variant="outline" disabled={send.isPending || !!unknownId} onClick={() => { setRv(null); review.reset(); send.reset(); }} data-testid="button-edit-payment">Edit</Button>
               </div>
             </Panel>
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <Panel title="Spending wallet">
             {dash.isLoading ? <Skel className="h-16" /> : balKnown ? <Stat label="available"><Btc sats={hot} size="lg" /></Stat> : <Stat label="available"><span className="font-display text-xl font-bold" data-testid="text-source-unknown">Unknown</span><div className="text-xs text-muted-foreground">Node offline or data stale. Not assumed to be zero.</div></Stat>}
           </Panel>
@@ -145,7 +166,7 @@ export default function Spending() {
 
 function receiptText({ tx, rv, at }: { tx: Transaction; rv: PaymentReview; at: string }) {
   return [
-    'main_vault LIVE PAYMENT RECEIPT', `Network: ${rv.network}`, `Status: ${tx.status}${tx.status === 'confirmed' ? '' : ' (not yet confirmed)'}`,
+    'main_vault LIVE PAYMENT RECEIPT', `Network: ${rv.network}`, `Status: ${tx.status === 'confirmed' ? 'confirmed' : `${tx.status} - NOT CONFIRMED; VERIFY IN ACTIVITY`}`,
     `Transaction ID: ${tx.txid}`, `Review ID: ${rv.id}`, `Source wallet: ${rv.walletId ?? tx.walletId}`, `Destination: ${rv.address}`,
     `Amount: ${satsToBtc(rv.amountSats)} BTC (${rv.amountSats} sats)`, `Fee: ${satsToBtc(rv.feeSats)} BTC`, `Total debit: ${satsToBtc(rv.totalSats)} BTC`,
     `Confirmations at submission: ${tx.confirmations}`, `Recorded: ${stamp(at)}`, '', 'Persisted history: Activity page. Verify on your own node.',
@@ -156,7 +177,9 @@ function LiveReceipt({ r, onClose }: { r: { tx: Transaction; rv: PaymentReview; 
   const { tx, rv } = r;
   const download = () => { const url = URL.createObjectURL(new Blob([receiptText(r)], { type: 'text/plain' })); const a = document.createElement('a'); a.href = url; a.download = `main_vault-receipt-${tx.txid.slice(0, 16)}.txt`; a.click(); URL.revokeObjectURL(url); };
   const confirmed = tx.status === 'confirmed';
-  const rows: [string, string][] = [['network', rv.network], ['status', confirmed ? 'confirmed' : `${tx.status} · not yet confirmed`], ['amount', `${satsToBtc(rv.amountSats)} BTC`], ['fee', `${satsToBtc(rv.feeSats)} BTC`], ['total debit', `${satsToBtc(rv.totalSats)} BTC`], ['confirmations', String(tx.confirmations)], ['review id', rv.id], ['recorded', stamp(r.at)]];
+  const [printErr, setPrintErr] = useState(false);
+  const print = () => setPrintErr(!printText(`main_vault receipt ${tx.txid.slice(0, 16)}`, receiptText(r)));
+  const rows: [string, string][] = [['network', rv.network], ['status', confirmed ? 'confirmed' : `${tx.status} · pending, not paid/confirmed`], ['amount', `${satsToBtc(rv.amountSats)} BTC`], ['fee', `${satsToBtc(rv.feeSats)} BTC`], ['total debit', `${satsToBtc(rv.totalSats)} BTC`], ['confirmations', String(tx.confirmations)], ['review id', rv.id], ['recorded', stamp(r.at)]];
   return (
     <section className="rise rounded-[20px] border border-ok/30 bg-[hsl(220_16%_3%)] p-5 font-mono text-[13px] md:p-6" data-testid="card-live-receipt" aria-live="polite">
       <div className="flex items-center justify-between gap-2 text-[11.5px] uppercase tracking-[0.18em] text-ok"><span>&gt; payment receipt</span><span className={confirmed ? 'text-ok' : 'text-warn'}>{tx.status}</span></div>
@@ -169,9 +192,11 @@ function LiveReceipt({ r, onClose }: { r: { tx: Transaction; rv: PaymentReview; 
       <div className="break-all">{rv.address}</div>
       <div className="mt-5 flex flex-wrap gap-2 font-sans">
         <Button className="rounded-full" onClick={download} data-testid="button-download-live-receipt"><Download className="h-4 w-4" /> Download receipt</Button>
+        <Button variant="outline" className="rounded-full" onClick={print} data-testid="button-print-live-receipt"><Printer className="h-4 w-4" /> Print receipt</Button>
         <Link href="/transactions" className="pill-btn" data-testid="link-receipt-activity">Open Activity</Link>
         <Button variant="outline" className="rounded-full" onClick={onClose} data-testid="button-close-receipt">Close</Button>
       </div>
+      {printErr && <p className="mt-2 font-sans text-xs text-destructive">The print window was blocked by the browser. Use Download instead.</p>}
     </section>
   );
 }

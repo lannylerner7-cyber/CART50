@@ -33,13 +33,14 @@ test("sandbox HTTP isolation, session/CSRF, persistence and concurrent duplicate
     body: data === undefined ? undefined : JSON.stringify(data),
   });
   try {
-    for (const [path, method] of [["/sandbox", "GET"], ["/sandbox/address?destination=sandbox-assigned-wallet", "GET"], ["/sandbox/reviews", "POST"], ["/sandbox/payments", "POST"]]) {
+    for (const [path, method] of [["/recipient?address=1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", "GET"], ["/sandbox", "GET"], ["/sandbox/address?destination=sandbox-assigned-wallet", "GET"], ["/sandbox/reviews", "POST"], ["/sandbox/payments", "POST"]]) {
       assert.equal((await call(path!, method!, method === "POST" ? {} : undefined)).status, 401);
     }
     const login = await call("/login", "POST", { credential: credential.toString("base64url") });
     assert.equal(login.status, 200);
     cookie = login.headers.get("set-cookie")!.split(";")[0]!;
     csrf = (await login.json() as { csrfToken: string }).csrfToken;
+    assert.equal((await call("/recipient?address=tb1qnotmainnet")).status, 400);
     const session = await (await call("/session")).json() as { network: string };
     assert.equal(session.network, "main");
     const dashboard = await (await call("/dashboard")).json() as { node: { network: string; connected: boolean }; wallets: unknown[] };

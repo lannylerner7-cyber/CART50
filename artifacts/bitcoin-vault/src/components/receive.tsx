@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { QRCodeSVG } from 'qrcode.react';
+import { BrandedQr } from '@/components/branded-qr';
 import * as D from '@radix-ui/react-dialog';
 import { Link } from 'wouter';
 import { AlertTriangle, ArrowDown, ArrowLeft, Check, Clock, Copy, History, Info, MoreVertical, RefreshCw, Share2, ShieldAlert } from 'lucide-react';
@@ -163,16 +163,10 @@ export function ReceiveDialog({ wallet, freshness, open, onOpenChange }: { walle
               </div>
             ) : address ? (
               <>
-                <div className="rise mt-7 flex overflow-hidden rounded-[26px] bg-accent">
-                  <div className="relative min-w-0 flex-1 p-5">
-                    <span className="absolute bottom-5 left-5 grid h-9 w-9 place-items-center rounded-full bg-background/90 text-accent"><svg viewBox="0 0 32 32" className="h-6 w-6" aria-hidden><circle cx="16" cy="16" r="9" fill="none" stroke="currentColor" strokeWidth="3" /><circle cx="16" cy="16" r="3" fill="currentColor" /></svg></span>
-                    <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-accent-foreground/70">{session.network}</span>
-                  </div>
-                  <div className="shrink-0 rounded-[24px] border-[6px] border-background bg-[#fbfaf7] p-2">
-                    <div className="relative">
-                      <QRCodeSVG value={`bitcoin:${address}`} title="Bitcoin receive QR code for the address shown below" size={186} level="Q" bgColor="#fbfaf7" fgColor="#0b0b0d" marginSize={1} data-testid="img-qr" />
-                      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#fbfaf7] p-1"><BtcGlyph className="h-9 w-9 rounded-full" /></span>
-                    </div>
+                <div className="rise mt-7 flex flex-col items-center gap-3 overflow-hidden rounded-[26px] bg-accent px-3 py-4">
+                  <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-accent-foreground/70">{session.network}</span>
+                  <div className="shrink-0 rounded-[24px] border-[6px] border-background bg-[#fbfaf7]">
+                    <BrandedQr value={`bitcoin:${address}`} size={186} title="Bitcoin receive QR code for the address shown below" testId="img-qr" className="w-[min(186px,52vw)] [&>svg]:h-auto [&>svg]:w-full" />
                   </div>
                 </div>
                 <div className="mt-7 flex items-center justify-between gap-4 border-b border-border pb-6">
