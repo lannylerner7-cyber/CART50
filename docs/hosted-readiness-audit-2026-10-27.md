@@ -78,15 +78,19 @@ coverage. No real BTC, hosted signer or external indexer was used in the UI test
 
 ## GitHub preparation status
 
-Working branch is `main`. Its cached tracking reference reported seven local
-commits ahead before this audit documentation was added. This is not a fresh
-comparison with GitHub: fetch failed with SSH `Permission denied (publickey)`.
+The initial fetch failed with SSH `Permission denied (publickey)`. This blocker
+has since been resolved: the owner added the new repository-specific deploy key
+with write access, and a successful fetch authenticated to GitHub.
 
-GitHub's ED25519 host fingerprint was verified against its HTTPS `/meta` API;
-strict host checking was retained using a temporary known-hosts file. No user
-SSH configuration or keys were replaced. The remaining failure is authentication,
-not host identity. No force push, rebase, push or deployment was attempted.
+Working branch `main` was eight commits ahead and zero behind the freshly fetched
+`origin/main` at verification. The working tree was clean and the diff whitespace
+check passed before this documentation update. Push permission was not exercised.
 
-Repair Git provider authentication before fetching and reviewing the latest
-remote state. A push may trigger Coolify deployment; it requires a separate
-explicit decision while these hosted gates remain open.
+GitHub's ED25519 host fingerprint was verified against its HTTPS `/meta` API.
+Repository-local SSH configuration selects the new key and retains strict host
+checking. Its private key is outside the repository with restricted permissions;
+no existing Coolify key was replaced.
+
+No force push, rebase, push or deployment was performed. A push may trigger
+Coolify deployment; it requires a separate explicit decision while the hosted
+readiness gates remain open.

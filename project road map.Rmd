@@ -147,8 +147,10 @@ on-chain send/receive safety on the hosted service. QR/logo screenshots came
 from the existing built fixture; the subsequent receive-card centering CSS
 change is source/typechecked evidence, not a separate screenshot assertion.
 
-GitHub fetch is blocked by SSH public-key authentication. The cached origin
-comparison is not fresh; no push or deployment was performed.
+GitHub SSH authentication has now been restored using the owner-added,
+repository-specific deploy key. A successful fetch verified the remote state:
+main had eight local commits ahead and none behind at the check. No push or
+deployment was performed. Hosted readiness blockers remain open.
 
 ## Wallet lookup, branded QR and readiness verification — 2026-10-27
 
