@@ -42,3 +42,15 @@ single-network website with test warnings on its main dashboard.
 **How to apply:** Enforce the boundary on the server, not by relabelling Signet
 balances as mainnet. Never silently switch deployed network settings. An
 uncommissioned Live signer must show unavailable balances, not test data.
+
+Sandbox should replicate Live's interface so users become familiar with the
+same screens before moving to Live. Avoid repeating TEST labels and explanatory
+warnings throughout ordinary pages.
+
+**Why:** The owner finds the excessive test wording distracting and wants
+Sandbox to feel like the real product, not a separate testing console.
+
+**How to apply:** Reuse Live presentation patterns while retaining isolated
+data sources. Consolidate identification into a persistent Sandbox indicator,
+honest simulated-balance units, and a concise standalone receipt disclosure.
+Keep Return to Live and the existing approval/safety gates.

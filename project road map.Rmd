@@ -109,6 +109,23 @@ Never run two active signers against the same state.
 
 # Application walkthrough
 
+## Sandbox interface alignment — 2026-10-27
+
+Sandbox now follows Live's navigation, typography, card and payment-review
+patterns instead of repeating TEST badges and warning panels. A persistent
+Sandbox indicator, simulated balance units and standalone receipt disclosure
+preserve the distinction without dominating ordinary pages. Routes, APIs,
+approval/expiry checks and network configuration remain unchanged.
+
+Disposable-fixture browser acceptance covered all Sandbox destinations at
+390px, Home/Signet at 1024px, desktop Home/Send, destination lookup and approval
+gates, a simulated payment, receipt download, Activity and Return to Live.
+No blocking bug or horizontal overflow was observed in the measured views.
+Browser printing was not exercised in this pass. Two final presentation-only
+adjustments removed the redundant heading kicker and the repeated large
+demoUSD suffix from Home (the balance label retains its units).
+Signet remains paused; this work does not establish hosted custody readiness.
+
 ## Hosted audit and focused acceptance — 2026-10-27
 
 See `docs/hosted-readiness-audit-2026-10-27.md` for the independently observed
@@ -898,7 +915,7 @@ to publish: review repository assets before release.
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
 | `.agents/memory/health-replication.md` | 2239 | `4b755891aeb81242e73bea695f5657520654aaec16e1e55f7eeb7971d631b2ec` | Durable project decision/lesson: health-replication. |
 | `.agents/memory/hosting-scope.md` | 4384 | `7b0ad7d558e79a77db161c532edf37035879cf2a010dd67e006f63b2e82ab3b0` | Durable project decision/lesson: hosting-scope. |
-| `.agents/memory/live-sandbox-boundary.md` | 2098 | `ca4222c60e7fb96bf5166c19cc8d01cd5614b33f8c7d41c244a6ce75b179a0de` | Durable project decision/lesson: live-sandbox-boundary. |
+| `.agents/memory/live-sandbox-boundary.md` | 2729 | `bacd5179c696cfbbe574181e62de5b77b644f902d8c69b64debdaf7a8941a569` | Durable project decision/lesson: live-sandbox-boundary. |
 | `.agents/memory/owner-access.md` | 1808 | `159d57009f9e05cc3a71f1adaf0eb452995a20aa1fe57e837629feb5d9d29088` | Durable project decision/lesson: owner-access. |
 | `.agents/memory/production-scope.md` | 2445 | `cecdac2d450084208b00f01f47c42811cc070069aeab74fe05b7e39cd73913af` | Durable project decision/lesson: production-scope. |
 | `.agents/memory/qr-verification.md` | 664 | `d33954d52db2f10659a65870510d5b76a6c88c72fab228a3c7d282d52caf4c79` | Durable project decision/lesson: qr-verification. |
@@ -982,8 +999,8 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/price-chart.tsx` | 4344 | `fd3204d36d0667a55fc4d1d74aca4a32eab9c084b2be0e2d77abd84ff11580a2` | price-chart.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/receive.tsx` | 14356 | `ab109d033d04aeb9afbc3c377d864dc628c018979cd4655b1997e6594f52efa8` | Receive dialog, QR code, network warning, copy/share and readiness gating. |
 | `artifacts/bitcoin-vault/src/components/recipient-check.tsx` | 6504 | `6501c262170f0a5622fc9ca64806f42254193247e5afef4dfe08a78b72d26ea8` | recipient-check.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/components/sandbox-kit.tsx` | 1895 | `b0fd1c4ccc7fb01f37bef38500aebf86b1e6d336d9918d9b43c20bb060b4237d` | sandbox-kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/components/sandbox-shell.tsx` | 3942 | `26351459876c4c10b33d0a69a3c9408fce739673db25db1b91a52ac1ac5df96e` | sandbox-shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/sandbox-kit.tsx` | 2233 | `3622cffffc5cc272c4d203c96f2bb39f883a156c5506a222838a7a79c4de7858` | sandbox-kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/sandbox-shell.tsx` | 6114 | `d48c42b4b29394709eceb08f008b9f6f2875df5959dd4b766e2ae09185857785` | sandbox-shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/sheet.tsx` | 2748 | `ebc64aa8cd585f254e5b45e5f858e73b66809a2b4ba3f3c958192800f5299992` | sheet.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/shell.tsx` | 7911 | `591b87a8a977c3827c91bb845d026be357565dbfc705d12cc446e6781113aafd` | shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/tx-row.tsx` | 2730 | `5c82f6b311c84afc3559efb1786a1a3136bd2c94d4ed2547b18a34ad6a82f07c` | tx-row.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
@@ -1045,8 +1062,8 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/hooks/use-coin-audio.ts` | 2576 | `a6e5595ebff2b4e305c568f354c7ad8e7a948635b058e6f0f4b521b8adf2d771` | use-coin-audio.ts module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/hooks/use-mobile.tsx` | 585 | `82bff42ff087bd5dc90a5d17609cc428b8688de92d1333073a839af5ad3c9cbd` | use-mobile.tsx module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/hooks/use-toast.ts` | 3952 | `12cce940e597e1d597f7063131acd19658d25e924904308bf719bde17b67e351` | use-toast.ts module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/index.css` | 13125 | `78ba018d7bcbd4cd93669b286dbff8ff623394a74ded1295edaeb12b76b07859` | Application stylesheet and design tokens. |
-| `artifacts/bitcoin-vault/src/lib/assets.ts` | 541 | `6b2da0c52be5fea9dc2d255f42eb8f168f72e471d583a074c9632fa4127ba0cc` | assets.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/index.css` | 12914 | `c66a28228170f83cfa6da87c8fc3c5df1473d9f27033aa55ca35701d0fad38e4` | Application stylesheet and design tokens. |
+| `artifacts/bitcoin-vault/src/lib/assets.ts` | 450 | `2f90b2049ed88e46e068ec5bc06238d66f1be4ca1307748e0c11d94c4004edaf` | assets.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.test.ts` | 823 | `6054ccce2ec59ee582f9784efb7f8f746470b352ade82ee1affc9497f0137194` | Regression tests for ledger-keys; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.ts` | 920 | `0ef19efdd008050bd8c98e9aea32d0fd97d163e08a6f02dfa44651b36a4352d3` | ledger-keys.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/print.ts` | 699 | `88344fb2ff7853218999ae4e8da0b44fda9a39764a20e7cf100b90c2d0f3cdc4` | print.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
@@ -1065,8 +1082,8 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/pages/market.tsx` | 12992 | `14cd80f3ce873399796657e9df49d1d40d09448e749adb1df3b665102e545acb` | market wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/not-found.tsx` | 1147 | `74653c0b180b50c89622040611f5050e5d4d14cf908f756bccdd44d6009b7bbe` | not found wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/overview.tsx` | 16447 | `b2e2b663f19aa745b781a9b90a25a974cfed1d644e61721ae6294606c072b03f` | overview wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/sandbox/index.tsx` | 23842 | `f9cb890e1f634ce3d186a8a88d50176794742f9c57ac5089e11bc0be9531a632` | index wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/sandbox/signet.tsx` | 17350 | `3fc105fad2cacfde62a76408a01e581e38c2f54ba7c9ad2f427d78170ff8555b` | signet wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/sandbox/index.tsx` | 23497 | `0e291f8dfc5eadfdc07c25592283034dbe060969c323121df48ccc4193115e2e` | index wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/sandbox/signet.tsx` | 16878 | `5fdbf36420d1733a9ac1748fcce951f8b2fdf1ed5d184bfbebecaa96416da98c` | signet wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/settings.tsx` | 14051 | `55627db5a661e65269607a9df8f84c5ea4737d17d63c32f7040a8157cca3ce2c` | settings wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/spending.tsx` | 18265 | `d9685b48aac946fe3cf1718805fe69abc2941bbec1b05cedf789e9aa3b2765ad` | spending wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 13645 | `bf143717bf45e4ca251194d3b850548eef81cad963cb8441f12504a7d4a3cb89` | transactions wallet screen. |
@@ -1296,7 +1313,7 @@ to publish: review repository assets before release.
 | `docs/coolify-deployment.md` | 13528 | `69d9278f3667c63efda3a002c625539b1a680d77a6eb1371fe19bff6d524e9c7` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
 | `docs/database-schema.md` | 3150 | `83c765f8d07d3008a0813094dd0ea961dbd923a960a3fee98537ad4ca494c47c` | Detailed database schema runbook/status reference; respect dated evidence. |
 | `docs/github-readiness.md` | 11521 | `10908f86e6a211ff20ae51d92f6e0c11938d131426fdfa100a3c4f1979d82c65` | Detailed github readiness runbook/status reference; respect dated evidence. |
-| `docs/hosted-readiness-audit-2026-10-27.md` | 6062 | `6738b75606c3dfa6fe4ecf1c7965305b57ecb54bcf77c3043639bf7ac37ff80e` | Detailed hosted readiness audit 2026 10 27 runbook/status reference; respect dated evidence. |
+| `docs/hosted-readiness-audit-2026-10-27.md` | 6240 | `bb8e32fb1ff2a4e8f35cb9bcf6ab41526d1ba0d91dbd4c014b26d3e1161fc6b7` | Detailed hosted readiness audit 2026 10 27 runbook/status reference; respect dated evidence. |
 | `docs/live-sandbox-storage.md` | 6083 | `9faef15b9e15c7bc8ba56916972278d2bd721053acabeeb0b02ed1f33b13b13f` | Detailed live sandbox storage runbook/status reference; respect dated evidence. |
 | `docs/live-session-readiness.md` | 3430 | `ef1e8eecf530e98a45c922f3af036cc4febd62117e59edaab5d447c7b75384a5` | Detailed live session readiness runbook/status reference; respect dated evidence. |
 | `docs/login-security.md` | 6803 | `3759d7aa17f02836e9f4ca921a06b0e964fc0f04e246c6368b3ce4c0385c9abf` | Detailed login security runbook/status reference; respect dated evidence. |
@@ -1400,7 +1417,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 224175 | `714025631ddd5482406a777dd349c3e90a733500a6408bd3690890ad40c7db49` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 52421 | `bc97e4ee1aad749f7ed4a2b3b0a426aac3adbedf852798533718e09331feccbc` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 53586 | `0132a96875d9b5dca7fab8524fef000c8d72cb5a84d6e041efa6a2412b7ea256` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |

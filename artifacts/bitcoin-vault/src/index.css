@@ -235,8 +235,6 @@
 @media (prefers-reduced-motion: reduce) { .btc-drop, .btc-spin, .btc-hero-coin { animation: none !important; } .btc-drop { transform: translateY(18vh); } .btc-drop:nth-child(2n) { transform: translateY(42vh); } }
 
 /* main_vault sandbox */
-.sandbox-band { background: hsl(var(--warn)); color: hsl(225 14% 5%); }
-.sandbox-card { border-color: hsl(var(--warn) / .35); background: linear-gradient(180deg, hsl(var(--warn) / .07), hsl(var(--card)) 60%); }
 @media print {
   body::before, .no-print { display: none !important; }
   body { background: #fff; color: #111; }

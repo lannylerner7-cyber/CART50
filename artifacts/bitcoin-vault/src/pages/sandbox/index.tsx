@@ -1,10 +1,10 @@
 import { Link, Route, Switch, useLocation, useParams } from 'wouter';
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Download, FileText, Printer, ShieldCheck, Ban, FlaskConical, Loader2, Search } from 'lucide-react';
+import { Download, FileText, Printer, ShieldCheck, Ban, Loader2, Search } from 'lucide-react';
 import { useGetSandbox, getSandbox, useGetSandboxAddress, getGetSandboxAddressQueryKey, getGetSandboxQueryKey, useReviewSandboxPayment, useExecuteSandboxPayment, type SandboxReview, type SandboxSnapshot, type SandboxReceipt } from '@workspace/api-client-react';
-import { CopyText, Empty, ErrorPanel, Pill, Skel, Stat } from '@/components/kit';
-import { SandboxCard, SandboxHeader, TestTag, Reconnecting } from '@/components/sandbox-kit';
+import { CopyText, Empty, ErrorPanel, Panel, Pill, Skel, Stat } from '@/components/kit';
+import { SandboxCard, SandboxHeader, Reconnecting } from '@/components/sandbox-kit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,7 +14,6 @@ import type { ReactNode } from 'react';
 import { demoUsd, outcomeUnknown, parseCents } from '@/lib/sandbox';
 import NotFound from '@/pages/not-found';
 import SignetPage, { SignetSummary, useSignet } from '@/pages/sandbox/signet';
-import { SANDBOX_HERO } from '@/lib/assets';
 
 const KEY = getGetSandboxQueryKey();
 
@@ -31,42 +30,60 @@ function Loader({ children }: { children: (d: SandboxSnapshot) => ReactNode }) {
 
 function Home() {
   return <Loader>{(d) => (<>
-    <SandboxHeader title="Sandbox" desc="Practice sending with a simulated ledger. Nothing here is Bitcoin." />
-    <figure className="rise relative overflow-hidden rounded-[20px] border border-warn/30">
-      <img src={SANDBOX_HERO} alt="" aria-hidden className="h-40 w-full object-cover md:h-52" data-testid="img-sandbox-hero" />
-      <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background/95 to-transparent p-4 font-display text-[18px] font-bold">Practice with test funds. <span className="block font-sans text-[12.5px] font-normal text-muted-foreground">No real Bitcoin value.</span></figcaption>
-    </figure>
-    <SandboxCard className="sandbox-card" tag={<TestTag>TEST · Simulation ledger</TestTag>} testId="card-credit">
-      <div className="text-[13px] text-muted-foreground">Simulated test credit</div>
-      <div className="font-display mt-1 text-[2.6rem] font-bold leading-none tabular-nums" data-testid="text-sandbox-credit">{demoUsd(d.simulatedCreditCents)}</div>
-      <p className="mt-3 text-[14px] text-muted-foreground">Demo value only. Not real Bitcoin, not a USD valuation, and not withdrawable.</p>
-      <Link href="/sandbox/send" className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-warn px-6 font-bold text-background sm:w-auto" data-testid="link-start-exercise"><FlaskConical className="h-4 w-4" /> Start a simulated exercise</Link>
-      <p className="mt-3 text-[12px] text-muted-foreground">{d.message}</p>
-    </SandboxCard>
-    <div className="grid gap-5 md:grid-cols-2">
-      <SignetSummary />
-      <SandboxCard title="Keep the modes separate">
-        <dl className="grid gap-3 text-[14px]">
-          <div><dt className="text-muted-foreground">Simulation source</dt><dd className="font-semibold">Sandbox demo ledger · {demoUsd(d.simulatedCreditCents)}</dd></div>
-          <div><dt className="text-muted-foreground">Live funds</dt><dd className="font-semibold">Never shown or touched in Sandbox. Use Return to Live.</dd></div>
-        </dl>
-        <Link href="/sandbox/status" className="mt-4 inline-block text-[14px] font-semibold underline underline-offset-4" data-testid="link-sandbox-status">View service status</Link>
-      </SandboxCard>
+    <SandboxHeader title="Your vault" />
+    <div className="grid min-w-0 grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-start">
+      <div className="min-w-0 space-y-5">
+        <section className="rise rounded-[20px] border border-card-border bg-card p-5 md:p-6" data-testid="card-credit">
+          <div className="text-[13px] font-medium text-muted-foreground">Available balance</div>
+          <div className="mt-0.5 text-[12.5px] text-muted-foreground">Simulated balance · demoUSD</div>
+          <div className="font-display mt-3 text-[2.4rem] font-bold leading-none tabular-nums" data-testid="text-sandbox-credit">{demoUsd(d.simulatedCreditCents).replace(/ demoUSD$/, '')}</div>
+          <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+            <Link href="/sandbox/wallet" className="grid h-12 place-items-center rounded-[14px] bg-primary text-[15px] font-semibold text-primary-foreground transition-transform active:scale-[0.98]" data-testid="link-action-wallet">Wallet</Link>
+            <Link href="/sandbox/send" className="grid h-12 place-items-center rounded-[14px] bg-primary/90 text-[15px] font-semibold text-primary-foreground transition-transform active:scale-[0.98]" data-testid="link-start-exercise">Send</Link>
+          </div>
+        </section>
+        <Panel title="Recent activity" meta={<Link href="/sandbox/activity" className="font-semibold text-foreground underline underline-offset-4" data-testid="link-all-activity">View all</Link>}>
+          {d.transactions.length === 0 ? <Empty icon={<FileText className="h-5 w-5" />} title="No activity yet" body="Payments you send appear here." /> : <TxList items={d.transactions.slice(0, 5)} />}
+        </Panel>
+      </div>
+      <div className="min-w-0 space-y-5">
+        <SignetSummary />
+        <Panel title="Workspace status" meta={<Link href="/sandbox/status" className="font-semibold text-foreground underline underline-offset-4" data-testid="link-sandbox-status">Details</Link>}>
+          <dl className="grid grid-cols-2 gap-3 text-[13.5px]">
+            <div><dt className="text-muted-foreground">Ledger</dt><dd className="font-semibold">Available</dd></div>
+            <div><dt className="text-muted-foreground">Destination</dt><dd className="font-semibold">{d.assignedAddress ? 'Assigned' : 'Not assigned'}</dd></div>
+          </dl>
+        </Panel>
+      </div>
     </div>
   </>)}</Loader>;
 }
 
+function TxList({ items }: { items: SandboxReceipt[] }) {
+  return <ul className="divide-y divide-border">
+    {items.map((t) => (
+      <li key={t.id}><Link href={`/sandbox/receipt/${encodeURIComponent(t.id)}`} className="-mx-2 flex items-center justify-between gap-3 rounded-xl px-2 py-3.5 hover:bg-muted/50" data-testid={`row-sandbox-tx-${t.id}`}>
+        <div className="min-w-0"><div className="text-[14.5px] font-semibold">Sent</div><div className="truncate text-[12.5px] text-muted-foreground">{stamp(t.createdAt)} · {t.destination}</div></div>
+        <div className="shrink-0 text-right"><div className="font-mono text-[14px] font-semibold">-{demoUsd(t.amountCents)}</div><div className="text-[12px] text-muted-foreground">Complete</div></div>
+      </Link></li>))}
+  </ul>;
+}
+
 function Wallet() {
   return <Loader>{(d) => (<>
-    <SandboxHeader title="Assigned test wallet" desc="The simulation uses a stable server-supplied identifier. It is not a Bitcoin address." />
-    <SandboxCard title="Simulation destination" tag={<TestTag>TEST · one assigned identifier</TestTag>} testId="card-assigned">
-      {d.assignedAddress ? (<>
-        <div className="break-all rounded-2xl bg-muted/60 p-3.5 font-mono text-[14px]" data-testid="text-assigned-id">{d.assignedAddress}</div>
-        <CopyText value={d.assignedAddress} display="Copy identifier" className="mt-3 text-[13px]" />
-        <p className="mt-4 rounded-2xl border border-warn/30 bg-warn/5 p-3.5 text-[13px] text-muted-foreground">This identifier only exists in the sandbox ledger. Do not send Bitcoin to it; it cannot receive coins on any network.</p>
-      </>) : <Empty icon={<Ban className="h-5 w-5" />} title="No identifier assigned" body="The server has not assigned a simulation destination. Simulated payments stay disabled." />}
-    </SandboxCard>
-    <SignetSummary />
+    <SandboxHeader title="Wallets" desc="Your assigned destination for practice payments." />
+    <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+      <SandboxCard title="Sandbox wallet" meta={<Pill tone={d.assignedAddress ? 'ok' : 'neutral'} dot>{d.assignedAddress ? 'Active' : 'Not assigned'}</Pill>} testId="card-assigned">
+        <Stat label="Simulated balance"><span className="font-display text-2xl font-bold tabular-nums">{demoUsd(d.simulatedCreditCents)}</span></Stat>
+        {d.assignedAddress ? (<div className="mt-4">
+          <div className="text-[12px] text-muted-foreground">Destination identifier</div>
+          <div className="mt-1 break-all rounded-2xl bg-muted p-3.5 font-mono text-[14px]" data-testid="text-assigned-id">{d.assignedAddress}</div>
+          <CopyText value={d.assignedAddress} display="Copy identifier" className="mt-3 text-[13px]" />
+          <p className="mt-3 text-[12.5px] text-muted-foreground">Sandbox ledger identifier. It cannot receive Bitcoin.</p>
+        </div>) : <div className="mt-4"><Empty icon={<Ban className="h-5 w-5" />} title="No identifier assigned" body="Sending stays disabled until the server assigns one." /></div>}
+      </SandboxCard>
+      <SignetSummary />
+    </div>
   </>)}</Loader>;
 }
 
@@ -136,15 +153,13 @@ function SendFlow({ d }: { d: SandboxSnapshot }) {
   };
 
   return (<>
-    <SandboxHeader title="Send in Sandbox" desc="Details, review, then an explicit submit. Nothing is signed or broadcast." />
+    <SandboxHeader title="Send" desc="Enter details, review, then confirm." />
     <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
-      <SandboxCard title={rv ? 'Review simulated payment' : 'Simulation details'} className={rv ? 'sandbox-card' : ''} testId="card-send">
+      <SandboxCard title={rv ? 'Confirm details' : 'Payment details'} testId="card-send">
         {!rv ? (<div className="grid gap-4">
-          <div className="rounded-2xl border border-warn/40 bg-warn/5 p-3.5 text-[14px]"><div className="font-semibold text-warn">Simulated exercise · TEST</div><div className="mt-0.5 text-muted-foreground">Internal ledger only. No Bitcoin is signed or sent.</div></div>
-          <Link href="/sandbox/signet" className="rounded-2xl border border-border p-3.5 text-[14px] hover:bg-muted" data-testid="link-send-signet"><div className="font-semibold">On-chain Signet test · separate page</div><div className="mt-0.5 text-muted-foreground">Real Signet test transactions, when the server reports it available.</div></Link>
-          <div className="grid gap-1.5"><Label>Source ledger · TEST</Label><div className="rounded-2xl border border-border bg-background px-3.5 py-3 text-[14px]" data-testid="text-source">Simulator ledger · {demoUsd(d.simulatedCreditCents)}</div></div>
+          <div className="grid gap-1.5"><Label>From</Label><div className="rounded-2xl border border-border bg-background px-3.5 py-3 text-[14px]" data-testid="text-source">Sandbox wallet · {demoUsd(d.simulatedCreditCents)} simulated balance</div></div>
           <div className="grid gap-1.5">
-            <Label htmlFor="sb-dest">Destination · must match the assigned identifier exactly</Label>
+            <Label htmlFor="sb-dest">Destination</Label>
             <Input id="sb-dest" value={dest} onChange={(e) => { setDest(e.target.value); setPasteErr(null); }} onKeyDown={(e) => e.key === 'Enter' && dest.trim() && check(dest)} spellCheck={false} className="h-12 rounded-2xl font-mono" placeholder={assigned ?? 'No identifier assigned'} data-testid="input-sandbox-destination" />
             <div className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" className="rounded-full" disabled={!assigned} onClick={() => assigned && check(assigned)} data-testid="button-use-assigned">Use assigned identifier</Button>
@@ -156,65 +171,58 @@ function SendFlow({ d }: { d: SandboxSnapshot }) {
             {!checking && lookup && lookup === dest && addr.isError && <div data-testid="text-dest-error"><ErrorPanel error={addr.error} onRetry={() => { setStartedAt(Date.now()); void addr.refetch(); }} title="Destination not accepted" /></div>}
             {!checking && lookup !== dest.trim() && dest.trim() && <p className="text-[12.5px] text-muted-foreground">Destination changed. Press Check to verify it before review.</p>}
             {destOk && addr.data && (
-              <div className="rounded-xl border border-warn/30 bg-warn/5 p-3 text-[12.5px]" data-testid="card-lookup-result">
-                <div className="font-semibold text-warn">Verified sandbox identifier · simulation</div>
-                <div className="mt-1 text-muted-foreground">Simulated credit {demoUsd(addr.data.simulatedCreditCents)} · {addr.data.transactionCount} simulated entr{addr.data.transactionCount === 1 ? 'y' : 'ies'} · checked {stamp(addr.data.checkedAt)}</div>
-                <div className="mt-0.5 text-muted-foreground">Answered by this server's sandbox ledger only. No external provider was contacted.</div>
-                {addr.data.transactions.length > 0 && <details className="mt-2"><summary className="cursor-pointer">Recent simulated history</summary><ul className="mt-2 space-y-2">{addr.data.transactions.slice(0, 5).map(t => <li key={t.id}><Link href={`/sandbox/receipt/${encodeURIComponent(t.id)}`} className="underline">{demoUsd(t.amountCents)} · {stamp(t.createdAt)}</Link></li>)}</ul></details>}
+              <div className="rounded-xl border border-ok/30 bg-ok/5 p-3 text-[12.5px]" data-testid="card-lookup-result">
+                <div className="font-semibold text-ok">Destination verified</div>
+                <div className="mt-1 text-muted-foreground">Balance {demoUsd(addr.data.simulatedCreditCents)} · {addr.data.transactionCount} entr{addr.data.transactionCount === 1 ? 'y' : 'ies'} · checked {stamp(addr.data.checkedAt)}</div>
+                {addr.data.transactions.length > 0 && <details className="mt-2"><summary className="cursor-pointer">Recent history</summary><ul className="mt-2 space-y-2">{addr.data.transactions.slice(0, 5).map(t => <li key={t.id}><Link href={`/sandbox/receipt/${encodeURIComponent(t.id)}`} className="underline">{demoUsd(t.amountCents)} · {stamp(t.createdAt)}</Link></li>)}</ul></details>}
               </div>
             )}
           </div>
           <div className="grid gap-1.5">
-            <Label htmlFor="sb-amt">Simulated amount · demoUSD</Label>
+            <Label htmlFor="sb-amt">Amount · demoUSD</Label>
             <Input id="sb-amt" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-12 rounded-2xl font-mono text-lg" placeholder="25.00" data-testid="input-sandbox-amount" />
             {amount && cents === null && <span className="text-[12.5px] text-destructive">Enter an amount like 25.00</span>}
-            {cents !== null && !within && <span className="text-[12.5px] text-destructive">Exceeds simulated credit.</span>}
+            {cents !== null && !within && <span className="text-[12.5px] text-destructive">Exceeds available balance.</span>}
           </div>
-          <div className="text-[13px] text-muted-foreground">Fee rate · not applicable to simulation</div>
           {review.isError && <ErrorPanel error={review.error} title="Review rejected" />}
           <Button className="h-12 rounded-full font-bold" disabled={!destOk || !within || review.isPending} onClick={doReview} data-testid="button-sandbox-review"><ShieldCheck className="h-4 w-4" /> {review.isPending ? 'Preparing review' : 'Review payment'}</Button>
-          {!destOk && <p className="text-[12.5px] text-warn">{assigned ? 'Review unlocks after the current destination is checked successfully.' : 'Review unavailable: no simulation identifier is assigned.'}</p>}
+          {!destOk && <p className="text-[12.5px] text-muted-foreground">{assigned ? 'Review unlocks after the current destination is checked successfully.' : 'Review unavailable: no simulation identifier is assigned.'}</p>}
         </div>) : (<div className="grid gap-4">
-          <Pill tone={left > 0 ? 'warn' : 'bad'}>{left > 0 ? `Review valid ${left}s` : 'Review expired'}</Pill>
+          <Pill tone={left > 0 ? 'neutral' : 'bad'}>{left > 0 ? `Review valid ${left}s` : 'Review expired'}</Pill>
           <Stat label="Amount · demoUSD"><span className="font-display text-3xl font-bold" data-testid="text-review-amount">{demoUsd(rv.amountCents)}</span></Stat>
           <div><div className="text-[12px] text-muted-foreground">Destination identifier</div><div className="mt-1 break-all rounded-2xl bg-muted/60 p-3 font-mono text-[14px]" data-testid="text-review-destination">{rv.destination}</div></div>
           <div className="text-[12.5px] text-muted-foreground">Review {rv.id} · created {stamp(rv.createdAt)}</div>
-          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border p-3 text-[14px]"><Checkbox checked={ack} onCheckedChange={(v) => setAck(!!v)} data-testid="checkbox-sandbox-ack" className="mt-0.5" /> I understand this is a simulation. No Bitcoin moves and the receipt is a TEST document.</label>
-          {unknown && <div role="status" className="rounded-2xl border border-warn/40 bg-warn/5 p-3 text-[13px]">The response was interrupted; the result is not yet confirmed. Check status or retry the same review. The server applies each review at most once. Do not create a replacement payment.</div>}
-          {exec.isError && !unknown && <ErrorPanel error={exec.error} title="Simulation rejected" />}
+          <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border p-3 text-[14px]"><Checkbox checked={ack} onCheckedChange={(v) => setAck(!!v)} data-testid="checkbox-sandbox-ack" className="mt-0.5" /> I checked the destination and amount. This is a sandbox payment with no real value.</label>
+          {unknown && <div role="status" className="rounded-2xl border border-warn/40 bg-warn/5 p-3 text-[13px]" data-testid="status-sandbox-unknown">The response was interrupted; the result is not yet confirmed. Check status or retry the same review. The server applies each review at most once. Do not create a replacement payment.</div>}
+          {exec.isError && !unknown && <ErrorPanel error={exec.error} title="Payment rejected" />}
           {exec.isError && unknown && <p className="font-mono text-[11.5px] text-muted-foreground">{errMsg(exec.error)}</p>}
           <div className="flex flex-wrap gap-2">
-            <Button className="h-12 rounded-full bg-warn px-6 font-bold text-background hover:bg-warn/90" disabled={!ack || exec.isPending || (left <= 0 && !unknown)} onClick={submit} data-testid="button-sandbox-submit">{exec.isPending ? 'Submitting' : unknown ? 'Retry same review' : 'Submit simulation'}</Button>
+            <Button className="h-12 rounded-full px-6 font-bold" disabled={!ack || exec.isPending || (left <= 0 && !unknown)} onClick={submit} data-testid="button-sandbox-submit">{exec.isPending ? 'Submitting' : unknown ? 'Retry same review' : 'Confirm and send'}</Button>
             {unknown && <Button variant="outline" className="h-12 rounded-full" onClick={() => void reconcile()} disabled={exec.isPending} data-testid="button-sandbox-reconcile">Check status</Button>}
             <Button variant="outline" className="h-12 rounded-full" disabled={exec.isPending || unknown} onClick={() => { setRv(null); setAck(false); setUnknown(false); review.reset(); exec.reset(); }} data-testid="button-sandbox-edit">Discard review</Button>
           </div>
         </div>)}
       </SandboxCard>
-      <SandboxCard title="How this works">
-        <ol className="grid gap-2 text-[14px] text-muted-foreground"><li>1. Details stay on this page.</li><li>2. Review is held by the server for a short time.</li><li>3. Submit applies it once to the demo ledger.</li></ol>
-        <p className="mt-3 text-[12.5px] text-muted-foreground">Leaving this page clears the form; an unsubmitted server review expires after five minutes. Leaving does not cancel a submitted payment.</p>
-      </SandboxCard>
+      <div className="space-y-5">
+        <SandboxCard title="Available"><span className="font-display text-2xl font-bold tabular-nums">{demoUsd(d.simulatedCreditCents)}</span><div className="mt-1 text-[12.5px] text-muted-foreground">Simulated balance</div></SandboxCard>
+        <Link href="/sandbox/signet" className="block rounded-[20px] border border-card-border bg-card p-5 text-[14px] hover:bg-muted/50" data-testid="link-send-signet"><div className="font-semibold">Signet</div><div className="mt-0.5 text-muted-foreground">On-chain test network, when available.</div></Link>
+        <p className="px-1 text-[12.5px] text-muted-foreground">Reviews expire after five minutes. Leaving does not cancel a submitted payment.</p>
+      </div>
     </div>
   </>);
 }
 
 function ActivityPage() {
   return <Loader>{(d) => (<>
-    <SandboxHeader title="Sandbox activity" desc="Simulated entries on the demo ledger. No transaction IDs exist." />
-    {d.transactions.length === 0 ? <Empty icon={<FileText className="h-5 w-5" />} title="No simulations yet" body="Run a simulated exercise to see it here." action={<Link href="/sandbox/send" className="font-semibold underline" data-testid="link-empty-send">Start one</Link>} /> : (
-      <SandboxCard className="p-0 md:p-0"><ul className="divide-y divide-border">
-        {d.transactions.map((t) => (
-          <li key={t.id}><Link href={`/sandbox/receipt/${encodeURIComponent(t.id)}`} className="flex items-center justify-between gap-3 px-5 py-4 hover:bg-muted/50" data-testid={`row-sandbox-tx-${t.id}`}>
-            <div className="min-w-0"><div className="font-semibold">Simulated send · TEST</div><div className="truncate text-[12.5px] text-muted-foreground">{stamp(t.createdAt)} · {t.destination}</div></div>
-            <div className="text-right"><div className="font-mono font-semibold">-{demoUsd(t.amountCents)}</div><div className="text-[12px] text-muted-foreground">after {demoUsd(t.balanceAfterCents)}</div></div>
-          </Link></li>))}
-      </ul></SandboxCard>)}
+    <SandboxHeader title="Activity" desc="Every payment on your sandbox ledger." />
+    {d.transactions.length === 0 ? <Empty icon={<FileText className="h-5 w-5" />} title="No activity yet" body="Payments you send appear here." action={<Link href="/sandbox/send" className="font-semibold underline" data-testid="link-empty-send">Send</Link>} /> : (
+      <Panel><TxList items={d.transactions} /></Panel>)}
     {d.reviews.some((r) => r.status === 'pending') && <p className="text-[12.5px] text-muted-foreground">{d.reviews.filter((r) => r.status === 'pending').length} unsubmitted review(s) will expire on their own.</p>}
   </>)}</Loader>;
 }
 
 function receiptText(t: SandboxReceipt) {
-  return ['main_vault SANDBOX TEST RECEIPT', 'NOT A BITCOIN TRANSACTION. NO REAL VALUE. NO TXID.', '', `Receipt: ${t.id}`, `Status: ${t.status}`, `Amount: ${demoUsd(t.amountCents)}`, `Destination identifier: ${t.destination}`, `Ledger balance after: ${demoUsd(t.balanceAfterCents)}`, `Created: ${stamp(t.createdAt)}`].join('\n');
+  return ['main_vault Sandbox receipt', 'Simulation only. Not a Bitcoin transaction. No real value. No transaction ID.', '', `Receipt: ${t.id}`, `Status: ${t.status}`, `Amount: ${demoUsd(t.amountCents)}`, `Destination identifier: ${t.destination}`, `Ledger balance after: ${demoUsd(t.balanceAfterCents)}`, `Created: ${stamp(t.createdAt)}`].join('\n');
 }
 
 function ReceiptPage() {
@@ -224,15 +232,18 @@ function ReceiptPage() {
     if (!t) return <Empty icon={<FileText className="h-5 w-5" />} title="Receipt not found" body="No simulated entry with this ID is on the demo ledger." action={<Link href="/sandbox/activity" className="font-semibold underline" data-testid="link-back-activity">Back to activity</Link>} />;
     const download = () => { const url = URL.createObjectURL(new Blob([receiptText(t)], { type: 'text/plain' })); const a = document.createElement('a'); a.href = url; a.download = `sandbox-test-receipt-${t.id}.txt`; a.click(); URL.revokeObjectURL(url); };
     return (<>
-      <SandboxHeader title="TEST receipt" desc="Simulation complete. This document is not proof of any Bitcoin payment." />
-      <SandboxCard className="print-sheet sandbox-card" testId="card-receipt">
-        <div className="text-[12px] font-bold tracking-wide text-warn">SANDBOX · TEST · NO REAL VALUE · NO TXID</div>
-        <div className="font-display mt-3 text-[2.2rem] font-bold" data-testid="text-receipt-amount">{demoUsd(t.amountCents)}</div>
+      <SandboxHeader title="Receipt" desc="Payment complete." />
+      <SandboxCard className="print-sheet" testId="card-receipt">
+        <div className="hidden text-[12px] font-bold print:block">main_vault Sandbox receipt. Simulation only, no real value, no transaction ID.</div>
+        <div className="flex items-start justify-between gap-3">
+          <div className="font-display text-[2.2rem] font-bold" data-testid="text-receipt-amount">{demoUsd(t.amountCents)}</div>
+          <Pill tone="cold" className="no-print" testId="status-receipt-simulation">Simulation · no real value</Pill>
+        </div>
         <dl className="mt-4 grid gap-3 text-[14px] sm:grid-cols-2">
           <div><dt className="text-muted-foreground">Receipt ID</dt><dd><CopyText value={t.id} className="text-[13px]" /></dd></div>
-          <div><dt className="text-muted-foreground">Status</dt><dd className="font-semibold">Simulation complete</dd></div>
+          <div><dt className="text-muted-foreground">Status</dt><dd className="font-semibold">Complete</dd></div>
           <div className="sm:col-span-2"><dt className="text-muted-foreground">Destination identifier</dt><dd className="break-all font-mono">{t.destination}</dd></div>
-          <div><dt className="text-muted-foreground">Ledger balance after</dt><dd className="font-semibold">{demoUsd(t.balanceAfterCents)}</dd></div>
+          <div><dt className="text-muted-foreground">Balance after</dt><dd className="font-semibold">{demoUsd(t.balanceAfterCents)}</dd></div>
           <div><dt className="text-muted-foreground">Created</dt><dd>{stamp(t.createdAt)}</dd></div>
         </dl>
       </SandboxCard>
@@ -249,13 +260,13 @@ function StatusPage() {
   const q = useSnap();
   const sg = useSignet();
   return <Loader>{(d) => (<>
-    <SandboxHeader title="Sandbox status" />
+    <SandboxHeader title="Status" desc="Services behind your sandbox." />
     <SandboxCard title="Services">
       <ul className="grid gap-3 text-[14px]">
         <li className="flex justify-between gap-3"><span>Simulation ledger</span><Pill tone="ok" dot>available</Pill></li>
-        <li className="flex justify-between gap-3"><span>Assigned identifier</span><Pill tone={d.assignedAddress ? 'ok' : 'warn'}>{d.assignedAddress ? 'assigned' : 'not assigned'}</Pill></li>
-        <li className="flex justify-between gap-3"><span>Signet node and wallet</span><Pill tone={sg.isError ? 'bad' : sg.data?.available ? 'ok' : 'warn'}>{sg.isLoading ? 'checking' : sg.isError ? 'unreachable' : sg.data?.available ? 'available' : 'setup required'}</Pill></li>
-        <li className="flex justify-between gap-3"><span>Live API and signing engine</span><Pill tone="neutral">not connected to Sandbox</Pill></li>
+        <li className="flex justify-between gap-3"><span>Assigned identifier</span><Pill tone={d.assignedAddress ? 'ok' : 'neutral'}>{d.assignedAddress ? 'assigned' : 'not assigned'}</Pill></li>
+        <li className="flex justify-between gap-3"><span>Signet node and wallet</span><Pill tone={sg.isError ? 'bad' : sg.data?.available ? 'ok' : 'neutral'}>{sg.isLoading ? 'checking' : sg.isError ? 'unreachable' : sg.data?.available ? 'available' : 'setup required'}</Pill></li>
+        <li className="flex justify-between gap-3"><span>Live API and signing engine</span><Pill tone="neutral">separate from Sandbox</Pill></li>
       </ul>
       <p className="mt-4 text-[13px] text-muted-foreground" data-testid="text-sandbox-message">{d.message}</p>
       <p className="mt-2 text-[12px] text-muted-foreground">Last snapshot {q.dataUpdatedAt ? stamp(new Date(q.dataUpdatedAt).toISOString()) : '—'}</p>
