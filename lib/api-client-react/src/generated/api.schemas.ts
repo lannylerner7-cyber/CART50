@@ -4,6 +4,134 @@
  * Api
  * OpenAPI spec version: 0.1.0
  */
+export interface DeveloperTerms {
+  version: string;
+  text: string;
+  approved: boolean;
+  signupEnabled: boolean;
+}
+
+export type DeveloperSessionLevel = typeof DeveloperSessionLevel[keyof typeof DeveloperSessionLevel];
+
+
+export const DeveloperSessionLevel = {
+  onboarding: 'onboarding',
+  full: 'full',
+} as const;
+
+export interface DeveloperSession {
+  authenticated: boolean;
+  terms: DeveloperTerms;
+  id?: string;
+  name?: string;
+  email?: string;
+  verified?: boolean;
+  passkeyEnrolled?: boolean;
+  ready?: boolean;
+  keyIssued?: boolean;
+  csrfToken?: string;
+  expiresAt?: string;
+  level?: DeveloperSessionLevel;
+  liveApproved?: boolean;
+}
+
+export type DeveloperActionInputResponse = { [key: string]: unknown };
+
+export interface DeveloperActionInput {
+  name?: string;
+  email?: string;
+  key?: string;
+  termsVersion?: string;
+  accepted?: boolean;
+  response?: DeveloperActionInputResponse;
+  destination?: string;
+  amountCents?: number;
+  reviewId?: string;
+  confirmed?: boolean;
+}
+
+export interface DeveloperActionResult {
+  ok?: boolean;
+  message?: string;
+  key?: string;
+  [key: string]: unknown;
+ }
+
+/**
+ * @nullable
+ */
+export type DeveloperSandboxCurrentValuation = {
+  amountCents: number;
+  at: string;
+  source: string;
+} | null;
+
+export type DeveloperSandboxQuote = {
+  priceCents: number;
+  at: string;
+  source: string;
+};
+
+export type SandboxSnapshotEnvironment = typeof SandboxSnapshotEnvironment[keyof typeof SandboxSnapshotEnvironment];
+
+
+export const SandboxSnapshotEnvironment = {
+  sandbox: 'sandbox',
+} as const;
+
+export type SandboxReceiptStatus = typeof SandboxReceiptStatus[keyof typeof SandboxReceiptStatus];
+
+
+export const SandboxReceiptStatus = {
+  simulation_complete: 'simulation_complete',
+} as const;
+
+export interface SandboxReceipt {
+  id: string;
+  amountCents: number;
+  destination: string;
+  createdAt: string;
+  status: SandboxReceiptStatus;
+  balanceAfterCents: number;
+}
+
+export type SandboxReviewStatus = typeof SandboxReviewStatus[keyof typeof SandboxReviewStatus];
+
+
+export const SandboxReviewStatus = {
+  pending: 'pending',
+  complete: 'complete',
+} as const;
+
+export interface SandboxReview {
+  id: string;
+  amountCents: number;
+  destination: string;
+  createdAt: string;
+  expiresAt: string;
+  status: SandboxReviewStatus;
+  /** @nullable */
+  receiptId: string | null;
+}
+
+export interface SandboxSnapshot {
+  environment: SandboxSnapshotEnvironment;
+  simulatedCreditCents: number;
+  /** @nullable */
+  assignedAddress: string | null;
+  signetAvailable: false;
+  message: string;
+  transactions: SandboxReceipt[];
+  reviews: SandboxReview[];
+}
+
+export type DeveloperSandbox = SandboxSnapshot & {
+  simulatedBalanceSats: number;
+  /** @nullable */
+  currentValuation: DeveloperSandboxCurrentValuation;
+  quote: DeveloperSandboxQuote;
+};
+
 export type RecipientObservationNetwork = typeof RecipientObservationNetwork[keyof typeof RecipientObservationNetwork];
 
 
@@ -405,22 +533,6 @@ export interface PasskeyInput {
 
 export interface WebAuthnOptions { [key: string]: unknown }
 
-export type SandboxReceiptStatus = typeof SandboxReceiptStatus[keyof typeof SandboxReceiptStatus];
-
-
-export const SandboxReceiptStatus = {
-  simulation_complete: 'simulation_complete',
-} as const;
-
-export interface SandboxReceipt {
-  id: string;
-  amountCents: number;
-  destination: string;
-  createdAt: string;
-  status: SandboxReceiptStatus;
-  balanceAfterCents: number;
-}
-
 export type SandboxAddressInfoEnvironment = typeof SandboxAddressInfoEnvironment[keyof typeof SandboxAddressInfoEnvironment];
 
 
@@ -453,48 +565,15 @@ export interface SandboxExecuteInput {
   confirmed: boolean;
 }
 
-export type SandboxReviewStatus = typeof SandboxReviewStatus[keyof typeof SandboxReviewStatus];
-
-
-export const SandboxReviewStatus = {
-  pending: 'pending',
-  complete: 'complete',
-} as const;
-
-export interface SandboxReview {
-  id: string;
-  amountCents: number;
-  destination: string;
-  createdAt: string;
-  expiresAt: string;
-  status: SandboxReviewStatus;
-  /** @nullable */
-  receiptId: string | null;
-}
-
-export type SandboxSnapshotEnvironment = typeof SandboxSnapshotEnvironment[keyof typeof SandboxSnapshotEnvironment];
-
-
-export const SandboxSnapshotEnvironment = {
-  sandbox: 'sandbox',
-} as const;
-
-export interface SandboxSnapshot {
-  environment: SandboxSnapshotEnvironment;
-  simulatedCreditCents: number;
-  /** @nullable */
-  assignedAddress: string | null;
-  signetAvailable: false;
-  message: string;
-  transactions: SandboxReceipt[];
-  reviews: SandboxReview[];
-}
-
 export type WebAuthnInputResponse = { [key: string]: unknown };
 
 export interface WebAuthnInput {
   response: WebAuthnInputResponse;
 }
+
+export type GetDeveloperSandboxAddressParams = {
+destination: string;
+};
 
 export type GetRecipientParams = {
 /**

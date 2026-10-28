@@ -32,7 +32,7 @@ const initial = (): State => ({
 });
 let local: DatabaseSync | undefined;
 export const externalConfigured = () => !!(process.env.CF_ACCOUNT_ID && process.env.CF_D1_DATABASE_ID && process.env.CF_API_TOKEN);
-async function query(sql: string, params: (string | number)[] = []): Promise<Record<string, unknown>[]> {
+export async function query(sql: string, params: (string | number)[] = []): Promise<Record<string, unknown>[]> {
   if (externalConfigured()) {
     const account = process.env.CF_ACCOUNT_ID!, database = process.env.CF_D1_DATABASE_ID!;
     if (!/^[a-zA-Z0-9-]+$/.test(account + database)) throw new Error("Invalid D1 identifiers");

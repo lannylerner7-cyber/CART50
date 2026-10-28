@@ -7,6 +7,111 @@
 import * as zod from 'zod';
 
 
+export const GetDeveloperSessionResponse = zod.object({
+  "authenticated": zod.boolean(),
+  "terms": zod.object({
+  "version": zod.string(),
+  "text": zod.string(),
+  "approved": zod.boolean(),
+  "signupEnabled": zod.boolean()
+}),
+  "id": zod.string().optional(),
+  "name": zod.string().optional(),
+  "email": zod.string().optional(),
+  "verified": zod.boolean().optional(),
+  "passkeyEnrolled": zod.boolean().optional(),
+  "ready": zod.boolean().optional(),
+  "keyIssued": zod.boolean().optional(),
+  "csrfToken": zod.string().optional(),
+  "expiresAt": zod.string().optional(),
+  "level": zod.enum(['onboarding', 'full']).optional(),
+  "liveApproved": zod.boolean().optional()
+})
+
+
+export const DeveloperActionParams = zod.object({
+  "action": zod.enum(['register', 'resend', 'verify-email', 'passkey-register-options', 'passkey-register-verify', 'passkey-login-options', 'passkey-login-verify', 'login', 'logout', 'provision', 'issue-key', 'rotate-key', 'review', 'pay'])
+})
+
+export const DeveloperActionBody = zod.object({
+  "name": zod.string().optional(),
+  "email": zod.string().optional(),
+  "key": zod.string().optional(),
+  "termsVersion": zod.string().optional(),
+  "accepted": zod.boolean().optional(),
+  "response": zod.record(zod.string(), zod.unknown()).optional(),
+  "destination": zod.string().optional(),
+  "amountCents": zod.number().int().optional(),
+  "reviewId": zod.string().optional(),
+  "confirmed": zod.boolean().optional()
+})
+
+export const DeveloperActionResponse = zod.object({
+  "ok": zod.boolean().optional(),
+  "message": zod.string().optional(),
+  "key": zod.string().optional()
+})
+
+
+export const GetDeveloperSandboxResponse = zod.object({
+  "environment": zod.enum(['sandbox']),
+  "simulatedCreditCents": zod.number().int(),
+  "assignedAddress": zod.string().nullable(),
+  "signetAvailable": zod.literal(false),
+  "message": zod.string(),
+  "transactions": zod.array(zod.object({
+  "id": zod.string(),
+  "amountCents": zod.number().int(),
+  "destination": zod.string(),
+  "createdAt": zod.string(),
+  "status": zod.enum(['simulation_complete']),
+  "balanceAfterCents": zod.number().int()
+})),
+  "reviews": zod.array(zod.object({
+  "id": zod.string(),
+  "amountCents": zod.number().int(),
+  "destination": zod.string(),
+  "createdAt": zod.string(),
+  "expiresAt": zod.string(),
+  "status": zod.enum(['pending', 'complete']),
+  "receiptId": zod.string().nullable()
+}))
+}).and(zod.object({
+  "simulatedBalanceSats": zod.number().int(),
+  "currentValuation": zod.object({
+  "amountCents": zod.number().int(),
+  "at": zod.string(),
+  "source": zod.string()
+}).nullable(),
+  "quote": zod.object({
+  "priceCents": zod.number().int(),
+  "at": zod.string(),
+  "source": zod.string()
+})
+}))
+
+
+export const GetDeveloperSandboxAddressQueryParams = zod.object({
+  "destination": zod.coerce.string()
+})
+
+export const GetDeveloperSandboxAddressResponse = zod.object({
+  "destination": zod.string(),
+  "environment": zod.enum(['simulation']),
+  "simulatedCreditCents": zod.number().int(),
+  "transactionCount": zod.number().int(),
+  "transactions": zod.array(zod.object({
+  "id": zod.string(),
+  "amountCents": zod.number().int(),
+  "destination": zod.string(),
+  "createdAt": zod.string(),
+  "status": zod.enum(['simulation_complete']),
+  "balanceAfterCents": zod.number().int()
+})),
+  "checkedAt": zod.string()
+})
+
+
 export const getRecipientQueryAddressMin = 14;
 export const getRecipientQueryAddressMax = 90;
 

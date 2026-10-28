@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { QueryCache, QueryClient, QueryClientProvider, MutationCache } from '@tanstack/react-query';
-import { Route, Switch, useLocation, Router as WouterRouter } from 'wouter';
+import { Route, Switch, Redirect, useLocation, Router as WouterRouter } from 'wouter';
 import { useGetVaultSession, getGetVaultSessionQueryKey, setCsrfToken } from '@workspace/api-client-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { Toaster } from '@/components/ui/toaster';
@@ -19,9 +19,11 @@ const Explorer = lazy(() => import('@/pages/explorer'));
 const Market = lazy(() => import('@/pages/market'));
 const SettingsPage = lazy(() => import('@/pages/settings'));
 const SandboxRouter = lazy(() => import('@/pages/sandbox'));
+const DevelopersApp = lazy(() => import('@/pages/developers'));
 import { SandboxShell } from '@/components/sandbox-shell';
 import { lockClient, LOCK_EVENT } from '@/lib/session-lock';
 import { retryRead, readRetryDelay, transientReadError } from '@/lib/request-recovery';
+import { DEVELOPER_HOMEPAGE, isOwnerLocation, OWNER_BASE } from '@/lib/owner-location';
 
 const SESSION_KEY = getGetVaultSessionQueryKey();
 const on401 = (e: unknown) => {
@@ -130,12 +132,31 @@ function Gate() {
   );
 }
 
+/** /developers is a separate principal with its own QueryClient; it renders before (and instead of) the owner Gate. */
+function Entry() {
+  const [location] = useLocation();
+  if (isOwnerLocation(location)) {
+    return <Route path={OWNER_BASE} nest><Gate /></Route>;
+  }
+  if (location === '/developers' || location.startsWith('/developers/')) {
+    return <Suspense fallback={<div className="grid min-h-[100dvh] place-items-center bg-sidebar"><VaultMark className="h-12 w-12" /></div>}><DevelopersApp /></Suspense>;
+  }
+  if (DEVELOPER_HOMEPAGE) {
+    if(location==='/') return <Suspense fallback={<p role="status" className="p-6">Opening developer access…</p>}><DevelopersApp atRoot /></Suspense>;
+    if(['/wallets','/transactions','/spending','/explorer','/market','/settings','/sandbox'].some(p=>location===p||location.startsWith(p+'/'))) {
+      return <Redirect to={OWNER_BASE+location} replace />;
+    }
+    return <NotFound />;
+  }
+  return <Gate />;
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          <Gate />
+          <Entry />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

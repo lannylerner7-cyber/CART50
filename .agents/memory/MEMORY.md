@@ -11,3 +11,4 @@
 - [Schema evolution](schema-evolution.md) — automatic code-defined additive schema initialization, never columns guessed from incoming data.
 - [Request recovery](request-recovery.md) — recover monitoring reads automatically, but never blindly replay wallet writes.
 - [Live/Sandbox boundary](live-sandbox-boundary.md) — assigned test destination, no real-money claims, Return to Live before manual logout; preserve mainnet sync.
+- [Developer boundary](developer-boundary.md) — separate developer onboarding and tenant data; staged homepage relocation never moves owner custody.

@@ -9,6 +9,7 @@ import { mountDashboard } from "./static";
 import { configureTrustedProxies } from "./vault/login-security";
 import { admission } from "./middlewares/admission";
 import { configuredNetwork } from "./vault/network";
+import { developerRouter } from "./developers/routes";
 
 const app: Express = express();
 configuredNetwork();
@@ -22,7 +23,7 @@ app.use(
         return {
           id: req.id,
           method: req.method,
-          url: req.url?.startsWith("/api/vault/") ? "/api/vault/[redacted]" : req.url?.split("?")[0],
+          url: /^\/api\/(vault|developers)\//.test(req.url ?? "") ? "/api/[private]" : req.url?.split("?")[0],
         };
       },
       res(res) {
@@ -39,9 +40,11 @@ app.use((_req, res, next) => {
   next();
 });
 app.use("/api/vault", admission());
+app.use("/api/developers", admission());
 app.use(express.json({ limit: "64kb" }));
 
 app.use("/api/vault", vault);
+app.use("/api/developers", developerRouter());
 app.use("/api", router);
 mountDashboard(app, process.env.VAULT_STATIC_DIR);
 app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {

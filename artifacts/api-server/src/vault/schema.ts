@@ -6,6 +6,25 @@ type Table = { name: string; create: string; columns: Column[] };
 // A required column without a meaningful backfill may only be added to an empty table.
 export const metadataSchema: Table[] = [
   {
+    name: "developer_accounts",
+    create: "CREATE TABLE IF NOT EXISTS developer_accounts (id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, version INTEGER NOT NULL DEFAULT 0, data TEXT NOT NULL)",
+    columns: [
+      { name: "id", type: "TEXT", primary: true },
+      { name: "email", type: "TEXT", required: true },
+      { name: "version", type: "INTEGER", required: true, add: "INTEGER NOT NULL DEFAULT 0", safeForRows: true },
+      { name: "data", type: "TEXT", required: true },
+    ],
+  },
+  {
+    name: "developer_challenges",
+    create: "CREATE TABLE IF NOT EXISTS developer_challenges (id TEXT PRIMARY KEY, expires INTEGER NOT NULL, data TEXT NOT NULL)",
+    columns: [
+      { name: "id", type: "TEXT", primary: true },
+      { name: "expires", type: "INTEGER", required: true },
+      { name: "data", type: "TEXT", required: true },
+    ],
+  },
+  {
     name: "vault_state",
     create: "CREATE TABLE IF NOT EXISTS vault_state (id INTEGER PRIMARY KEY CHECK(id=1), version INTEGER NOT NULL, data TEXT NOT NULL)",
     columns: [
@@ -86,6 +105,8 @@ export async function ensureMetadataSchema(query: SchemaQuery) {
       verifyColumn(table.name, column, actual);
     }
   }
+  await query("CREATE UNIQUE INDEX IF NOT EXISTS developer_accounts_email_unique ON developer_accounts(email)");
   await query("CREATE TABLE IF NOT EXISTS vault_schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)");
   await query("INSERT OR IGNORE INTO vault_schema_migrations(version,applied_at) VALUES(?,?)", [1, new Date().toISOString()]);
+  await query("INSERT OR IGNORE INTO vault_schema_migrations(version,applied_at) VALUES(?,?)", [2, new Date().toISOString()]);
 }

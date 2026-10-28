@@ -23,9 +23,14 @@ import type {
   AlertInput,
   CredentialInput,
   Dashboard,
+  DeveloperActionInput,
+  DeveloperActionResult,
+  DeveloperSandbox,
+  DeveloperSession,
   Error,
   ExploreVaultParams,
   Explorer,
+  GetDeveloperSandboxAddressParams,
   GetRecipientParams,
   GetSandboxAddressParams,
   HealthStatus,
@@ -86,6 +91,309 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetDeveloperSessionUrl = () => {
+
+
+
+
+  return `/api/developers/session`
+}
+
+export const getDeveloperSession = async ( options?: Parameters<typeof customFetch>[1]): Promise<DeveloperSession> => {
+
+  return customFetch<DeveloperSession>(getGetDeveloperSessionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDeveloperSessionQueryKey = () => {
+    return [
+    `/api/developers/session`
+    ] as const;
+    }
+
+
+export const getGetDeveloperSessionQueryOptions = <TData = Awaited<ReturnType<typeof getDeveloperSession>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDeveloperSessionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeveloperSession>>> = ({ signal }) => getDeveloperSession({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDeveloperSession>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDeveloperSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getDeveloperSession>>>
+export type GetDeveloperSessionQueryError = ErrorType<unknown>
+
+
+
+export function useGetDeveloperSession<TData = Awaited<ReturnType<typeof getDeveloperSession>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDeveloperSessionQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeveloperActionUrl = (action: 'register' | 'resend' | 'verify-email' | 'passkey-register-options' | 'passkey-register-verify' | 'passkey-login-options' | 'passkey-login-verify' | 'login' | 'logout' | 'provision' | 'issue-key' | 'rotate-key' | 'review' | 'pay',) => {
+
+
+
+
+  return `/api/developers/${action}`
+}
+
+export const developerAction = async (action: 'register' | 'resend' | 'verify-email' | 'passkey-register-options' | 'passkey-register-verify' | 'passkey-login-options' | 'passkey-login-verify' | 'login' | 'logout' | 'provision' | 'issue-key' | 'rotate-key' | 'review' | 'pay',
+    developerActionInput: DeveloperActionInput, options?: Parameters<typeof customFetch>[1]): Promise<DeveloperActionResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<DeveloperActionResult>(getDeveloperActionUrl(action),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(developerActionInput)
+  }
+);}
+
+
+
+
+
+export const getDeveloperActionMutationKey = () => ['developerAction'] as const;
+
+export const getDeveloperActionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof developerAction>>, TError,DeveloperActionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof developerAction>>, TError,DeveloperActionMutationVariables, TContext> => {
+
+const mutationKey = getDeveloperActionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof developerAction>>, DeveloperActionMutationVariables> = (props) => {
+          const {action,data} = props ?? {};
+
+          return  developerAction(action,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeveloperActionMutationResult = NonNullable<Awaited<ReturnType<typeof developerAction>>>
+    export type DeveloperActionMutationBody = BodyType<DeveloperActionInput>
+    export type DeveloperActionMutationError = ErrorType<unknown>
+    export type DeveloperActionMutationVariables = {action: 'register' | 'resend' | 'verify-email' | 'passkey-register-options' | 'passkey-register-verify' | 'passkey-login-options' | 'passkey-login-verify' | 'login' | 'logout' | 'provision' | 'issue-key' | 'rotate-key' | 'review' | 'pay';data: BodyType<DeveloperActionInput>}
+
+    export const useDeveloperAction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof developerAction>>, TError,DeveloperActionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof developerAction>>,
+        TError,
+        DeveloperActionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeveloperActionMutationOptions(options));
+    }
+
+export const getGetDeveloperSandboxUrl = () => {
+
+
+
+
+  return `/api/developers/sandbox`
+}
+
+export const getDeveloperSandbox = async ( options?: Parameters<typeof customFetch>[1]): Promise<DeveloperSandbox> => {
+
+  return customFetch<DeveloperSandbox>(getGetDeveloperSandboxUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDeveloperSandboxQueryKey = () => {
+    return [
+    `/api/developers/sandbox`
+    ] as const;
+    }
+
+
+export const getGetDeveloperSandboxQueryOptions = <TData = Awaited<ReturnType<typeof getDeveloperSandbox>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperSandbox>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDeveloperSandboxQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeveloperSandbox>>> = ({ signal }) => getDeveloperSandbox({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDeveloperSandbox>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDeveloperSandboxQueryResult = NonNullable<Awaited<ReturnType<typeof getDeveloperSandbox>>>
+export type GetDeveloperSandboxQueryError = ErrorType<unknown>
+
+
+
+export function useGetDeveloperSandbox<TData = Awaited<ReturnType<typeof getDeveloperSandbox>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperSandbox>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDeveloperSandboxQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetDeveloperSandboxAddressUrl = (params: GetDeveloperSandboxAddressParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/developers/sandbox/address?${stringifiedParams}` : `/api/developers/sandbox/address`
+}
+
+export const getDeveloperSandboxAddress = async (params: GetDeveloperSandboxAddressParams, options?: Parameters<typeof customFetch>[1]): Promise<SandboxAddressInfo> => {
+
+  return customFetch<SandboxAddressInfo>(getGetDeveloperSandboxAddressUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDeveloperSandboxAddressQueryKey = (params?: GetDeveloperSandboxAddressParams,) => {
+    return [
+    `/api/developers/sandbox/address`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetDeveloperSandboxAddressQueryOptions = <TData = Awaited<ReturnType<typeof getDeveloperSandboxAddress>>, TError = ErrorType<unknown>>(params: GetDeveloperSandboxAddressParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperSandboxAddress>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDeveloperSandboxAddressQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeveloperSandboxAddress>>> = ({ signal }) => getDeveloperSandboxAddress(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDeveloperSandboxAddress>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDeveloperSandboxAddressQueryResult = NonNullable<Awaited<ReturnType<typeof getDeveloperSandboxAddress>>>
+export type GetDeveloperSandboxAddressQueryError = ErrorType<unknown>
+
+
+
+export function useGetDeveloperSandboxAddress<TData = Awaited<ReturnType<typeof getDeveloperSandboxAddress>>, TError = ErrorType<unknown>>(
+ params: GetDeveloperSandboxAddressParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperSandboxAddress>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDeveloperSandboxAddressQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetRecipientUrl = (params: GetRecipientParams,) => {
   const normalizedParams = new URLSearchParams();

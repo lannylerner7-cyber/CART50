@@ -2,23 +2,36 @@ import { Link, Route, Switch, useLocation, useParams } from 'wouter';
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Download, FileText, Printer, ShieldCheck, Ban, Loader2, Search } from 'lucide-react';
-import { useGetSandbox, getSandbox, useGetSandboxAddress, getGetSandboxAddressQueryKey, getGetSandboxQueryKey, useReviewSandboxPayment, useExecuteSandboxPayment, type SandboxReview, type SandboxSnapshot, type SandboxReceipt } from '@workspace/api-client-react';
+import type { SandboxReview, SandboxSnapshot, SandboxReceipt } from '@workspace/api-client-react';
 import { CopyText, Empty, ErrorPanel, Panel, Pill, Skel, Stat } from '@/components/kit';
 import { SandboxCard, SandboxHeader, Reconnecting } from '@/components/sandbox-kit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useCsrf, stamp, errMsg } from '@/lib/vault';
+import { stamp, errMsg } from '@/lib/vault';
 import type { ReactNode } from 'react';
 import { demoUsd, outcomeUnknown, parseCents } from '@/lib/sandbox';
 import NotFound from '@/pages/not-found';
-import SignetPage, { SignetSummary, useSignet } from '@/pages/sandbox/signet';
-
-const KEY = getGetSandboxQueryKey();
+import { useSandboxAdapter } from '@/lib/sandbox-adapter';
 
 function useSnap() {
-  return useGetSandbox({ query: { queryKey: KEY, refetchInterval: 30000 } });
+  return useSandboxAdapter().useSnapshot();
+}
+
+function SignetSummary() {
+  const C = useSandboxAdapter().SignetSummary;
+  return <C />;
+}
+
+function SignetRoute() {
+  const C = useSandboxAdapter().SignetPage;
+  return <C />;
+}
+
+function BalanceExtra({ d }: { d: SandboxSnapshot }) {
+  const C = useSandboxAdapter().BalanceExtra;
+  return C ? <C d={d} /> : null;
 }
 
 function Loader({ children }: { children: (d: SandboxSnapshot) => ReactNode }) {
@@ -37,6 +50,7 @@ function Home() {
           <div className="text-[13px] font-medium text-muted-foreground">Available balance</div>
           <div className="mt-0.5 text-[12.5px] text-muted-foreground">Simulated balance · demoUSD</div>
           <div className="font-display mt-3 text-[2.4rem] font-bold leading-none tabular-nums" data-testid="text-sandbox-credit">{demoUsd(d.simulatedCreditCents).replace(/ demoUSD$/, '')}</div>
+          <BalanceExtra d={d} />
           <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
             <Link href="/sandbox/wallet" className="grid h-12 place-items-center rounded-[14px] bg-primary text-[15px] font-semibold text-primary-foreground transition-transform active:scale-[0.98]" data-testid="link-action-wallet">Wallet</Link>
             <Link href="/sandbox/send" className="grid h-12 place-items-center rounded-[14px] bg-primary/90 text-[15px] font-semibold text-primary-foreground transition-transform active:scale-[0.98]" data-testid="link-start-exercise">Send</Link>
@@ -75,6 +89,7 @@ function Wallet() {
     <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
       <SandboxCard title="Sandbox wallet" meta={<Pill tone={d.assignedAddress ? 'ok' : 'neutral'} dot>{d.assignedAddress ? 'Active' : 'Not assigned'}</Pill>} testId="card-assigned">
         <Stat label="Simulated balance"><span className="font-display text-2xl font-bold tabular-nums">{demoUsd(d.simulatedCreditCents)}</span></Stat>
+        <BalanceExtra d={d} />
         {d.assignedAddress ? (<div className="mt-4">
           <div className="text-[12px] text-muted-foreground">Destination identifier</div>
           <div className="mt-1 break-all rounded-2xl bg-muted p-3.5 font-mono text-[14px]" data-testid="text-assigned-id">{d.assignedAddress}</div>
@@ -94,9 +109,9 @@ function SendPage() {
 function SendFlow({ d }: { d: SandboxSnapshot }) {
   const qc = useQueryClient();
   const [, nav] = useLocation();
-  const csrf = useCsrf();
-  const review = useReviewSandboxPayment(csrf);
-  const exec = useExecuteSandboxPayment(csrf);
+  const adapter = useSandboxAdapter();
+  const review = adapter.useReview();
+  const exec = adapter.useExec();
   const [dest, setDest] = useState('');
   const [amount, setAmount] = useState('');
   const [rv, setRv] = useState<SandboxReview | null>(null);
@@ -110,7 +125,7 @@ function SendFlow({ d }: { d: SandboxSnapshot }) {
   const [lookup, setLookup] = useState('');
   const [pasteErr, setPasteErr] = useState<string | null>(null);
   const [startedAt, setStartedAt] = useState(0);
-  const addr = useGetSandboxAddress({ destination: lookup }, { query: { enabled: lookup.length > 0, queryKey: getGetSandboxAddressQueryKey({ destination: lookup }), retry: false } });
+  const addr = adapter.useAddress(lookup);
   const checking = lookup.length > 0 && addr.isFetching;
   useEffect(() => { if (!checking) return; const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, [checking]);
   const elapsed = checking ? Math.floor((now - startedAt) / 1000) : 0;
@@ -137,10 +152,10 @@ function SendFlow({ d }: { d: SandboxSnapshot }) {
     if (!destOk || !cents || !within) return;
     review.mutate({ data: { amountCents: cents, destination: dest } }, { onSuccess: (r) => { if (alive.current) { setRv(r); setAck(false); setUnknown(false); } } });
   };
-  const done = (receiptId: string) => { void qc.invalidateQueries({ queryKey: KEY }); void qc.invalidateQueries({ predicate: (qq) => String(qq.queryKey[0]).startsWith('/api/vault/sandbox/address') }); if (alive.current) nav(`/sandbox/receipt/${encodeURIComponent(receiptId)}`); };
+  const done = (receiptId: string) => { void qc.invalidateQueries({ queryKey: adapter.snapshotKey() }); adapter.invalidateAddresses(qc); if (alive.current) nav(`/sandbox/receipt/${encodeURIComponent(receiptId)}`); };
   const reconcile = async () => {
     if (!rv) return;
-    const snap = await qc.fetchQuery({ queryKey: KEY, queryFn: () => getSandbox() }).catch(() => null);
+    const snap = await adapter.fetchSnapshot(qc);
     const match = snap?.reviews.find((r) => r.id === rv.id);
     if (match?.status === 'complete' && match.receiptId) done(match.receiptId);
   };
@@ -258,14 +273,14 @@ function ReceiptPage() {
 
 function StatusPage() {
   const q = useSnap();
-  const sg = useSignet();
+  const sg = useSandboxAdapter().useSignetState();
   return <Loader>{(d) => (<>
     <SandboxHeader title="Status" desc="Services behind your sandbox." />
     <SandboxCard title="Services">
       <ul className="grid gap-3 text-[14px]">
         <li className="flex justify-between gap-3"><span>Simulation ledger</span><Pill tone="ok" dot>available</Pill></li>
         <li className="flex justify-between gap-3"><span>Assigned identifier</span><Pill tone={d.assignedAddress ? 'ok' : 'neutral'}>{d.assignedAddress ? 'assigned' : 'not assigned'}</Pill></li>
-        <li className="flex justify-between gap-3"><span>Signet node and wallet</span><Pill tone={sg.isError ? 'bad' : sg.data?.available ? 'ok' : 'neutral'}>{sg.isLoading ? 'checking' : sg.isError ? 'unreachable' : sg.data?.available ? 'available' : 'setup required'}</Pill></li>
+        <li className="flex justify-between gap-3"><span>Signet node and wallet</span><Pill tone={sg.tone}>{sg.label}</Pill></li>
         <li className="flex justify-between gap-3"><span>Live API and signing engine</span><Pill tone="neutral">separate from Sandbox</Pill></li>
       </ul>
       <p className="mt-4 text-[13px] text-muted-foreground" data-testid="text-sandbox-message">{d.message}</p>
@@ -284,7 +299,7 @@ export default function SandboxRouter() {
       <Route path="/sandbox/activity" component={ActivityPage} />
       <Route path="/sandbox/receipt/:id" component={ReceiptPage} />
       <Route path="/sandbox/status" component={StatusPage} />
-      <Route path="/sandbox/signet" component={SignetPage} />
+      <Route path="/sandbox/signet" component={SignetRoute} />
       <Route component={NotFound} />
     </Switch>
   );

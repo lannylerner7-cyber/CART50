@@ -10,6 +10,23 @@
     }
   ],
   "paths": {
+    "/developers/session": {
+      "get": {"operationId":"getDeveloperSession","responses":{"200":{"description":"Isolated developer session and terms","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeveloperSession"}}}}}}
+    },
+    "/developers/{action}": {
+      "post": {
+        "operationId":"developerAction",
+        "parameters":[{"name":"action","in":"path","required":true,"schema":{"type":"string","enum":["register","resend","verify-email","passkey-register-options","passkey-register-verify","passkey-login-options","passkey-login-verify","login","logout","provision","issue-key","rotate-key","review","pay"]}}],
+        "requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeveloperActionInput"}}}},
+        "responses":{"200":{"description":"Action-specific result; private and non-cacheable","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeveloperActionResult"}}}}}
+      }
+    },
+    "/developers/sandbox": {
+      "get":{"operationId":"getDeveloperSandbox","responses":{"200":{"description":"Tenant-scoped simulation","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeveloperSandbox"}}}}}}
+    },
+    "/developers/sandbox/address": {
+      "get":{"operationId":"getDeveloperSandboxAddress","parameters":[{"name":"destination","in":"query","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"Assigned simulated destination only","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SandboxAddressInfo"}}}}}}
+    },
     "/vault/recipient": {
       "get": {
         "operationId": "getRecipient",
@@ -1837,6 +1854,11 @@
   },
   "components": {
     "schemas": {
+      "DeveloperTerms":{"type":"object","required":["version","text","approved","signupEnabled"],"properties":{"version":{"type":"string"},"text":{"type":"string"},"approved":{"type":"boolean"},"signupEnabled":{"type":"boolean"}}},
+      "DeveloperSession":{"type":"object","required":["authenticated","terms"],"properties":{"authenticated":{"type":"boolean"},"terms":{"$ref":"#/components/schemas/DeveloperTerms"},"id":{"type":"string"},"name":{"type":"string"},"email":{"type":"string"},"verified":{"type":"boolean"},"passkeyEnrolled":{"type":"boolean"},"ready":{"type":"boolean"},"keyIssued":{"type":"boolean"},"csrfToken":{"type":"string"},"expiresAt":{"type":"string"},"level":{"type":"string","enum":["onboarding","full"]},"liveApproved":{"type":"boolean"}}},
+      "DeveloperActionInput":{"type":"object","additionalProperties":false,"properties":{"name":{"type":"string"},"email":{"type":"string"},"key":{"type":"string"},"termsVersion":{"type":"string"},"accepted":{"type":"boolean"},"response":{"type":"object","additionalProperties":true},"destination":{"type":"string"},"amountCents":{"type":"integer"},"reviewId":{"type":"string"},"confirmed":{"type":"boolean"}}},
+      "DeveloperActionResult":{"type":"object","additionalProperties":true,"properties":{"ok":{"type":"boolean"},"message":{"type":"string"},"key":{"type":"string"}}},
+      "DeveloperSandbox":{"allOf":[{"$ref":"#/components/schemas/SandboxSnapshot"},{"type":"object","required":["simulatedBalanceSats","quote","currentValuation"],"properties":{"simulatedBalanceSats":{"type":"integer"},"currentValuation":{"type":["object","null"],"required":["amountCents","at","source"],"properties":{"amountCents":{"type":"integer"},"at":{"type":"string"},"source":{"type":"string"}}},"quote":{"type":"object","required":["priceCents","at","source"],"properties":{"priceCents":{"type":"integer"},"at":{"type":"string"},"source":{"type":"string"}}}}}]},
       "RecipientObservation": {
         "type":"object",
         "required":["address","network","provider","observedAt","confirmedSats","unconfirmedSats","transactionCount","historyLimited","transactions"],

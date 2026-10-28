@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ArrowLeft, ArrowUpRight, Home, Menu, Wallet as WalletIcon, History, Activity, Radio } from 'lucide-react';
 import { BRAND_MARK } from '@/lib/assets';
-import { useSession, remaining } from '@/lib/vault';
+import { remaining } from '@/lib/vault';
+import { useSandboxAdapter } from '@/lib/sandbox-adapter';
 import { Sheet } from '@/components/sheet';
 import { cn } from '@/lib/utils';
 
@@ -27,7 +28,8 @@ function SandboxChip({ testId }: { testId?: string }) {
 export function SandboxShell({ children }: { children: ReactNode }) {
   const [loc] = useLocation();
   const [open, setOpen] = useState(false);
-  const session = useSession();
+  const adapter = useSandboxAdapter();
+  const expiresAt = adapter.useExpiresAt();
   useEffect(() => {
     const cur = [...SNAV].reverse().find((n) => loc === n.href || loc.startsWith(n.href + '/'));
     document.title = `Sandbox ${cur && cur.href !== '/sandbox' ? cur.label : loc.startsWith('/sandbox/receipt') ? 'Receipt' : 'Home'} · main_vault`;
@@ -47,9 +49,9 @@ export function SandboxShell({ children }: { children: ReactNode }) {
 
   const footer = (
     <div className="space-y-3 rounded-[20px] border border-card-border bg-card p-4">
-      <div className="flex items-center justify-between text-[12.5px] text-muted-foreground"><span>Mode</span><span className="font-semibold text-foreground">Sandbox</span></div>
-      <div className="flex items-center justify-between text-[12.5px] text-muted-foreground"><span>Session</span><span className="font-semibold text-foreground" data-testid="text-sandbox-session">{remaining(session.expiresAt).label}</span></div>
-      <Link href="/" onClick={() => setOpen(false)} data-testid="link-return-live"
+      <div className="flex items-center justify-between text-[12.5px] text-muted-foreground"><span>Mode</span><span className="font-semibold text-foreground">{adapter.kind === 'developer' ? 'Developer Sandbox' : 'Sandbox'}</span></div>
+      <div className="flex items-center justify-between text-[12.5px] text-muted-foreground"><span>Session</span><span className="font-semibold text-foreground" data-testid="text-sandbox-session">{remaining(expiresAt).label}</span></div>
+      <Link href={adapter.returnHref} onClick={() => setOpen(false)} data-testid="link-return-live"
         className="flex w-full items-center justify-center gap-2 rounded-full bg-card px-3 py-2.5 text-[13px] font-bold shadow-sm ring-1 ring-border transition-colors hover:bg-muted">
         <ArrowLeft className="h-4 w-4" /> Return to Live
       </Link>
@@ -61,7 +63,7 @@ export function SandboxShell({ children }: { children: ReactNode }) {
       <aside className="no-print fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-sidebar p-5 md:flex">
         <Link href="/sandbox" className="flex items-center gap-2.5" data-testid="link-sandbox-brand">
           <img src={BRAND_MARK} alt="" className="h-9 w-9" />
-          <div className="leading-none"><div className="font-display text-[17px] font-bold">main_vault</div><div className="mt-0.5 text-[11px] text-muted-foreground">Personal Bitcoin vault</div></div>
+          <div className="leading-none"><div className="font-display text-[17px] font-bold">main_vault</div><div className="mt-0.5 text-[11px] text-muted-foreground">{adapter.kind === 'developer' ? 'Developer access' : 'Personal Bitcoin vault'}</div></div>
         </Link>
         <div className="mt-3"><SandboxChip testId="banner-sandbox" /></div>
         <div className="mt-7 flex-1">{nav}</div>
@@ -74,7 +76,7 @@ export function SandboxShell({ children }: { children: ReactNode }) {
           <Link href="/sandbox" className="flex items-center gap-2 rounded-full border border-border bg-card py-1.5 pl-1.5 pr-3.5" data-testid="link-sandbox-brand-mobile">
             <img src={BRAND_MARK} alt="" className="h-7 w-7" /><span className="font-display text-[15px] font-bold">main_vault</span>
           </Link>
-          <Link href="/" aria-label="Return to Live" data-testid="link-return-live-mobile" className="circle-btn h-12 w-12"><ArrowLeft className="h-5 w-5" /></Link>
+          <Link href={adapter.returnHref} aria-label="Return to Live" data-testid="link-return-live-mobile" className="circle-btn h-12 w-12"><ArrowLeft className="h-5 w-5" /></Link>
         </div>
         <div className="mt-2 flex justify-center"><SandboxChip testId="banner-sandbox-mobile" /></div>
       </header>
