@@ -19,3 +19,15 @@ browser decoding. The acceptance browser rejected the H264 stream, which the
 old error handler disguised as a completed intro; VP9 WebM playback worked.
 Keep a browser-compatible source and distinguish actual completion from error
 recovery when checking the intro.
+
+The developer homepage should use professional, product-led messaging, with
+Meld's Blockchain.com integration page as a reference for explaining value,
+integration flow and next steps. Video-inspired imagery supports that explanation;
+it must not replace it with storm/lightning slogans or unrelated copy.
+
+**Why:** the user rejected the existing homepage write-up as random and asked
+for a coherent fintech product explanation based on that reference.
+
+**How to apply:** explain the actual checkout workflow and developer capabilities
+first, distinguish available simulation from gated Live access, and never borrow
+Meld's partner logos, coverage statistics or service claims.
