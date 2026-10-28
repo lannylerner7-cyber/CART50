@@ -30,7 +30,8 @@ export function mountDashboard(app: Express, directory?: string) {
   app.use(express.static(root, { index: false, dotfiles: "deny", cacheControl: false }));
   app.get("/{*path}", (req, res) => {
     // Missing scripts, images and dotfiles must not get a misleading HTML 200.
-    if (req.path.includes(".") || !req.accepts("html")) {
+    const checkoutRoute = /^\/checkout\/[a-f0-9-]{36}\.[A-Za-z0-9_-]{43}\/?$/.test(req.path);
+    if ((req.path.includes(".") && !checkoutRoute) || !req.accepts("html")) {
       res.sendStatus(404);
       return;
     }

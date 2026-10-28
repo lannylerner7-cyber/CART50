@@ -14,6 +14,7 @@ const secret=randomBytes(64);
 // Display the Live mainnet boundary only: all engine/monitor credentials were removed above.
 // There is no RPC or signer transport in this disposable process.
 Object.assign(process.env,{NODE_ENV:"development",BITCOIN_NETWORK:"main",ALLOW_MAINNET:"true",
+  SESSION_SECRET:randomBytes(48).toString("base64url"),
   VAULT_DATA_DIR:dir,PUBLIC_ORIGIN:"http://localhost:4400",
   VAULT_OWNER_VERIFIER:createHash("sha256").update(secret).digest("hex"),
   VAULT_STATIC_DIR:fileURLToPath(new URL("../artifacts/bitcoin-vault/dist/public",import.meta.url))});

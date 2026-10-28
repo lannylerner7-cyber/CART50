@@ -126,6 +126,13 @@ the actual cryptographic WebAuthn verification with a virtual authenticator.
 
 ### Current acceptance limits
 
+For the subsequent focused browser results and actual Cloudflare read-only
+findings, see `docs/developer-release-commissioning.md`. Signup/recovery/rotation
+and owner-prefixed admin now have completed local reports. HTTPS checkout,
+two-developer browser isolation, intro skip and automatic expiry clearing remain
+open. The homepage switch remains off. The older broad-run record below is
+historical evidence, not the latest complete list of assertions.
+
 On 2026-10-28, both TypeScript checks and the frontend build passed. Twelve
 targeted tests cover owner access, additive schema and developer lifecycle/ledger
 rules. A public 390px login screenshot rendered correctly. The broader local

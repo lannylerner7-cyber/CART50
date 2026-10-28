@@ -180,7 +180,7 @@ export default function AdminPage() {
             )}
           </Panel>
 
-          <Panel title="Audit log"><Audit rows={d.audit} testId="list-audit" /></Panel>
+          <Panel title="Global pause/resume audit"><p className="mb-3 text-[13px] text-muted-foreground">Developer actions are listed in each account’s audit above.</p><Audit rows={d.audit} testId="list-audit" /></Panel>
         </>
       )}
 

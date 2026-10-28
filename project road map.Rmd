@@ -34,6 +34,35 @@ Evidence labels used here:
 
 # Product and scope
 
+## Release-gate verification — 2026-10-28 follow-through
+
+See `docs/developer-release-commissioning.md` for the evidence matrix, measured
+capacity design and hosted commissioning procedure.
+
+- **Read-only hosted evidence:** configured Cloudflare D1 has migration 1 only,
+  no developer tables; source Worker not listed, replica queues list no consumers,
+  and R2 reports not enabled. The website developer-session endpoint returns 404;
+  the authorized webhook hostname returns DNS ENOTFOUND. Coolify runtime mapping,
+  approved terms, SMTP, fresh prices, hosted backup restore and HTTPS delivery are
+  still unverified. No hosted mutation or email/webhook send was performed.
+- **Completed local browser reports:** real virtual-authenticator developer
+  signup/recovery/rotation, rejection of old key, console preview and explicit
+  one-time simulated credit; responsive console/Sandbox checks; owner-prefixed
+  navigation/reload, owner/developer separation and owner passkey-admin actions.
+- **Fixed:** hosted SPA fallback rejected dotted checkout tokens. A narrow
+  exception plus regression tests preserves missing-asset/dotfile protections.
+  Checkout capability URLs are redacted from server request logs.
+- **Measured design:** synthetic 500-account full read was about 12 MB; a
+  51-row cursor candidate about 1.23 MB. A boundary account exceeded 2.3 MB.
+  Pagination, archival with idempotency retention, fair outbox traversal and
+  shared abuse controls are specified, not deployed or claimed production-safe.
+- **Remaining browser gates:** HTTPS checkout QR/status/automatic redirect,
+  two-developer UI isolation, intro Skip and automatic expiry/cache clearing
+  without reload. Local API checks are not replacements for these.
+- **Decision:** VITE_DEVELOPER_HOMEPAGE remains off. Signet, owner storage,
+  passkey RP domain and mainnet custody are unchanged. No deploy, host resize,
+  Worker/R2 migration or real transfer occurred.
+
 ## Owner administration and Sandbox checkout (2026-10-28)
 
 **Source:** `/admin` reuses owner authentication and requires recent passkey
@@ -989,7 +1018,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-607 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+610 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -1019,8 +1048,9 @@ to publish: review repository assets before release.
 | `artifacts/api-server/.replit-artifact/artifact.toml` | 784 | `e461708bfe50f6eb964fa755cf0c6ba813c19392be055d5ef96c729aa0173539` | Managed artifact service/routing configuration; update through artifact tooling. |
 | `artifacts/api-server/build.mjs` | 3657 | `97e0a7f2a0509d86b390bc9f1f97f4848eb77339b0c27ac1c7e90b17a8784d6a` | build.mjs module in artifacts/api-server; see the owning subsystem above. |
 | `artifacts/api-server/package.json` | 1117 | `62914689091c41d66a0083716b72b32bfcd8697bb173ce311b978f1d35f00a0c` | Package identity, dependencies and runnable scripts. |
-| `artifacts/api-server/src/app.ts` | 2097 | `038b9bdb1f108b11f336c64081683a580f3f3274ac3bcd977cd284c51dbfcdee` | app.ts module in artifacts/api-server/src; see the owning subsystem above. |
+| `artifacts/api-server/src/app.ts` | 2108 | `ec169002d059ba194f290c430d124066976dfe2ac0e7daf3b9ae464aaeb3fcf2` | app.ts module in artifacts/api-server/src; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/auth.ts` | 2636 | `0dc808abefeaeb29d16cef5cac6f33b1ea1af3feda4c90278cdb06f8045b1eb7` | auth.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/backup-recovery.test.ts` | 1864 | `5bd4f2c5160000a6dfd398bceb6b3d1e64ad3115ce9bd4e8645e4fb8e2913472` | Regression tests for backup-recovery; local checks, not hosted evidence. |
 | `artifacts/api-server/src/developers/checkout-routes.ts` | 10026 | `d6eb58cd4c22c2f00af4f355525352fb71bfd47460c1fde3ada5372a7f401ef4` | checkout-routes.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/checkout.test.ts` | 9775 | `abdafbfff23c33f6629dc3cd0cf03d3c4e61c341e1713bf0e577a1ed4dda9e2e` | Regression tests for checkout; local checks, not hosted evidence. |
 | `artifacts/api-server/src/developers/developers.test.ts` | 8025 | `b91385e02a5b9d5011996542e0b9da19dc7d469f6580459ff959de8e68181095` | Regression tests for developers; local checks, not hosted evidence. |
@@ -1042,8 +1072,8 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/routes/sandbox.ts` | 2753 | `372c1c31e79a21bd84e31173ce709a4837873b6b8021eab3ef0f0b3ae84b4a5c` | sandbox.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/vault.ts` | 9882 | `cf8f6db428f862d67f648a0149ff231eca27a433d65996409bfdffb2a9dd47c4` | Owner-gated vault API endpoints and contract validation. |
 | `artifacts/api-server/src/smtp-check.ts` | 2672 | `2181f6e32c377c4ff424a7fff89b78655b5ca61d3b975a191b07702fc490d2fc` | smtp-check.ts module in artifacts/api-server/src; see the owning subsystem above. |
-| `artifacts/api-server/src/static.test.ts` | 3297 | `3b58e56f5d98beaa539129d82dffeade2abd826cb85174169173ad53e96195c7` | Regression tests for static; local checks, not hosted evidence. |
-| `artifacts/api-server/src/static.ts` | 1528 | `90483b8a79a78f60d353ad953d35cce4b2c7372b2a705b26a7f59f5d42f52a55` | static.ts module in artifacts/api-server/src; see the owning subsystem above. |
+| `artifacts/api-server/src/static.test.ts` | 3537 | `c2182dd323af4de3876311843fd356e094ba191604e7189665ad2faa57fcc538` | Regression tests for static; local checks, not hosted evidence. |
+| `artifacts/api-server/src/static.ts` | 1642 | `006a51ea10d88adbbca9ea499bcb32030c72266e017412a8b58587e63f8f8a3b` | static.ts module in artifacts/api-server/src; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/access.test.ts` | 6837 | `bb0a19f80249c165158aa00bd8c2f0e7027a84b62c9bda6b6a15a626a1865052` | Regression tests for access; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/auth.ts` | 4658 | `8eb7f062aeddae21781b3dbd409c5f1a2b19ace7db80ffd95f794ba3f57ee4e5` | Owner-key verification, session authentication and request protections. |
 | `artifacts/api-server/src/vault/burst.test.ts` | 2353 | `f3e520a039e6803da77f02911aade92559648b200b64d9af2adc92a4f42a07ff` | Regression tests for burst; local checks, not hosted evidence. |
@@ -1181,7 +1211,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/utils.ts` | 170 | `afc0e1dc0e142d6b81f688d91087f81a4b2db4240cf70f55b6e5e4dcc199ebf1` | utils.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/vault.tsx` | 3543 | `4aad0cc8f08811709b537612bb3f3331469751a5952290f6245e1a342023b61e` | vault.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/main.tsx` | 446 | `e7e03b61f962dc1787ea029d4941424475455366b5a4f079c8fcb4f5df4d076c` | React browser mount entrypoint. |
-| `artifacts/bitcoin-vault/src/pages/admin.tsx` | 14744 | `de9f03117bd64fb5ad4194a997b1ffd26fc5ad8ee9fc2cd52d7e5f2795943f1f` | admin wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/admin.tsx` | 14879 | `e6e2027700f1cc2663e219d5665396183557eeee377b10c322a10374e5d620c2` | admin wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/access.tsx` | 11610 | `c2147463634c1195231ec3b3a5e54a84d310c87029aafe24704a654c37a9283b` | access wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/apply.tsx` | 10604 | `31e97ab145c62cb57a598f568620ddf0180aa454523f871c863e4f85777b9508` | apply wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/checkout.tsx` | 21858 | `40144a8a7f210ce0a03e66d3c63514d4bb3706b761f46f8a79c9d15d60efe726` | checkout wallet screen. |
@@ -1423,7 +1453,8 @@ to publish: review repository assets before release.
 | `docs/coolify-bitcoin-setup.md` | 6457 | `79ea5ce97c779418b08abb5b0005cbee3bef98d72c9d7fe244dbad369b932e08` | Detailed coolify bitcoin setup runbook/status reference; respect dated evidence. |
 | `docs/coolify-deployment.md` | 13528 | `69d9278f3667c63efda3a002c625539b1a680d77a6eb1371fe19bff6d524e9c7` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
 | `docs/database-schema.md` | 3150 | `83c765f8d07d3008a0813094dd0ea961dbd923a960a3fee98537ad4ca494c47c` | Detailed database schema runbook/status reference; respect dated evidence. |
-| `docs/developer-access.md` | 8311 | `edff2b0149bb2070883fcc5497812c9c65c114165a9774f85e4b056d6160745f` | Detailed developer access runbook/status reference; respect dated evidence. |
+| `docs/developer-access.md` | 8765 | `0ba711b2506eaf36cc88335f7d27a881d5c0ecdf51a0f52ad3982eba9852083a` | Detailed developer access runbook/status reference; respect dated evidence. |
+| `docs/developer-release-commissioning.md` | 9746 | `2738ba3d2f3ab3e54a5cc8978614c7f2fe6563c5cbb3c930127019003cc49179` | Detailed developer release commissioning runbook/status reference; respect dated evidence. |
 | `docs/github-readiness.md` | 11521 | `10908f86e6a211ff20ae51d92f6e0c11938d131426fdfa100a3c4f1979d82c65` | Detailed github readiness runbook/status reference; respect dated evidence. |
 | `docs/hosted-readiness-audit-2026-10-27.md` | 6240 | `bb8e32fb1ff2a4e8f35cb9bcf6ab41526d1ba0d91dbd4c014b26d3e1161fc6b7` | Detailed hosted readiness audit 2026 10 27 runbook/status reference; respect dated evidence. |
 | `docs/live-sandbox-storage.md` | 6083 | `9faef15b9e15c7bc8ba56916972278d2bd721053acabeeb0b02ed1f33b13b13f` | Detailed live sandbox storage runbook/status reference; respect dated evidence. |
@@ -1554,10 +1585,11 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 224175 | `714025631ddd5482406a777dd349c3e90a733500a6408bd3690890ad40c7db49` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 59001 | `5f5bd33c50618fb600bec0b17d5e1f5f9468e5ce0b08e5c32d4b713a5c006358` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 60948 | `a66ccc4cc6233247a57e4cbe233cd06a8a15a0fe4f722dffe1e690a6d14b8d24` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
-| `scripts/developer-ui-fixture.mts` | 3319 | `89916382eb182024455a77624bf53a9cd8f96d9b37167e469a9992435c7dfb3f` | Operator/build utility: developer-ui-fixture.mts; inspect flags before invoking. |
+| `scripts/developer-capacity-check.mts` | 2050 | `ea82c34dfd141ec3f6b675df74e518473f356529d2c996e0c288ac9ca6de8527` | Operator/build utility: developer-capacity-check.mts; inspect flags before invoking. |
+| `scripts/developer-ui-fixture.mts` | 3375 | `7302bdaa71e7f473ad6ae26f596b2a75df5ddd5f9e0bb76afb816bcf21e49335` | Operator/build utility: developer-ui-fixture.mts; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
 | `scripts/package.json` | 336 | `2cc5a16fa30ac908526d4740473b38d8d5c95e1ed19032a5f5b9b970ec892602` | Package identity, dependencies and runnable scripts. |
 | `scripts/post-merge.sh` | 72 | `b9e43e43dcbacd4bd26b84d68dd616270a6aacbd51ab25a2f6b1b81484eadc37` | Operator/build utility: post-merge.sh; inspect flags before invoking. |

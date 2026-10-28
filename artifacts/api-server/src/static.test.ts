@@ -20,7 +20,8 @@ test("single-origin container routing keeps API and missing assets out of SPA fa
   assert.ok(address && typeof address !== "string");
   const base = `http://127.0.0.1:${address.port}`;
   try {
-    for (const route of ["/", "/wallets", "/settings/security"]) {
+    const checkout="/checkout/12345678-1234-1234-1234-123456789abc."+"A".repeat(43);
+    for (const route of ["/", "/wallets", "/settings/security",checkout]) {
       const response = await fetch(base + route);
       assert.equal(response.status, 200);
       assert.equal(response.headers.get("cache-control"), "no-store");
@@ -31,7 +32,8 @@ test("single-origin container routing keeps API and missing assets out of SPA fa
     const missingAPI = await fetch(base + "/api/missing");
     assert.equal(missingAPI.status, 404);
     assert.match(missingAPI.headers.get("content-type") ?? "", /json/);
-    for (const route of ["/missing.js", "/.env"]) assert.equal((await fetch(base + route)).status, 404);
+    for (const route of ["/missing.js", "/.env","/checkout/.env",checkout+".js",checkout+"/.env"]) assert.equal((await fetch(base + route)).status, 404);
+    assert.equal((await fetch(base+checkout,{headers:{accept:"application/json"}})).status,404);
     assert.match(await (await fetch(base + "/app.js")).text(), /asset/);
     assert.match(await (await fetch(base + "/offline-keygen.html")).text(), /offline-generator/);
   } finally {

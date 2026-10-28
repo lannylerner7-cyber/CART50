@@ -24,7 +24,7 @@ app.use(
         return {
           id: req.id,
           method: req.method,
-          url: /^\/api\/(vault|developers|developer-console|admin|checkout|v1)(\/|$)/.test(req.url ?? "") ? "/api/[private]" : req.url?.split("?")[0],
+          url: /^(\/api\/(vault|developers|developer-console|admin|checkout|v1)(\/|$)|\/checkout\/)/.test(req.url ?? "") ? "/[private]" : req.url?.split("?")[0],
         };
       },
       res(res) {
