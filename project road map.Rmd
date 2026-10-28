@@ -34,6 +34,15 @@ Evidence labels used here:
 
 # Product and scope
 
+## Owner-authorized route cutover
+
+The owner explicitly requested developer entry at `/` now, with personal vault
+access at the existing concatenated-1-through-256 `/mainvaultwallet` prefix.
+The default frontend switch is now on; explicit `VITE_DEVELOPER_HOMEPAGE=false`
+can restore prior root behavior. Existing developer deep links remain valid.
+This supersedes earlier “switch off” decisions, not unresolved acceptance gates.
+No storage, owner credentials, WebAuthn RP domain, Core sync or custody changes.
+
 ## Current continuation: staged HTTPS and capacity controls
 
 See `docs/developer-release-commissioning.md`, “Current continuation status.”
@@ -1065,7 +1074,7 @@ to publish: review repository assets before release.
 | `.agents/memory/MEMORY.md` | 2287 | `68ab4d10a5e886cb24d598e5f341ce18b58873729e9d4abcc0a3fcdfd0c98876` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
-| `.agents/memory/developer-boundary.md` | 1357 | `6319510bacffdf7891dfd979adbe086eb1cb0801c97a9b6f107ecaae0037417a` | Durable project decision/lesson: developer-boundary. |
+| `.agents/memory/developer-boundary.md` | 1548 | `d2b9ca125edeb0fe7664603895b4be04e53e08b95cc2c752965a1b2d05129b4f` | Durable project decision/lesson: developer-boundary. |
 | `.agents/memory/emergency-audit-capacity.md` | 735 | `6a4b0430853bd8632a3f0ad31e8386e709b03c4418c1323a4574d68a6eaa8fa4` | Durable project decision/lesson: emergency-audit-capacity. |
 | `.agents/memory/health-replication.md` | 2239 | `4b755891aeb81242e73bea695f5657520654aaec16e1e55f7eeb7971d631b2ec` | Durable project decision/lesson: health-replication. |
 | `.agents/memory/hosting-scope.md` | 4384 | `7b0ad7d558e79a77db161c532edf37035879cf2a010dd67e006f63b2e82ab3b0` | Durable project decision/lesson: hosting-scope. |
@@ -1243,7 +1252,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/developer.tsx` | 10460 | `ac4230b5ad1d7bc7bab3d9cb46e9e37ac75779b74cb5896e489d80402b29f72c` | developer.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.test.ts` | 823 | `6054ccce2ec59ee582f9784efb7f8f746470b352ade82ee1affc9497f0137194` | Regression tests for ledger-keys; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.ts` | 920 | `0ef19efdd008050bd8c98e9aea32d0fd97d163e08a6f02dfa44651b36a4352d3` | ledger-keys.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/lib/owner-location.ts` | 524 | `3db0b6bb8f4016ba23fc422e4bdbf48ae97df29c6272c5b97b5aedd8d60d8c31` | owner-location.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/owner-location.ts` | 524 | `91335a76d362d5a0860e715db4b911fc6c0971d0d5d7ac2f18dd3b3769909639` | owner-location.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/print.ts` | 699 | `88344fb2ff7853218999ae4e8da0b44fda9a39764a20e7cf100b90c2d0f3cdc4` | print.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/request-recovery.test.ts` | 1955 | `404df275dea16c2614b5eb72eb818db9f56411d19153780b88d5bbc7cc0b831d` | Regression tests for request-recovery; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/request-recovery.ts` | 963 | `0b4194832e0969196c349ae455eb901e5eb97ffb4da5f474ad6bcab754dbb3f8` | request-recovery.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
@@ -1499,7 +1508,7 @@ to publish: review repository assets before release.
 | `docs/coolify-deployment.md` | 13528 | `69d9278f3667c63efda3a002c625539b1a680d77a6eb1371fe19bff6d524e9c7` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
 | `docs/database-schema.md` | 3150 | `83c765f8d07d3008a0813094dd0ea961dbd923a960a3fee98537ad4ca494c47c` | Detailed database schema runbook/status reference; respect dated evidence. |
 | `docs/developer-access.md` | 8765 | `0ba711b2506eaf36cc88335f7d27a881d5c0ecdf51a0f52ad3982eba9852083a` | Detailed developer access runbook/status reference; respect dated evidence. |
-| `docs/developer-release-commissioning.md` | 15920 | `b5da114ec55b28a9b050d3e0b2214ffba2a7a8ce8a57933358eb592c906812df` | Detailed developer release commissioning runbook/status reference; respect dated evidence. |
+| `docs/developer-release-commissioning.md` | 16567 | `30df028e388a38dfcee382de5a27f32d63e246fad4c5166091621cd98c194044` | Detailed developer release commissioning runbook/status reference; respect dated evidence. |
 | `docs/github-readiness.md` | 11521 | `10908f86e6a211ff20ae51d92f6e0c11938d131426fdfa100a3c4f1979d82c65` | Detailed github readiness runbook/status reference; respect dated evidence. |
 | `docs/hosted-readiness-audit-2026-10-27.md` | 6240 | `bb8e32fb1ff2a4e8f35cb9bcf6ab41526d1ba0d91dbd4c014b26d3e1161fc6b7` | Detailed hosted readiness audit 2026 10 27 runbook/status reference; respect dated evidence. |
 | `docs/live-sandbox-storage.md` | 6083 | `9faef15b9e15c7bc8ba56916972278d2bd721053acabeeb0b02ed1f33b13b13f` | Detailed live sandbox storage runbook/status reference; respect dated evidence. |
@@ -1633,7 +1642,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 224175 | `714025631ddd5482406a777dd349c3e90a733500a6408bd3690890ad40c7db49` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 63448 | `c7f4e08529b392360d737c1533f7b47a895f3a30edda84ce6c40d056f5e87fe0` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 63963 | `a2bd54afe37b094d6c97bb49dc1884754abf9c3ce6515d37db2fd0873fe4f05a` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/developer-capacity-check.mts` | 2050 | `ea82c34dfd141ec3f6b675df74e518473f356529d2c996e0c288ac9ca6de8527` | Operator/build utility: developer-capacity-check.mts; inspect flags before invoking. |

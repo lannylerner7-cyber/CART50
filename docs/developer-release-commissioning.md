@@ -1,5 +1,21 @@
 # Developer release commissioning — 2026-10-28
 
+## Owner-authorized homepage cutover
+
+The owner explicitly requested root developer entry now. The default build
+therefore enables the existing homepage switch; explicit
+`VITE_DEVELOPER_HOMEPAGE=false` remains a rollback option. The existing personal
+prefix (concatenated 1 through 256, followed by `/mainvaultwallet`) remains its
+entry point. Developer deep links remain `/developers/...`. No duplicate page
+files, database movement, domain/RP change or custody enablement is involved.
+Older notes below describing the switch as off are historical. Intro Skip and
+other unpassed acceptance items are not reclassified as passed by this decision.
+
+Cutover verification: normal frontend typecheck/build passed. After restarting
+the Replit frontend, 390px screenshots confirmed `/` renders Developer access
+and the complete owner-requested long URL renders the locked personal vault.
+No owner credential was entered; no signed-in acceptance was rerun or implied.
+
 ## Current continuation status
 
 The isolated fixture now supports `VAULT_UI_FIXTURE_HTTPS=1` on loopback 4443,

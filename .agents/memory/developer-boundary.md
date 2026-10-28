@@ -14,11 +14,12 @@ keeping the personal vault unchanged.
 owner APIs with developer sessions. Reuse Sandbox presentation with isolated
 data. Live approval is distinct from hosted custody readiness; Signet stays paused.
 
-The developer homepage replaces the root only after acceptance. The personal
+The owner subsequently explicitly authorized the developer homepage at root,
+while unresolved acceptance items remain documented rather than treated as passed. The personal
 vault moves to the exact owner-supplied concatenated-1-through-256 URL prefix
 ending in `/mainvaultwallet`, without moving Core/signer storage or changing domains.
 
-**Why:** The owner requested a staged path-only switch, not a new vault.
+**Why:** The owner explicitly requested the path-only switch so they can visit the personal vault manually; this is not a new vault or permission to open Live custody.
 
 **How to apply:** Preserve owner login and nested navigation. A long path is not
 an authentication boundary. Keep the supplied video intro separate from the
