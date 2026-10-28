@@ -63,7 +63,7 @@ passkeyRouter.post("/passkey-login/verify", rateLimit, async (req, res) => {
     p.counter = verified.authenticationInfo.newCounter;
   });
   res.clearCookie(challengeCookie, opts);
-  res.json(sessionPayload(await newSession(res)));
+  res.json(sessionPayload(await newSession(res,true)));
 });
 passkeyRouter.get("/passkeys", requireOwner, async (_req, res) => {
   res.json((await readState()).passkeys.map(({ id, name, createdAt }) => ({ id, name, createdAt })));

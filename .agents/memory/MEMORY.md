@@ -12,3 +12,4 @@
 - [Request recovery](request-recovery.md) — recover monitoring reads automatically, but never blindly replay wallet writes.
 - [Live/Sandbox boundary](live-sandbox-boundary.md) — assigned test destination, no real-money claims, Return to Live before manual logout; preserve mainnet sync.
 - [Developer boundary](developer-boundary.md) — separate developer onboarding and tenant data; staged homepage relocation never moves owner custody.
+- [Emergency audit capacity](emergency-audit-capacity.md) — developer-controlled log quotas must not block owner suspension or revocation.

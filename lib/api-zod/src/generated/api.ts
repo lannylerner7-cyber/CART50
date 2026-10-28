@@ -7,6 +7,186 @@
 import * as zod from 'zod';
 
 
+export const GetDeveloperConsoleResponse = zod.object({
+  "accountId": zod.string(),
+  "status": zod.string(),
+  "paused": zod.boolean(),
+  "returnUrls": zod.array(zod.string()),
+  "webhookUrl": zod.string().nullable(),
+  "apiKeyPrefix": zod.string().nullable(),
+  "checkouts": zod.array(zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "status": zod.enum(['pending', 'simulation_paid', 'expired']),
+  "amount_sats": zod.number().int(),
+  "reference": zod.string(),
+  "expiresAt": zod.string(),
+  "environment": zod.enum(['simulation']),
+  "return_url": zod.string().nullable(),
+  "qrPayload": zod.string()
+})),
+  "deliveries": zod.array(zod.object({
+  "checkoutId": zod.string(),
+  "eventId": zod.string(),
+  "status": zod.string(),
+  "attempts": zod.number().int(),
+  "lastError": zod.string().nullable()
+})),
+  "liveApplication": zod.string(),
+  "liveEnabled": zod.boolean()
+})
+
+
+export const CheckoutConsoleActionParams = zod.object({
+  "action": zod.enum(['settings', 'issue-api-key', 'revoke-api-key', 'simulate', 'retry-webhook', 'apply-live', 'create-preview'])
+})
+
+export const CheckoutConsoleActionBody = zod.object({
+  "requestId": zod.string().optional(),
+  "accountId": zod.string().optional(),
+  "checkoutId": zod.string().optional(),
+  "reason": zod.string().optional(),
+  "paused": zod.boolean().optional(),
+  "amountSats": zod.number().int().optional(),
+  "returnUrls": zod.array(zod.string()).optional(),
+  "webhookUrl": zod.string().optional()
+})
+
+export const CheckoutConsoleActionResponse = zod.object({
+  "ok": zod.boolean().optional(),
+  "key": zod.string().optional(),
+  "webhookSecret": zod.string().optional(),
+  "message": zod.string().optional()
+})
+
+
+export const GetDeveloperAdminResponse = zod.object({
+  "paused": zod.boolean(),
+  "accounts": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "email": zod.string(),
+  "verified": zod.boolean(),
+  "status": zod.string(),
+  "balanceSats": zod.number().int(),
+  "apiKeyPrefix": zod.string().nullable(),
+  "liveApplication": zod.string(),
+  "audit": zod.array(zod.object({
+  "at": zod.string(),
+  "action": zod.string(),
+  "reason": zod.string(),
+  "actor": zod.string()
+}))
+})),
+  "audit": zod.array(zod.object({
+  "at": zod.string(),
+  "action": zod.string(),
+  "reason": zod.string(),
+  "actor": zod.string()
+})),
+  "signet": zod.string(),
+  "liveEnabled": zod.boolean(),
+  "stepUpRequired": zod.boolean()
+})
+
+
+export const DeveloperAdminActionParams = zod.object({
+  "action": zod.enum(['pause', 'activate', 'freeze', 'suspend', 'revoke', 'adjust', 'approve', 'reject', 'retry-webhook'])
+})
+
+export const DeveloperAdminActionBody = zod.object({
+  "requestId": zod.string().optional(),
+  "accountId": zod.string().optional(),
+  "checkoutId": zod.string().optional(),
+  "reason": zod.string().optional(),
+  "paused": zod.boolean().optional(),
+  "amountSats": zod.number().int().optional(),
+  "returnUrls": zod.array(zod.string()).optional(),
+  "webhookUrl": zod.string().optional()
+})
+
+export const DeveloperAdminActionResponse = zod.object({
+  "ok": zod.boolean().optional(),
+  "key": zod.string().optional(),
+  "webhookSecret": zod.string().optional(),
+  "message": zod.string().optional()
+})
+
+
+export const GetHostedCheckoutParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+export const GetHostedCheckoutResponse = zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "status": zod.enum(['pending', 'simulation_paid', 'expired']),
+  "amount_sats": zod.number().int(),
+  "reference": zod.string(),
+  "expiresAt": zod.string(),
+  "environment": zod.enum(['simulation']),
+  "return_url": zod.string().nullable(),
+  "qrPayload": zod.string()
+})
+
+
+export const CheckHostedCheckoutParams = zod.object({
+  "token": zod.coerce.string()
+})
+
+export const CheckHostedCheckoutResponse = zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "status": zod.enum(['pending', 'simulation_paid', 'expired']),
+  "amount_sats": zod.number().int(),
+  "reference": zod.string(),
+  "expiresAt": zod.string(),
+  "environment": zod.enum(['simulation']),
+  "return_url": zod.string().nullable(),
+  "qrPayload": zod.string()
+})
+
+
+export const CreateMerchantCheckoutHeader = zod.object({
+  "Idempotency-Key": zod.string()
+})
+
+export const CreateMerchantCheckoutBody = zod.object({
+  "amount_sats": zod.number().int(),
+  "reference": zod.string(),
+  "return_url": zod.string()
+})
+
+export const CreateMerchantCheckoutResponse = zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "status": zod.enum(['pending', 'simulation_paid', 'expired']),
+  "amount_sats": zod.number().int(),
+  "reference": zod.string(),
+  "expiresAt": zod.string(),
+  "environment": zod.enum(['simulation']),
+  "return_url": zod.string().nullable(),
+  "qrPayload": zod.string()
+})
+
+
+export const GetMerchantCheckoutParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetMerchantCheckoutResponse = zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "status": zod.enum(['pending', 'simulation_paid', 'expired']),
+  "amount_sats": zod.number().int(),
+  "reference": zod.string(),
+  "expiresAt": zod.string(),
+  "environment": zod.enum(['simulation']),
+  "return_url": zod.string().nullable(),
+  "qrPayload": zod.string()
+})
+
+
 export const GetDeveloperSessionResponse = zod.object({
   "authenticated": zod.boolean(),
   "terms": zod.object({

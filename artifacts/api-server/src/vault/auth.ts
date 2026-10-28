@@ -32,9 +32,9 @@ export async function sessionFor(req: Request) {
   const state = await readState();
   return state.sessions.find(s => equal(s.hash, hash(token)) && Date.parse(s.expiresAt) > Date.now());
 }
-export async function newSession(res: Response) {
+export async function newSession(res: Response, passkey = false) {
   const token = randomBytes(32).toString("base64url");
-  const record: SessionRecord = { hash: hash(token), csrf: randomBytes(32).toString("base64url"), createdAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 30 * 60000).toISOString() };
+  const record: SessionRecord = { hash: hash(token), csrf: randomBytes(32).toString("base64url"), createdAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 30 * 60000).toISOString(), ...(passkey ? {passkeyAt:Date.now()} : {}) };
   await changeState(s => { s.sessions = s.sessions.filter(x => Date.parse(x.expiresAt) > Date.now()).slice(-9); s.sessions.push(record); });
   res.cookie(cookieName, token, { httpOnly: true, secure: true, sameSite: "strict", path: "/", maxAge: 30 * 60000 });
   return record;

@@ -6,6 +6,25 @@ type Table = { name: string; create: string; columns: Column[] };
 // A required column without a meaningful backfill may only be added to an empty table.
 export const metadataSchema: Table[] = [
   {
+    name:"developer_security_audit",
+    create:"CREATE TABLE IF NOT EXISTS developer_security_audit (id TEXT PRIMARY KEY, account_id TEXT NOT NULL, created_at TEXT NOT NULL, data TEXT NOT NULL)",
+    columns:[
+      {name:"id",type:"TEXT",primary:true},
+      {name:"account_id",type:"TEXT",required:true},
+      {name:"created_at",type:"TEXT",required:true},
+      {name:"data",type:"TEXT",required:true},
+    ],
+  },
+  {
+    name: "developer_control",
+    create: "CREATE TABLE IF NOT EXISTS developer_control (id TEXT PRIMARY KEY, version INTEGER NOT NULL DEFAULT 0, data TEXT NOT NULL)",
+    columns: [
+      {name:"id",type:"TEXT",primary:true},
+      {name:"version",type:"INTEGER",required:true,add:"INTEGER NOT NULL DEFAULT 0",safeForRows:true},
+      {name:"data",type:"TEXT",required:true},
+    ],
+  },
+  {
     name: "developer_accounts",
     create: "CREATE TABLE IF NOT EXISTS developer_accounts (id TEXT PRIMARY KEY, email TEXT NOT NULL UNIQUE, version INTEGER NOT NULL DEFAULT 0, data TEXT NOT NULL)",
     columns: [
@@ -109,4 +128,7 @@ export async function ensureMetadataSchema(query: SchemaQuery) {
   await query("CREATE TABLE IF NOT EXISTS vault_schema_migrations (version INTEGER PRIMARY KEY, applied_at TEXT NOT NULL)");
   await query("INSERT OR IGNORE INTO vault_schema_migrations(version,applied_at) VALUES(?,?)", [1, new Date().toISOString()]);
   await query("INSERT OR IGNORE INTO vault_schema_migrations(version,applied_at) VALUES(?,?)", [2, new Date().toISOString()]);
+  await query("INSERT OR IGNORE INTO vault_schema_migrations(version,applied_at) VALUES(?,?)", [3, new Date().toISOString()]);
+  await query("CREATE INDEX IF NOT EXISTS developer_security_audit_account_time ON developer_security_audit(account_id,created_at)");
+  await query("INSERT OR IGNORE INTO vault_schema_migrations(version,applied_at) VALUES(?,?)", [4, new Date().toISOString()]);
 }

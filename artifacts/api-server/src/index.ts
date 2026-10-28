@@ -3,6 +3,7 @@ import { logger } from "./lib/logger";
 import { startMarketPolling } from "./vault/market";
 import { startSecurityMail } from "./vault/security-mail";
 import { initializeMetadata } from "./vault/store";
+import { startWebhookDelivery } from "./developers/webhooks";
 
 const rawPort = process.env["PORT"];
 
@@ -28,6 +29,7 @@ initializeMetadata().then(() => app.listen(port, (err) => {
   logger.info({ port }, "Server listening");
   startMarketPolling();
   startSecurityMail();
+  startWebhookDelivery();
 })).catch(err => {
   logger.error({ err }, "Metadata schema initialization failed; server not started");
   process.exit(1);

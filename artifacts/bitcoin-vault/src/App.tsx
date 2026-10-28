@@ -19,6 +19,8 @@ const Explorer = lazy(() => import('@/pages/explorer'));
 const Market = lazy(() => import('@/pages/market'));
 const SettingsPage = lazy(() => import('@/pages/settings'));
 const SandboxRouter = lazy(() => import('@/pages/sandbox'));
+const AdminPage = lazy(() => import('@/pages/admin'));
+const HostedCheckoutPage = lazy(() => import('@/pages/hosted-checkout'));
 const DevelopersApp = lazy(() => import('@/pages/developers'));
 import { SandboxShell } from '@/components/sandbox-shell';
 import { lockClient, LOCK_EVENT } from '@/lib/session-lock';
@@ -57,6 +59,7 @@ function Router() {
         <Route path="/explorer" component={Explorer} />
         <Route path="/market" component={Market} />
         <Route path="/settings" component={SettingsPage} />
+        <Route path="/admin" component={AdminPage} />
         <Route component={NotFound} />
       </Switch>
       </Suspense>
@@ -135,6 +138,9 @@ function Gate() {
 /** /developers is a separate principal with its own QueryClient; it renders before (and instead of) the owner Gate. */
 function Entry() {
   const [location] = useLocation();
+  if (location.startsWith('/checkout/')) {
+    return <Suspense fallback={<div className="grid min-h-[100dvh] place-items-center bg-sidebar"><VaultMark className="h-12 w-12" /></div>}><Route path="/checkout/:token">{(p) => <HostedCheckoutPage token={p.token} />}</Route></Suspense>;
+  }
   if (isOwnerLocation(location)) {
     return <Route path={OWNER_BASE} nest><Gate /></Route>;
   }
@@ -143,7 +149,7 @@ function Entry() {
   }
   if (DEVELOPER_HOMEPAGE) {
     if(location==='/') return <Suspense fallback={<p role="status" className="p-6">Opening developer access…</p>}><DevelopersApp atRoot /></Suspense>;
-    if(['/wallets','/transactions','/spending','/explorer','/market','/settings','/sandbox'].some(p=>location===p||location.startsWith(p+'/'))) {
+    if(['/wallets','/transactions','/spending','/explorer','/market','/settings','/sandbox','/admin'].some(p=>location===p||location.startsWith(p+'/'))) {
       return <Redirect to={OWNER_BASE+location} replace />;
     }
     return <NotFound />;

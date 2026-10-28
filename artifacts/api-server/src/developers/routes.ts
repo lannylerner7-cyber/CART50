@@ -8,6 +8,7 @@ import { registrationOptions, registrationVerify, loginOptions, loginVerify } fr
 import { sendSecurityMail, type SecuritySender } from "../vault/smtp";
 import { getMarket } from "../vault/market";
 import { destinationFor, execute, review, snapshot } from "./ledger";
+import { eligible, writable } from "./merchant";
 import type { AuthenticationResponseJSON, RegistrationResponseJSON } from "@simplewebauthn/server";
 
 const emailSchema=z.string().trim().email().max(254).transform(s=>s.toLowerCase());
@@ -161,12 +162,14 @@ export function developerRouter(deps: DeveloperDependencies = {}) {
       res.json({key,message:"Save this key now. It will not be shown again. Previous keys are invalid."});return;
     }
     if(action==="review"){
+      await writable();
       const b=z.object({destination:z.string().max(100),amountCents:z.number().int().positive().max(300000)}).strict().parse(req.body);
-      res.json(await updateAccount(a.id,a=>{activeSession(a,s);return review(a,s,b.amountCents,b.destination);}));return;
+      res.json(await updateAccount(a.id,a=>{activeSession(a,s);eligible(a,true);return review(a,s,b.amountCents,b.destination);}));return;
     }
     if(action==="pay"){
+      await writable();
       const b=z.object({reviewId:z.string().uuid(),confirmed:z.literal(true)}).strict().parse(req.body);
-      res.json(await updateAccount(a.id,a=>{activeSession(a,s);return execute(a,s,b.reviewId,b.confirmed);}));return;
+      res.json(await updateAccount(a.id,a=>{activeSession(a,s);eligible(a,true);return execute(a,s,b.reviewId,b.confirmed);}));return;
     }
     throw new HttpError(404,"Developer action not found");
   });

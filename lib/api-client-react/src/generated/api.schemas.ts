@@ -4,6 +4,112 @@
  * Api
  * OpenAPI spec version: 0.1.0
  */
+export interface CheckoutCreate {
+  amount_sats: number;
+  reference: string;
+  return_url: string;
+}
+
+export interface CheckoutCommand {
+  requestId?: string;
+  accountId?: string;
+  checkoutId?: string;
+  reason?: string;
+  paused?: boolean;
+  amountSats?: number;
+  returnUrls?: string[];
+  webhookUrl?: string;
+}
+
+export interface CheckoutCommandResult {
+  ok?: boolean;
+  key?: string;
+  webhookSecret?: string;
+  message?: string;
+}
+
+export type HostedCheckoutStatus = typeof HostedCheckoutStatus[keyof typeof HostedCheckoutStatus];
+
+
+export const HostedCheckoutStatus = {
+  pending: 'pending',
+  simulation_paid: 'simulation_paid',
+  expired: 'expired',
+} as const;
+
+export type HostedCheckoutEnvironment = typeof HostedCheckoutEnvironment[keyof typeof HostedCheckoutEnvironment];
+
+
+export const HostedCheckoutEnvironment = {
+  simulation: 'simulation',
+} as const;
+
+export interface HostedCheckout {
+  id: string;
+  url: string;
+  status: HostedCheckoutStatus;
+  amount_sats: number;
+  reference: string;
+  expiresAt: string;
+  environment: HostedCheckoutEnvironment;
+  /** @nullable */
+  return_url: string | null;
+  qrPayload: string;
+}
+
+export interface CheckoutDelivery {
+  checkoutId: string;
+  eventId: string;
+  status: string;
+  attempts: number;
+  /** @nullable */
+  lastError: string | null;
+}
+
+export interface CheckoutAudit {
+  at: string;
+  action: string;
+  reason: string;
+  actor: string;
+}
+
+export interface CheckoutConsole {
+  accountId: string;
+  status: string;
+  paused: boolean;
+  returnUrls: string[];
+  /** @nullable */
+  webhookUrl: string | null;
+  /** @nullable */
+  apiKeyPrefix: string | null;
+  checkouts: HostedCheckout[];
+  deliveries: CheckoutDelivery[];
+  liveApplication: string;
+  liveEnabled: boolean;
+}
+
+export interface AdminDeveloper {
+  id: string;
+  name: string;
+  email: string;
+  verified: boolean;
+  status: string;
+  balanceSats: number;
+  /** @nullable */
+  apiKeyPrefix: string | null;
+  liveApplication: string;
+  audit: CheckoutAudit[];
+}
+
+export interface DeveloperAdmin {
+  paused: boolean;
+  accounts: AdminDeveloper[];
+  audit: CheckoutAudit[];
+  signet: string;
+  liveEnabled: boolean;
+  stepUpRequired: boolean;
+}
+
 export interface DeveloperTerms {
   version: string;
   text: string;

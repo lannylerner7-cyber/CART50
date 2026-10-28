@@ -1,0 +1,105 @@
+import {test} from "node:test";
+import assert from "node:assert/strict";
+import {mkdtempSync,rmSync} from "node:fs";
+import {tmpdir} from "node:os";
+import {join} from "node:path";
+import {randomBytes,randomUUID} from "node:crypto";
+test("checkout/admin boundaries, idempotent simulation and leased webhook outbox",async()=>{
+  for(const k of Object.keys(process.env))if(/^(CF_|VAULT_|MAINNET_|SANDBOX_|SMTP_|MARKET_)/.test(k))delete process.env[k];
+  const dir=mkdtempSync(join(tmpdir(),"checkout-unit-"));
+  Object.assign(process.env,{NODE_ENV:"test",BITCOIN_NETWORK:"main",ALLOW_MAINNET:"true",VAULT_DATA_DIR:dir,PUBLIC_ORIGIN:"http://localhost",SESSION_SECRET:randomBytes(32).toString("hex")});
+  const {default:app}=await import("../app");
+  const {createAccount,updateAccount,accountBy}=await import("./store");
+  const {issueSession}=await import("./auth");
+  const {newSession}=await import("../vault/auth");
+  const {publicIPv4,httpsUrl,attemptDelivery}=await import("./webhooks");
+  const {readState}=await import("../vault/store");
+  const server=app.listen(0,"127.0.0.1");await new Promise<void>(r=>server.once("listening",r));
+  const address=server.address() as {port:number};const url=`http://127.0.0.1:${address.port}`;
+  type Client={cookie:string;csrf:string};
+  const req=async(path:string,method="GET",data?:unknown,client?:Client,headers:Record<string,string>={})=>{
+    const r=await fetch(url+"/api"+path,{method,headers:{"content-type":"application/json",origin:"http://localhost",...(client?{cookie:client.cookie,"x-developer-csrf":client.csrf,"x-csrf-token":client.csrf}:{}),...headers},...(data===undefined?{}:{body:JSON.stringify(data)})});
+    return {status:r.status,data:await r.json() as any};
+  };
+  async function developer(email:string){
+    const a=(await createAccount("Fixture",email,"draft"))!;
+    await updateAccount(a.id,a=>{a.verified=true;a.passkeys=[{id:"fixture",publicKey:"AA",counter:0,name:"Fixture",createdAt:new Date().toISOString()}];a.provisioning="ready";a.balanceSats=3000000;a.quote={priceCents:10000000,source:"fixture",at:new Date().toISOString()};});
+    let cookie="";const s=await issueSession({cookie:(n:string,v:string)=>cookie=n+"="+v} as any,a.id,"full",true);
+    return {id:a.id,client:{cookie,csrf:s.csrf}};
+  }
+  try{
+    const a=await developer("a@example.invalid"),b=await developer("b@example.invalid");
+    let ownerCookie="";const owner=await newSession({cookie:(n:string,v:string)=>ownerCookie=n+"="+v} as any,true);
+    const admin={cookie:ownerCookie,csrf:owner.csrf};
+    const beforeOwner=JSON.stringify(await readState());
+    assert.equal((await req("/admin/developers","GET",undefined,a.client)).status,401);
+    assert.equal((await req("/vault/wallets","GET",undefined,a.client)).status,401);
+    let settings=await req("/developer-console/settings","POST",{returnUrls:["https://merchant.example/result"],webhookUrl:"https://merchant.example/events"},a.client);
+    assert.equal(settings.status,200);assert.equal(settings.data.webhookSecret.length,43);
+    let key=await req("/developer-console/issue-api-key","POST",{},a.client);assert.equal(key.status,200);
+    const bearer={authorization:"Bearer "+key.data.key,"idempotency-key":"order-unit-123"};
+    const body={amount_sats:25000,reference:"order-unit",return_url:"https://merchant.example/result"};
+    assert.equal((await req("/v1/checkout/sessions","POST",{...body,return_url:"https://evil.example"},undefined,bearer)).status,400);
+    const created=await req("/v1/checkout/sessions","POST",body,undefined,bearer);assert.equal(created.status,200);
+    const duplicate=await req("/v1/checkout/sessions","POST",body,undefined,bearer);assert.equal(duplicate.data.id,created.data.id);
+    assert.equal((await req("/v1/checkout/sessions","POST",{...body,amount_sats:25001},undefined,bearer)).status,409);
+    const token=created.data.url.split("/checkout/")[1],id=created.data.id;
+    const otherKey=await req("/developer-console/issue-api-key","POST",{},b.client);
+    assert.equal((await req("/v1/checkout/sessions/"+id,"GET",undefined,undefined,{authorization:"Bearer "+otherKey.data.key})).status,404);
+    assert.equal((await req(`/checkout/${token}/check`,"POST",{})).data.status,"pending");
+    assert.equal((await req("/developer-console/simulate","POST",{checkoutId:id},b.client)).status,404);
+    const paid=await Promise.all([1,2].map(()=>req("/developer-console/simulate","POST",{checkoutId:id},a.client)));
+    assert.ok(paid.every(r=>r.status===200));
+    assert.equal((await accountBy("id",a.id))!.balanceSats,3025000);
+    const status=await req(`/checkout/${token}`);assert.equal(status.data.status,"simulation_paid");
+    assert.match(status.data.return_url,/checkout_id=/);
+    assert.equal(status.data.qrPayload,created.data.url);
+    let state=(await accountBy("id",a.id))!;
+    assert.equal(state.merchant!.deliveries.length,1);
+    assert.ok(!JSON.stringify(state).includes(settings.data.webhookSecret));
+    const rotated=await req("/developer-console/settings","POST",{returnUrls:["https://merchant.example/result"],webhookUrl:"https://merchant.example/events",reason:"rotate-webhook"},a.client);
+    assert.notEqual(rotated.data.webhookSecret,settings.data.webhookSecret);
+    assert.equal((await accountBy("id",a.id))!.merchant!.deliveries[0].secret,state.merchant!.deliveries[0].secret,"queued events retain their original signing secret");
+    const event=state.merchant!.deliveries[0].eventId;let calls=0;
+    await Promise.all([1,2].map(()=>attemptDelivery(a.id,event,async d=>{calls++;assert.equal(JSON.parse(d.body).type,"checkout.simulation_paid");})));
+    assert.equal(calls,1);assert.equal((await accountBy("id",a.id))!.merchant!.deliveries[0].status,"delivered");
+    assert.equal(JSON.stringify(await readState()),beforeOwner,"developer operations never change owner state");
+    assert.equal((await req("/admin/developers/pause","POST",{paused:true,reason:"Unit maintenance"},admin)).status,200);
+    assert.equal((await req("/v1/checkout/sessions","POST",body,undefined,{...bearer,"idempotency-key":"another-order"})).status,503);
+    await req("/admin/developers/pause","POST",{paused:false,reason:"Unit resume"},admin);
+    await req("/admin/developers/freeze","POST",{accountId:a.id,reason:"Unit freeze"},admin);
+    assert.equal((await req("/v1/checkout/sessions","POST",body,undefined,{...bearer,"idempotency-key":"another-order"})).status,403);
+    const adjustment={accountId:a.id,reason:"Unit adjustment",amountSats:100,requestId:randomUUID()};
+    await req("/admin/developers/adjust","POST",adjustment,admin);await req("/admin/developers/adjust","POST",adjustment,admin);
+    assert.equal((await accountBy("id",a.id))!.balanceSats,3025100);
+    assert.equal((await req("/admin/developers/adjust","POST",{...adjustment,amountSats:200},admin)).status,409);
+    await req("/developer-console/apply-live","POST",{reason:"Testing integration"},b.client);
+    await req("/admin/developers/approve","POST",{accountId:b.id,reason:"Application reviewed only"},admin);
+    assert.equal((await req("/developer-console","GET",undefined,b.client)).data.liveEnabled,false);
+    // A compromised developer must not be able to exhaust owner revocation capacity.
+    await updateAccount(b.id,a=>{
+      a.merchant!.audit=Array.from({length:2000},()=>({at:new Date().toISOString(),action:"settings",reason:"capacity fixture",actor:"developer"}));
+    });
+    assert.equal((await req("/developer-console/settings","POST",{returnUrls:[]},b.client)).status,409);
+    assert.equal((await req("/admin/developers/revoke","POST",{accountId:b.id,reason:"Emergency revoke at full audit"},admin)).status,200);
+    let revoked=(await accountBy("id",b.id))!;
+    assert.equal(revoked.sessions.length,0);assert.equal(revoked.merchant!.apiKeyHash,undefined);
+    assert.equal((await req("/developer-console","GET",undefined,b.client)).status,401);
+    // Refill a disposable session/key directly to independently exercise suspend.
+    await updateAccount(b.id,a=>{a.sessions=[{hash:"fixture",csrf:"fixture",expires:Date.now()+60000,level:"full"}];a.merchant!.apiKeyHash="fixture";});
+    assert.equal((await req("/admin/developers/suspend","POST",{accountId:b.id,reason:"Emergency suspend at full audit"},admin)).status,200);
+    revoked=(await accountBy("id",b.id))!;
+    assert.equal(revoked.sessions.length,0);assert.equal(revoked.merchant!.apiKeyHash,undefined);
+    assert.equal(revoked.merchant!.status,"suspended");assert.equal(revoked.merchant!.audit.length,2000,"ordinary history retained intact");
+    const securityAudit=await (await import("./merchant")).recentSecurityAudit();
+    assert.deepEqual(new Set(securityAudit.get(b.id)!.map(e=>e.action)),new Set(["revoke:requested","revoke:applied","suspend:requested","suspend:applied"]));
+    await req("/admin/developers/suspend","POST",{accountId:a.id,reason:"Unit suspend"},admin);
+    assert.equal((await req("/developer-console","GET",undefined,a.client)).status,401);
+    assert.equal((await req("/v1/checkout/sessions/"+id,"GET",undefined,undefined,bearer)).status,401);
+    let weakCookie="";const weak=await newSession({cookie:(n:string,v:string)=>weakCookie=n+"="+v} as any);
+    assert.equal((await req("/admin/developers/pause","POST",{paused:true,reason:"Missing passkey"},{cookie:weakCookie,csrf:weak.csrf})).status,403);
+    for(const ip of ["127.0.0.1","10.0.0.1","169.254.169.254","172.16.0.1","192.168.1.1","::1","100.100.100.200"])assert.equal(publicIPv4(ip),false);
+    assert.equal(publicIPv4("8.8.8.8"),true);
+    assert.throws(()=>httpsUrl("http://example.com"));assert.throws(()=>httpsUrl("https://name:password@example.com"));
+  }finally{await new Promise<void>(r=>server.close(()=>r()));rmSync(dir,{recursive:true,force:true});}
+});

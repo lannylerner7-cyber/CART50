@@ -12,7 +12,7 @@ export type Alert = {
   windowMinutes: number; cooldownMinutes: number; enabled: boolean;
   lastTriggeredAt: string | null; armed: boolean;
 };
-export type SessionRecord = { hash: string; csrf: string; expiresAt: string; createdAt: string };
+export type SessionRecord = { hash: string; csrf: string; expiresAt: string; createdAt: string; passkeyAt?: number };
 export type StoredPasskey = { id: string; name: string; createdAt: string; publicKey: string; counter: number; transports?: WebAuthnCredential["transports"] };
 export type State = {
   sandboxSignetReviews?: { id: string; sessionHash: string; walletId: string; address: string; expiresAt: string }[];

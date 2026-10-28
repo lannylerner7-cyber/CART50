@@ -10,6 +10,7 @@ import { configureTrustedProxies } from "./vault/login-security";
 import { admission } from "./middlewares/admission";
 import { configuredNetwork } from "./vault/network";
 import { developerRouter } from "./developers/routes";
+import { checkoutRouter } from "./developers/checkout-routes";
 
 const app: Express = express();
 configuredNetwork();
@@ -23,7 +24,7 @@ app.use(
         return {
           id: req.id,
           method: req.method,
-          url: /^\/api\/(vault|developers)\//.test(req.url ?? "") ? "/api/[private]" : req.url?.split("?")[0],
+          url: /^\/api\/(vault|developers|developer-console|admin|checkout|v1)(\/|$)/.test(req.url ?? "") ? "/api/[private]" : req.url?.split("?")[0],
         };
       },
       res(res) {
@@ -45,6 +46,7 @@ app.use(express.json({ limit: "64kb" }));
 
 app.use("/api/vault", vault);
 app.use("/api/developers", developerRouter());
+app.use("/api", checkoutRouter);
 app.use("/api", router);
 mountDashboard(app, process.env.VAULT_STATIC_DIR);
 app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {

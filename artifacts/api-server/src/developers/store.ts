@@ -1,11 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { initializeMetadata, query, type StoredPasskey } from "../vault/store";
 import { HttpError } from "../vault/auth";
+import type { MerchantState } from "./merchant";
 
 export type DevSession = { hash: string; csrf: string; expires: number; level: "onboarding" | "full"; passkeyAt?: number };
 export type DevReview = { id: string; destination: string; amountCents: number; amountSats: number; sessionHash: string; createdAt: string; expiresAt: string; status: "pending" | "complete"; receiptId?: string };
 export type DevReceipt = { id: string; destination: string; amountCents: number; amountSats: number; balanceAfterCents: number; balanceAfterSats: number; createdAt: string; status: "simulation_complete"; test: true };
 export type Account = {
+  merchant?: MerchantState;
   id: string; email: string; name: string; createdAt: string; termsVersion: string; acceptedAt: string;
   verified: boolean; passkeys: StoredPasskey[]; keyHash?: string; sessions: DevSession[];
   verification?: { hash: string; expires: number; sentAt: number; attempts: number; delivery: "pending" | "sent" | "failed" };

@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
-import { Activity, ArrowUpRight, Wallet as WalletIcon, Home, Lock, Menu, ScanSearch, Settings2, LineChart, History, FlaskConical } from 'lucide-react';
+import { Activity, ArrowUpRight, Wallet as WalletIcon, Home, Lock, Menu, ScanSearch, Settings2, LineChart, History, ShieldCheck, FlaskConical } from 'lucide-react';
 import { useLockVault } from '@workspace/api-client-react';
 import { useCsrf, useSession, remaining, errMsg, errStatus } from '@/lib/vault';
 import { lockClient } from '@/lib/session-lock';
@@ -90,6 +90,10 @@ export function Shell({ children }: { children: ReactNode }) {
       <Link href="/sandbox" onClick={() => setOpen(false)} data-testid="link-switch-sandbox"
         className="flex w-full items-center justify-center gap-2 rounded-full border border-warn/40 px-3 py-2.5 text-[13px] font-bold text-warn transition-colors hover:bg-warn/10">
         <FlaskConical className="h-4 w-4" /> Switch to Sandbox
+      </Link>
+      <Link href="/admin" onClick={() => setOpen(false)} data-testid="link-owner-admin"
+        className="flex w-full items-center justify-center gap-2 rounded-full border border-border px-3 py-2.5 text-[13px] font-bold text-foreground transition-colors hover:bg-muted">
+        <ShieldCheck className="h-4 w-4" /> Developer admin
       </Link>
       <button
         onClick={doLock}

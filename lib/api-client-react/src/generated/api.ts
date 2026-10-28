@@ -21,10 +21,15 @@ import type {
 import type {
   Alert,
   AlertInput,
+  CheckoutCommand,
+  CheckoutCommandResult,
+  CheckoutConsole,
+  CheckoutCreate,
   CredentialInput,
   Dashboard,
   DeveloperActionInput,
   DeveloperActionResult,
+  DeveloperAdmin,
   DeveloperSandbox,
   DeveloperSession,
   Error,
@@ -34,6 +39,7 @@ import type {
   GetRecipientParams,
   GetSandboxAddressParams,
   HealthStatus,
+  HostedCheckout,
   Market,
   NodeStatus,
   NodeSync,
@@ -91,6 +97,606 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetDeveloperConsoleUrl = () => {
+
+
+
+
+  return `/api/developer-console`
+}
+
+export const getDeveloperConsole = async ( options?: Parameters<typeof customFetch>[1]): Promise<CheckoutConsole> => {
+
+  return customFetch<CheckoutConsole>(getGetDeveloperConsoleUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDeveloperConsoleQueryKey = () => {
+    return [
+    `/api/developer-console`
+    ] as const;
+    }
+
+
+export const getGetDeveloperConsoleQueryOptions = <TData = Awaited<ReturnType<typeof getDeveloperConsole>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperConsole>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDeveloperConsoleQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeveloperConsole>>> = ({ signal }) => getDeveloperConsole({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDeveloperConsole>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDeveloperConsoleQueryResult = NonNullable<Awaited<ReturnType<typeof getDeveloperConsole>>>
+export type GetDeveloperConsoleQueryError = ErrorType<unknown>
+
+
+
+export function useGetDeveloperConsole<TData = Awaited<ReturnType<typeof getDeveloperConsole>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperConsole>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDeveloperConsoleQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCheckoutConsoleActionUrl = (action: 'settings' | 'issue-api-key' | 'revoke-api-key' | 'simulate' | 'retry-webhook' | 'apply-live' | 'create-preview',) => {
+
+
+
+
+  return `/api/developer-console/${action}`
+}
+
+export const checkoutConsoleAction = async (action: 'settings' | 'issue-api-key' | 'revoke-api-key' | 'simulate' | 'retry-webhook' | 'apply-live' | 'create-preview',
+    checkoutCommand: CheckoutCommand, options?: Parameters<typeof customFetch>[1]): Promise<CheckoutCommandResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CheckoutCommandResult>(getCheckoutConsoleActionUrl(action),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(checkoutCommand)
+  }
+);}
+
+
+
+
+
+export const getCheckoutConsoleActionMutationKey = () => ['checkoutConsoleAction'] as const;
+
+export const getCheckoutConsoleActionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkoutConsoleAction>>, TError,CheckoutConsoleActionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof checkoutConsoleAction>>, TError,CheckoutConsoleActionMutationVariables, TContext> => {
+
+const mutationKey = getCheckoutConsoleActionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof checkoutConsoleAction>>, CheckoutConsoleActionMutationVariables> = (props) => {
+          const {action,data} = props ?? {};
+
+          return  checkoutConsoleAction(action,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CheckoutConsoleActionMutationResult = NonNullable<Awaited<ReturnType<typeof checkoutConsoleAction>>>
+    export type CheckoutConsoleActionMutationBody = BodyType<CheckoutCommand>
+    export type CheckoutConsoleActionMutationError = ErrorType<unknown>
+    export type CheckoutConsoleActionMutationVariables = {action: 'settings' | 'issue-api-key' | 'revoke-api-key' | 'simulate' | 'retry-webhook' | 'apply-live' | 'create-preview';data: BodyType<CheckoutCommand>}
+
+    export const useCheckoutConsoleAction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkoutConsoleAction>>, TError,CheckoutConsoleActionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof checkoutConsoleAction>>,
+        TError,
+        CheckoutConsoleActionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCheckoutConsoleActionMutationOptions(options));
+    }
+
+export const getGetDeveloperAdminUrl = () => {
+
+
+
+
+  return `/api/admin/developers`
+}
+
+export const getDeveloperAdmin = async ( options?: Parameters<typeof customFetch>[1]): Promise<DeveloperAdmin> => {
+
+  return customFetch<DeveloperAdmin>(getGetDeveloperAdminUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDeveloperAdminQueryKey = () => {
+    return [
+    `/api/admin/developers`
+    ] as const;
+    }
+
+
+export const getGetDeveloperAdminQueryOptions = <TData = Awaited<ReturnType<typeof getDeveloperAdmin>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDeveloperAdminQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeveloperAdmin>>> = ({ signal }) => getDeveloperAdmin({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDeveloperAdmin>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDeveloperAdminQueryResult = NonNullable<Awaited<ReturnType<typeof getDeveloperAdmin>>>
+export type GetDeveloperAdminQueryError = ErrorType<unknown>
+
+
+
+export function useGetDeveloperAdmin<TData = Awaited<ReturnType<typeof getDeveloperAdmin>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDeveloperAdminQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDeveloperAdminActionUrl = (action: 'pause' | 'activate' | 'freeze' | 'suspend' | 'revoke' | 'adjust' | 'approve' | 'reject' | 'retry-webhook',) => {
+
+
+
+
+  return `/api/admin/developers/${action}`
+}
+
+export const developerAdminAction = async (action: 'pause' | 'activate' | 'freeze' | 'suspend' | 'revoke' | 'adjust' | 'approve' | 'reject' | 'retry-webhook',
+    checkoutCommand: CheckoutCommand, options?: Parameters<typeof customFetch>[1]): Promise<CheckoutCommandResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<CheckoutCommandResult>(getDeveloperAdminActionUrl(action),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(checkoutCommand)
+  }
+);}
+
+
+
+
+
+export const getDeveloperAdminActionMutationKey = () => ['developerAdminAction'] as const;
+
+export const getDeveloperAdminActionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof developerAdminAction>>, TError,DeveloperAdminActionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof developerAdminAction>>, TError,DeveloperAdminActionMutationVariables, TContext> => {
+
+const mutationKey = getDeveloperAdminActionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof developerAdminAction>>, DeveloperAdminActionMutationVariables> = (props) => {
+          const {action,data} = props ?? {};
+
+          return  developerAdminAction(action,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeveloperAdminActionMutationResult = NonNullable<Awaited<ReturnType<typeof developerAdminAction>>>
+    export type DeveloperAdminActionMutationBody = BodyType<CheckoutCommand>
+    export type DeveloperAdminActionMutationError = ErrorType<unknown>
+    export type DeveloperAdminActionMutationVariables = {action: 'pause' | 'activate' | 'freeze' | 'suspend' | 'revoke' | 'adjust' | 'approve' | 'reject' | 'retry-webhook';data: BodyType<CheckoutCommand>}
+
+    export const useDeveloperAdminAction = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof developerAdminAction>>, TError,DeveloperAdminActionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof developerAdminAction>>,
+        TError,
+        DeveloperAdminActionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeveloperAdminActionMutationOptions(options));
+    }
+
+export const getGetHostedCheckoutUrl = (token: string,) => {
+
+
+
+
+  return `/api/checkout/${token}`
+}
+
+export const getHostedCheckout = async (token: string, options?: Parameters<typeof customFetch>[1]): Promise<HostedCheckout> => {
+
+  return customFetch<HostedCheckout>(getGetHostedCheckoutUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetHostedCheckoutQueryKey = (token: string,) => {
+    return [
+    `/api/checkout/${token}`
+    ] as const;
+    }
+
+
+export const getGetHostedCheckoutQueryOptions = <TData = Awaited<ReturnType<typeof getHostedCheckout>>, TError = ErrorType<unknown>>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHostedCheckout>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetHostedCheckoutQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getHostedCheckout>>> = ({ signal }) => getHostedCheckout(token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getHostedCheckout>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetHostedCheckoutQueryResult = NonNullable<Awaited<ReturnType<typeof getHostedCheckout>>>
+export type GetHostedCheckoutQueryError = ErrorType<unknown>
+
+
+
+export function useGetHostedCheckout<TData = Awaited<ReturnType<typeof getHostedCheckout>>, TError = ErrorType<unknown>>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHostedCheckout>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetHostedCheckoutQueryOptions(token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCheckHostedCheckoutUrl = (token: string,) => {
+
+
+
+
+  return `/api/checkout/${token}/check`
+}
+
+export const checkHostedCheckout = async (token: string, options?: Parameters<typeof customFetch>[1]): Promise<HostedCheckout> => {
+
+  return customFetch<HostedCheckout>(getCheckHostedCheckoutUrl(token),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getCheckHostedCheckoutMutationKey = () => ['checkHostedCheckout'] as const;
+
+export const getCheckHostedCheckoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkHostedCheckout>>, TError,CheckHostedCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof checkHostedCheckout>>, TError,CheckHostedCheckoutMutationVariables, TContext> => {
+
+const mutationKey = getCheckHostedCheckoutMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof checkHostedCheckout>>, CheckHostedCheckoutMutationVariables> = (props) => {
+          const {token} = props ?? {};
+
+          return  checkHostedCheckout(token,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CheckHostedCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof checkHostedCheckout>>>
+
+    export type CheckHostedCheckoutMutationError = ErrorType<unknown>
+    export type CheckHostedCheckoutMutationVariables = {token: string}
+
+    export const useCheckHostedCheckout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof checkHostedCheckout>>, TError,CheckHostedCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof checkHostedCheckout>>,
+        TError,
+        CheckHostedCheckoutMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCheckHostedCheckoutMutationOptions(options));
+    }
+
+export const getCreateMerchantCheckoutUrl = () => {
+
+
+
+
+  return `/api/v1/checkout/sessions`
+}
+
+export const createMerchantCheckout = async (checkoutCreate: CheckoutCreate, options?: Parameters<typeof customFetch>[1]): Promise<HostedCheckout> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<HostedCheckout>(getCreateMerchantCheckoutUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(checkoutCreate)
+  }
+);}
+
+
+
+
+
+export const getCreateMerchantCheckoutMutationKey = () => ['createMerchantCheckout'] as const;
+
+export const getCreateMerchantCheckoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMerchantCheckout>>, TError,CreateMerchantCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createMerchantCheckout>>, TError,CreateMerchantCheckoutMutationVariables, TContext> => {
+
+const mutationKey = getCreateMerchantCheckoutMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createMerchantCheckout>>, CreateMerchantCheckoutMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createMerchantCheckout(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateMerchantCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof createMerchantCheckout>>>
+    export type CreateMerchantCheckoutMutationBody = BodyType<CheckoutCreate>
+    export type CreateMerchantCheckoutMutationError = ErrorType<unknown>
+    export type CreateMerchantCheckoutMutationVariables = {data: BodyType<CheckoutCreate>}
+
+    export const useCreateMerchantCheckout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createMerchantCheckout>>, TError,CreateMerchantCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createMerchantCheckout>>,
+        TError,
+        CreateMerchantCheckoutMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateMerchantCheckoutMutationOptions(options));
+    }
+
+export const getGetMerchantCheckoutUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/checkout/sessions/${id}`
+}
+
+export const getMerchantCheckout = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<HostedCheckout> => {
+
+  return customFetch<HostedCheckout>(getGetMerchantCheckoutUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMerchantCheckoutQueryKey = (id: string,) => {
+    return [
+    `/api/v1/checkout/sessions/${id}`
+    ] as const;
+    }
+
+
+export const getGetMerchantCheckoutQueryOptions = <TData = Awaited<ReturnType<typeof getMerchantCheckout>>, TError = ErrorType<unknown>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMerchantCheckout>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMerchantCheckoutQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMerchantCheckout>>> = ({ signal }) => getMerchantCheckout(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMerchantCheckout>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMerchantCheckoutQueryResult = NonNullable<Awaited<ReturnType<typeof getMerchantCheckout>>>
+export type GetMerchantCheckoutQueryError = ErrorType<unknown>
+
+
+
+export function useGetMerchantCheckout<TData = Awaited<ReturnType<typeof getMerchantCheckout>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMerchantCheckout>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMerchantCheckoutQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetDeveloperSessionUrl = () => {
 

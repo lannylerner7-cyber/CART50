@@ -2,7 +2,8 @@
 
 ## Separation
 
-Developer accounts are not owner accounts, API merchants or Bitcoin signers.
+Developer accounts are not owner accounts or Bitcoin signers. Their simulated
+checkout integration is described in `docs/sandbox-checkout.md`.
 `/api/developers` has its own `__Host-developer_session` cookie, CSRF header,
 session records, passkeys and login credential verifiers. The existing
 `/api/vault` owner middleware is unchanged. A developer cookie cannot authorize
@@ -82,9 +83,9 @@ than silently deleting payment evidence. Receipts remain simulation disclosures.
 | Developer Live introduction | `/developers/live` | Developer; locked, no real balances or signer |
 | Developer API | `/api/developers/*` | Separate developer session and CSRF |
 | Owner API | `/api/vault/*` | Existing owner session and CSRF |
-| Future merchant API | Not implemented | Future hashed/scoped/revocable tenant keys |
-| Future checkout | Not implemented | Future opaque session, confirmation/reorg handling |
-| Future admin approvals | Not implemented | Owner-authorized auditable decisions; never self-assigned |
+| Sandbox merchant API | `/api/v1/checkout/sessions` | Hashed checkout-only tenant API keys; no live transfers |
+| Simulated checkout | `/checkout/:token` | Opaque public status; explicit authenticated simulation only |
+| Admin decisions | `/admin` | Existing owner authentication, recent passkey and audit; no custody enablement |
 
 The long personal-vault path is only a routing prefix, not a secret. The root
 homepage cutover must be tested with nested navigation, direct reloads, owner
@@ -111,8 +112,8 @@ and shared throttling need a separate measured deployment decision.
 
 No Worker, queues, R2 objects, production settings, domains or hosted signer were
 changed. Signet remains paused. Mainnet operations require separate explicit
-authorization and readiness checks. Developer Live approval is not implemented
-and cannot be inferred from this UI.
+authorization and readiness checks. Developer Live custody is not enabled
+and cannot be inferred from an approved application.
 
 ## Acceptance tooling
 

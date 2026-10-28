@@ -20,7 +20,7 @@ test("fresh schema initializes all tables, preserves data and is repeatable", as
     assert.equal(db.prepare("SELECT version FROM vault_state").get()?.version, 7);
     assert.equal(db.prepare("SELECT price FROM prices").get()?.price, 42);
     assert.equal(db.prepare("SELECT sequence FROM replica").get()?.sequence, 4);
-    assert.equal(db.prepare("SELECT count(*) AS count FROM vault_schema_migrations").get()?.count, 2);
+    assert.equal(db.prepare("SELECT count(*) AS count FROM vault_schema_migrations").get()?.count, 4);
   } finally { db.close(); }
 });
 
