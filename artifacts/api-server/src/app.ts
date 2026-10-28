@@ -11,6 +11,7 @@ import { admission } from "./middlewares/admission";
 import { configuredNetwork } from "./vault/network";
 import { developerRouter } from "./developers/routes";
 import { checkoutRouter } from "./developers/checkout-routes";
+import {developerLimits} from "./developers/limits";
 
 const app: Express = express();
 configuredNetwork();
@@ -45,6 +46,7 @@ app.use("/api/developers", admission());
 app.use(express.json({ limit: "64kb" }));
 
 app.use("/api/vault", vault);
+app.use("/api", developerLimits);
 app.use("/api/developers", developerRouter());
 app.use("/api", checkoutRouter);
 app.use("/api", router);

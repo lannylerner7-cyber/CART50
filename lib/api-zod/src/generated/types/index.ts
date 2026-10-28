@@ -33,6 +33,7 @@ export * from './error';
 export * from './explorer';
 export * from './explorerDetails';
 export * from './exploreVaultParams';
+export * from './getDeveloperAdminParams';
 export * from './getDeveloperSandboxAddressParams';
 export * from './getRecipientParams';
 export * from './getSandboxAddressParams';

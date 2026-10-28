@@ -27,13 +27,13 @@ export async function createAccount(name: string, email: string, termsVersion: s
   const rows = await query("INSERT OR IGNORE INTO developer_accounts(id,email,version,data) VALUES(?,?,0,?) RETURNING id", [a.id, email, JSON.stringify(a)]);
   return rows.length ? a : undefined;
 }
-export async function updateAccount<T>(id: string, fn: (a: Account) => T): Promise<T> {
+export async function updateAccount<T>(id: string, fn: (a: Account) => T | Promise<T>): Promise<T> {
   await initializeMetadata();
   for (let i=0; i<8; i++) {
     const rows = await query("SELECT version,data FROM developer_accounts WHERE id=?", [id]);
     if (!rows[0]) throw new HttpError(401, "Developer session expired");
     const a: Account = JSON.parse(String(rows[0].data));
-    const result = fn(a);
+    const result = await fn(a);
     const changed = await query("UPDATE developer_accounts SET data=?,version=version+1 WHERE id=? AND version=? RETURNING id", [JSON.stringify(a), id, Number(rows[0].version)]);
     if (changed.length) return result;
   }

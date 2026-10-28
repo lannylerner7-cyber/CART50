@@ -1,5 +1,101 @@
 # Developer release commissioning — 2026-10-28
 
+## Current continuation status
+
+The isolated fixture now supports `VAULT_UI_FIXTURE_HTTPS=1` on loopback 4443,
+with one-day disposable localhost certificates and its own random SESSION_SECRET,
+owner credential and SQLite. `VAULT_UI_FIXTURE_STATIC_DIR` can serve a temporary
+staged build. Normal preview/root routing has not been switched.
+
+Owner selected **existing D1** for shared quotas. Source now includes additive
+schema version 5 and atomic database-clock quota counters, ingress/IP budgets,
+authenticated tenant/key budgets and Retry-After. Owner admin routes bypass
+developer quotas; quota-store failures deny developer admission. Existing explicit
+trusted-proxy configuration supplies req.ip, not raw forwarded headers. Tests
+use independent SQLite connections, not hosted D1 performance evidence.
+
+Admin source now uses a 50-account keyset page plus lookahead, SQL field
+projections and bounded recent audit, with matching generated contract and
+Previous/Next UI. The outbox now projects ten due event IDs across all accounts,
+ordered by due time, instead of reusing the 501-account admin scan. Its existing
+CAS leases remain authoritative. A 505-account regression and independent-connection
+quota race/outage checks passed, alongside checkout/admin/schema regressions:
+10 selected tests and both typechecks.
+
+**Not complete:** production archival policy/operation, summary pagination's
+authenticated browser acceptance and hosted multi-instance D1 commissioning.
+Archive copies/pruning were exercised only with disposable data; existing
+production retention guards remain.
+The normal Replit `/developers` landing was visually checked at 390px, without
+browser errors. Normal `/` remains the owner page pending acceptance.
+
+The HTTPS staged root rendered developer entry and its checkout deep link worked.
+Public checkout displayed “not found” during the first HTTPS browser run,
+although a direct request for the stored token returned HTTP 200 pending.
+The exact-URL follow-up below resolved that observation. Do not enable the normal
+homepage switch while Intro Skip acceptance remains blocked.
+
+The diagnostic browser report subsequently confirmed the public API used the
+correct 80-character token, matched the stored URL and returned 200 pending,
+then 200 simulation_paid. This narrows the issue but is not a completed QR/UI/
+automatic-redirect assertion. Normal owner login now provides a Developer access
+link to `/developers`, making the existing pages reachable without root cutover.
+
+**Subsequent focused checkout report:** A new preview opened from the exact
+returned URL rendered the branded QR and status-only button over local HTTPS.
+Pressing the button left status pending and the developer balance unchanged.
+Explicit simulation changed the buyer UI to simulated-paid and automatically
+redirected to the locally intercepted callback. No external callback was made.
+The initial not-found observation was not reproduced with that exact URL.
+The callback was not reached within five seconds of the merchant's simulation
+click, but was reached within an additional four seconds. Source starts its
+five-second countdown when the buyer observes paid status, after up-to-five-second
+polling latency; five seconds from the server-side action is **not certified**.
+
+Final continuation checks passed both typechecks, the normal frontend build and
+17 tests spanning quota concurrency/outage, beyond-bound paging/outbox scanning,
+checkout/admin, encrypted backup recovery, static routing and additive schema.
+The actual Replit owner login rendered its Developer access link at 390px.
+Neither this evidence nor the temporary staged build enables normal root cutover.
+At that intermediate checkpoint, archive and browser isolation/expiry evidence
+were still incomplete; the final continuation results below supersede it.
+
+### Final continuation evidence and remaining gate
+
+The follow-up verified A/B separation in the disposable HTTPS fixture: B's key
+could not retrieve A's checkout (404), B's session could not simulate it (404),
+and A's balance/history were unchanged. B session expiry automatically returned
+to login without reload within 36 seconds; old balance and key patterns were
+absent from the DOM. An expired protected deep link returned to login. Staged
+developer root and the exact locked owner prefix rendered correctly.
+
+**Intro Skip remains NOT PASSED.** Fresh contexts did not show its control,
+including an explicit no-reduced-motion context with test-only video pause hooks
+and immediate click. The MP4 is served as HTTP 200 video/mp4 and ffprobe identifies
+H264/yuv420p; this does not prove browser decoding or gate visibility. Stop broad
+reruns and diagnose the gate before enabling normal homepage cutover.
+
+Source migration 6 adds verified checkout archive copies scoped by account,
+with checksum validation and a unique hashed idempotency index. Receipt/public
+lookup and create replay consult archived records, failing closed on corruption.
+CAS callbacks now await archive lookups before committing. Copy-first retention
+considers only checkouts older than 90 days with no undelivered events. Copies
+are verified before any removal; **pruning is restricted to NODE_ENV=test** and
+there is no scheduler, public endpoint or hosted deletion. Disposable tests cover
+copy-before-removal, receipt/replay, changed-input rejection, account isolation,
+corruption and the production pruning prohibition. This is an archival primitive,
+not authorized production retention policy or a commissioned archive/restore
+service. Audit archival and production operator rollout still require review.
+
+The final selected suite has **18 passing tests** and API typecheck passes;
+frontend typecheck/build remain valid (no subsequent frontend changes). Hosted
+D1 migrations 5/6 have not been executed. Replit development has no CF_ACCOUNT_ID
+or CF_D1_DATABASE_ID configured; its local tests are not hosted D1 evidence.
+
+The HTTPS fixture was stopped and its disposable SQLite/credential/certificate
+directories and temporary staged build were discarded after acceptance work.
+Replit preview services are running current source. No GitHub push occurred.
+
 ## Authorized hosted observations (read-only)
 
 The attached Cloudflare connection successfully listed the account and queried

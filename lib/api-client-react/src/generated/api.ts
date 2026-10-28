@@ -35,6 +35,7 @@ import type {
   Error,
   ExploreVaultParams,
   Explorer,
+  GetDeveloperAdminParams,
   GetDeveloperSandboxAddressParams,
   GetRecipientParams,
   GetSandboxAddressParams,
@@ -252,17 +253,24 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
       return useMutation(getCheckoutConsoleActionMutationOptions(options));
     }
 
-export const getGetDeveloperAdminUrl = () => {
+export const getGetDeveloperAdminUrl = (params?: GetDeveloperAdminParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/admin/developers`
+  return stringifiedParams.length > 0 ? `/api/admin/developers?${stringifiedParams}` : `/api/admin/developers`
 }
 
-export const getDeveloperAdmin = async ( options?: Parameters<typeof customFetch>[1]): Promise<DeveloperAdmin> => {
+export const getDeveloperAdmin = async (params?: GetDeveloperAdminParams, options?: Parameters<typeof customFetch>[1]): Promise<DeveloperAdmin> => {
 
-  return customFetch<DeveloperAdmin>(getGetDeveloperAdminUrl(),
+  return customFetch<DeveloperAdmin>(getGetDeveloperAdminUrl(params),
   {
     ...options,
     method: 'GET'
@@ -275,23 +283,23 @@ export const getDeveloperAdmin = async ( options?: Parameters<typeof customFetch
 
 
 
-export const getGetDeveloperAdminQueryKey = () => {
+export const getGetDeveloperAdminQueryKey = (params?: GetDeveloperAdminParams,) => {
     return [
-    `/api/admin/developers`
+    `/api/admin/developers`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetDeveloperAdminQueryOptions = <TData = Awaited<ReturnType<typeof getDeveloperAdmin>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+export const getGetDeveloperAdminQueryOptions = <TData = Awaited<ReturnType<typeof getDeveloperAdmin>>, TError = ErrorType<unknown>>(params?: GetDeveloperAdminParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetDeveloperAdminQueryKey();
+  const queryKey =  queryOptions?.queryKey ?? getGetDeveloperAdminQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeveloperAdmin>>> = ({ signal }) => getDeveloperAdmin({ signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeveloperAdmin>>> = ({ signal }) => getDeveloperAdmin(params, { signal, ...requestOptions });
 
 
 
@@ -306,11 +314,11 @@ export type GetDeveloperAdminQueryError = ErrorType<unknown>
 
 
 export function useGetDeveloperAdmin<TData = Awaited<ReturnType<typeof getDeveloperAdmin>>, TError = ErrorType<unknown>>(
-  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+ params?: GetDeveloperAdminParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeveloperAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
-  const queryOptions = getGetDeveloperAdminQueryOptions(options)
+  const queryOptions = getGetDeveloperAdminQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

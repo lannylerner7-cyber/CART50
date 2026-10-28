@@ -102,6 +102,8 @@ export interface AdminDeveloper {
 }
 
 export interface DeveloperAdmin {
+  /** @nullable */
+  nextCursor: string | null;
   paused: boolean;
   accounts: AdminDeveloper[];
   audit: CheckoutAudit[];
@@ -676,6 +678,10 @@ export type WebAuthnInputResponse = { [key: string]: unknown };
 export interface WebAuthnInput {
   response: WebAuthnInputResponse;
 }
+
+export type GetDeveloperAdminParams = {
+after?: string;
+};
 
 export type GetDeveloperSandboxAddressParams = {
 destination: string;

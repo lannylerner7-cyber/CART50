@@ -4,8 +4,10 @@ import {z} from "zod";
 import {HttpError,expectedOrigin,requireOwner,verifyOrigin,hash} from "../vault/auth";
 import {activeSession,identify} from "./auth";
 import {accountBy,updateAccount,type Account} from "./store";
-import {accounts,bearer,controls,create,eligible,findPublic,issueApi,merchant,merchantUpdate,publicCheckout,record,setPaused,simulate,writable,securityRecord,recentSecurityAudit} from "./merchant";
+import {accountPage,bearer,controls,create,eligible,findPublic,issueApi,merchant,merchantUpdate,publicCheckout,record,setPaused,simulate,writable,securityRecord,recentSecurityAudit} from "./merchant";
 import {attemptDelivery,httpsUrl,seal} from "./webhooks";
+import {sharedBudget} from "./limits";
+import {archivedCheckout} from "./archive";
 const command=z.object({requestId:z.string().uuid().optional(),accountId:z.string().uuid().optional(),checkoutId:z.string().uuid().optional(),reason:z.string().trim().min(3).max(300).optional(),
   paused:z.boolean().optional(),amountSats:z.number().int().min(-1000000000).max(1000000000).optional(),
   returnUrls:z.array(z.string().max(1000)).max(5).optional(),webhookUrl:z.string().max(1000).optional()}).strict();
@@ -17,12 +19,6 @@ export const checkoutRouter=Router();
 checkoutRouter.use((req,_res,next)=>{if(!/^\/(developer-console|admin\/developers|checkout|v1\/checkout)(\/|$)/.test(req.path)){next("router");return;}next();});
 checkoutRouter.use((_req,res,next)=>{res.setHeader("Cache-Control","no-store");res.setHeader("Referrer-Policy","no-referrer");next();});
 // Bounded per-process admission. Persisted per-account simulation quotas are separate.
-const limits=new Map<string,{n:number;until:number}>();
-checkoutRouter.use((req,_res,next)=>{
-  for(const[k,v]of limits)if(v.until<Date.now())limits.delete(k);
-  for(const key of ["all",req.ip??"unknown"]){const v=limits.get(key)??{n:0,until:Date.now()+60000};v.n++;limits.set(key,v);if(v.n>(key==="all"?1200:180))throw new HttpError(429,"Too many requests");}
-  next();
-});
 checkoutRouter.get("/developer-console",async(req,res)=>{
   const{a}=await identify(req,true),m=merchant(a);
   res.json({accountId:a.id,status:m.status,paused:(await controls()).paused,returnUrls:m.returnUrls,webhookUrl:m.webhookUrl??null,
@@ -31,11 +27,13 @@ checkoutRouter.get("/developer-console",async(req,res)=>{
 });
 checkoutRouter.post("/developer-console/:action",verifyOrigin,async(req,res)=>{
   const {a,s}=await identify(req,true),b=command.parse(req.body),action=req.params.action;
+  await sharedBudget("tenant-write",a.id,60,res);
+  if(action==="issue-api-key")await sharedBudget("key-issuance",a.id,5,res);
   if(["simulate","create-preview"].includes(String(action)))await writable();
   let newSecret:string|undefined;
   if(action==="settings"&&b.webhookUrl&&(b.webhookUrl!==merchant(a).webhookUrl||b.reason==="rotate-webhook"))newSecret=randomBytes(32).toString("base64url");
   const encrypted=newSecret?seal(newSecret):undefined;
-  const result=await updateAccount(a.id,a=>{
+  const result=await updateAccount(a.id,async a=>{
     activeSession(a,s);eligible(a);const m=merchant(a);
     if(action==="settings"){
       if(!b.returnUrls)throw new HttpError(400,"Return URLs are required");
@@ -58,7 +56,7 @@ checkoutRouter.post("/developer-console/:action",verifyOrigin,async(req,res)=>{
     if(action==="simulate"){if(!b.checkoutId)throw new HttpError(400,"Select a checkout");simulate(a,b.checkoutId);return {ok:true};}
     if(action==="create-preview"){
       const input=checkoutInput.parse({amount_sats:b.amountSats,reference:b.reason,return_url:b.returnUrls?.[0]});
-      return {message:create(a,input,"preview:"+randomBytes(16).toString("hex"),expectedOrigin(req)).url};
+      return {message:(await create(a,input,"preview:"+randomBytes(16).toString("hex"),expectedOrigin(req))).url};
     }
     if(action==="retry-webhook"){
       const d=m.deliveries.find(d=>d.checkoutId===b.checkoutId);
@@ -71,13 +69,12 @@ checkoutRouter.post("/developer-console/:action",verifyOrigin,async(req,res)=>{
   });
   res.json(result);
 });
-checkoutRouter.get("/admin/developers",requireOwner,async(_req,res)=>{
-  const c=await controls();const list=await accounts();
-  if(list.length>500)throw new HttpError(503,"Admin pagination required before exceeding 500 accounts");
+checkoutRouter.get("/admin/developers",requireOwner,async(req,res)=>{
+  const after=z.string().uuid().optional().parse(req.query.after);
+  const c=await controls();const page=await accountPage(after);
   const security=await recentSecurityAudit();
-  res.json({paused:c.paused,audit:c.audit,signet:"paused",liveEnabled:false,stepUpRequired:!res.locals.session.passkeyAt||Date.now()-res.locals.session.passkeyAt>300000,
-    accounts:list.map(a=>{const m=merchant(a);return{id:a.id,name:a.name,email:a.email,verified:a.verified,status:m.status,balanceSats:a.balanceSats,
-      apiKeyPrefix:m.apiKeyPrefix??null,liveApplication:m.liveApplication,audit:[...m.audit.slice(-100),...(security.get(a.id)??[])].sort((a,b)=>a.at.localeCompare(b.at))};})});
+  res.json({paused:c.paused,audit:c.audit.slice(-100),nextCursor:page.nextCursor,signet:"paused",liveEnabled:false,stepUpRequired:!res.locals.session.passkeyAt||Date.now()-res.locals.session.passkeyAt>300000,
+    accounts:page.accounts.map(a=>({...a,audit:[...a.audit,...(security.get(String(a.id))??[])].sort((a,b)=>a.at.localeCompare(b.at))}))});
 });
 checkoutRouter.post("/admin/developers/:action",verifyOrigin,requireOwner,async(req,res)=>{
   fresh(res.locals.session.passkeyAt);
@@ -123,12 +120,16 @@ checkoutRouter.post("/admin/developers/:action",verifyOrigin,requireOwner,async(
 });
 checkoutRouter.post("/v1/checkout/sessions",async(req,res)=>{
   const {a,keyHash}=await bearer(req.get("authorization")),b=checkoutInput.parse(req.body);
+  await sharedBudget("checkout-create",a.id,60,res);
+  await sharedBudget("api-key-create",keyHash,60,res);
   const idem=z.string().min(8).max(100).regex(/^[A-Za-z0-9_.:-]+$/).parse(req.get("idempotency-key"));
   await writable();
   res.json(await merchantUpdate(a.id,keyHash,a=>create(a,b,idem,expectedOrigin(req))));
 });
 checkoutRouter.get("/v1/checkout/sessions/:id",async(req,res)=>{
-  const{a}=await bearer(req.get("authorization"));const c=merchant(a).checkouts.find(c=>c.id===req.params.id);
+  const{a,keyHash}=await bearer(req.get("authorization"));
+  await sharedBudget("api-key-read",keyHash,180,res);
+  const c=merchant(a).checkouts.find(c=>c.id===req.params.id)??await archivedCheckout(a.id,"id",String(req.params.id));
   if(!c)throw new HttpError(404,"Checkout not found");res.json(publicCheckout(c));
 });
 checkoutRouter.get("/checkout/:token",async(req,res)=>res.json(publicCheckout((await findPublic(String(req.params.token))).c)));

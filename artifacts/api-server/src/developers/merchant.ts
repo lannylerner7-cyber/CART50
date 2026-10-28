@@ -2,6 +2,7 @@ import {randomUUID,randomBytes} from "node:crypto";
 import {HttpError,equal,hash} from "../vault/auth";
 import {initializeMetadata,query} from "../vault/store";
 import {accountBy,updateAccount,type Account} from "./store";
+import {archivedCheckout} from "./archive";
 export type AdminAudit={at:string;action:string;reason:string;actor:string;requestId?:string;fingerprint?:string};
 export type Delivery={checkoutId:string;eventId:string;status:"pending"|"sending"|"delivered"|"failed";attempts:number;lastError:string|null;url:string;secret:string;body:string;nextAt:number;lease?:string};
 export type Checkout={id:string;token:string;amount_sats:number;reference:string;returnUrl:string;origin:string;expiresAt:string;paidAt?:string;idem:string;fingerprint:string};
@@ -39,6 +40,21 @@ export async function recentSecurityAudit():Promise<Map<string,AdminAudit[]>>{
 export async function accounts(){
   await initializeMetadata();
   return (await query("SELECT data FROM developer_accounts ORDER BY id LIMIT 501")).map(r=>JSON.parse(String(r.data)) as Account);
+}
+export async function accountPage(after=""){
+  await initializeMetadata();
+  const rows=await query(`SELECT id,email,
+    json_extract(data,'$.name') AS name,json_extract(data,'$.verified') AS verified,
+    json_extract(data,'$.balanceSats') AS balanceSats,
+    COALESCE(json_extract(data,'$.merchant.status'),'active') AS status,
+    json_extract(data,'$.merchant.apiKeyPrefix') AS apiKeyPrefix,
+    COALESCE(json_extract(data,'$.merchant.liveApplication'),'none') AS liveApplication,
+    (SELECT json_group_array(json(value)) FROM
+      (SELECT value FROM json_each(a.data,'$.merchant.audit') ORDER BY key DESC LIMIT 20)) AS audit
+    FROM developer_accounts a WHERE id>? ORDER BY id LIMIT 51`,[after]);
+  const page=rows.slice(0,50);
+  return {nextCursor:rows.length>50?String(page[49].id):null,
+    accounts:page.map(r=>({...r,id:String(r.id),verified:!!r.verified,balanceSats:Number(r.balanceSats),audit:JSON.parse(String(r.audit??"[]"))}))};
 }
 export type Controls={paused:boolean;audit:AdminAudit[]};
 export async function controls():Promise<Controls>{
@@ -85,14 +101,14 @@ export function publicCheckout(c:Checkout){
 export async function findPublic(token:string){
   if(!/^[a-f0-9-]{36}\.[A-Za-z0-9_-]{43}$/.test(token))throw new HttpError(404,"Checkout not found");
   const a=await accountBy("id",token.split(".")[0]);
-  const c=a?.merchant?.checkouts.find(x=>equal(x.token,token));
+  const c=a?.merchant?.checkouts.find(x=>equal(x.token,token))??(a?await archivedCheckout(a.id,"token",token):undefined);
   if(!c||!a)throw new HttpError(404,"Checkout not found");
   if(merchant(a).status==="suspended")throw new HttpError(403,"Checkout unavailable");
   return {a,c};
 }
-export function create(a:Account,b:{amount_sats:number;reference:string;return_url:string},idem:string,origin:string){
+export async function create(a:Account,b:{amount_sats:number;reference:string;return_url:string},idem:string,origin:string){
   eligible(a,true);const m=merchant(a),fingerprint=hash(JSON.stringify(b));
-  const old=m.checkouts.find(c=>c.idem===idem);
+  const old=m.checkouts.find(c=>c.idem===idem)??await archivedCheckout(a.id,"idem",idem);
   if(old){if(old.fingerprint!==fingerprint)throw new HttpError(409,"Idempotency key already used for different input");return publicCheckout(old);}
   if(!m.returnUrls.includes(b.return_url))throw new HttpError(400,"Return URL must exactly match your configured allowlist");
   if(m.checkouts.length>=500)throw new HttpError(409,"Checkout retention limit reached");

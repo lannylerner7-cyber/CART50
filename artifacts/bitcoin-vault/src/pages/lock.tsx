@@ -20,6 +20,7 @@ export default function LockScreen({ session }: { session: Session }) {
           <div className="flex items-center gap-2.5">
             <img src={BRAND_MARK} alt="" className="h-9 w-9" />
             <span className="font-display text-[20px] font-bold tracking-tight text-foreground">main_vault</span>
+            <a href={`${import.meta.env.BASE_URL}developers`} className="ml-auto rounded-full border border-border px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted" data-testid="link-developer-entry">Developer access</a>
           </div>
           <p className="mt-5 text-[13px] font-medium text-muted-foreground">Personal Bitcoin vault</p>
           <h1 className="font-display mt-1.5 text-[2rem] font-bold leading-[1.1] tracking-tight text-foreground sm:text-[2.4rem] lg:text-[3.2rem]">{session.configured ? <>Your Bitcoin.<br /> Your space.</> : 'Vault not set up'}</h1>

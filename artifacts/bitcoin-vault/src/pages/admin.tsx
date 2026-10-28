@@ -44,7 +44,9 @@ function Audit({ rows, testId }: { rows: CheckoutAudit[]; testId: string }) {
 export default function AdminPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const q = useGetDeveloperAdmin({ query: { queryKey: KEY, refetchInterval: 15000 } });
+  const [pages,setPages]=useState<string[]>(['']);
+  const cursor=pages[pages.length-1];
+  const q = useGetDeveloperAdmin({after:cursor||undefined},{ query: { queryKey: [...KEY,cursor], refetchInterval: 15000 } });
   const [freshAt, setFreshAt] = useState(0);
   const [now, setNow] = useState(Date.now());
   const [pkBusy, setPkBusy] = useState(false);
@@ -180,7 +182,8 @@ export default function AdminPage() {
             )}
           </Panel>
 
-          <Panel title="Global pause/resume audit"><p className="mb-3 text-[13px] text-muted-foreground">Developer actions are listed in each account’s audit above.</p><Audit rows={d.audit} testId="list-audit" /></Panel>
+          <div className="flex gap-3"><Button disabled={pages.length===1||q.isFetching} onClick={()=>setPages(p=>p.slice(0,-1))}>Previous accounts</Button><Button disabled={!d.nextCursor||q.isFetching} onClick={()=>d.nextCursor&&setPages(p=>[...p,d.nextCursor!])}>Next accounts</Button></div>
+          <Panel title="Global pause/resume audit"><p className="mb-3 text-[13px] text-muted-foreground">Recent developer actions are listed in each account’s audit above; older records remain stored.</p><Audit rows={d.audit} testId="list-audit" /></Panel>
         </>
       )}
 

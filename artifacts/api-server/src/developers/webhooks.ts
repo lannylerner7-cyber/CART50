@@ -3,7 +3,8 @@ import {resolve4} from "node:dns/promises";
 import {request} from "node:https";
 import {HttpError} from "../vault/auth";
 import {updateAccount} from "./store";
-import {accounts,merchant,type Delivery} from "./merchant";
+import {merchant,type Delivery} from "./merchant";
+import {initializeMetadata,query} from "../vault/store";
 function encryptionKey(){
   if(!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length<32)throw new HttpError(503,"Webhook encryption is not configured");
   return createHash("sha256").update("developer-webhooks:"+process.env.SESSION_SECRET).digest();
@@ -64,17 +65,23 @@ export async function attemptDelivery(accountId:string,eventId:string,transport=
   });
 }
 let running=false;
+export async function dueDeliveries(now=Date.now()){
+  await initializeMetadata();
+  // Project only due event identifiers, across ALL tenants, not the admin list.
+  // Lease nextAt values and failed-attempt backoff keep later events eligible.
+  return query(`SELECT a.id AS account_id, json_extract(d.value,'$.eventId') AS event_id
+    FROM developer_accounts a, json_each(a.data,'$.merchant.deliveries') d
+    WHERE COALESCE(json_extract(a.data,'$.merchant.status'),'active') != 'suspended'
+      AND json_extract(d.value,'$.status') != 'delivered'
+      AND json_extract(d.value,'$.nextAt') <= ?
+      AND json_extract(d.value,'$.attempts') < 8
+    ORDER BY json_extract(d.value,'$.nextAt'), a.id, json_extract(d.value,'$.eventId')
+    LIMIT 10`,[now]);
+}
 export async function drainWebhooks(){
   if(running)return;running=true;
   try{
-    let count=0;
-    for(const a of await accounts()){
-      for(const d of a.merchant?.deliveries??[]){
-        if(d.status!=="delivered"&&d.nextAt<=Date.now()&&d.attempts<8){
-          await attemptDelivery(a.id,d.eventId);if(++count>=10)return;
-        }
-      }
-    }
+    for(const d of await dueDeliveries())await attemptDelivery(String(d.account_id),String(d.event_id));
   }finally{running=false;}
 }
 export function startWebhookDelivery(){

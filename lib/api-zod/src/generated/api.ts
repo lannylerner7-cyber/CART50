@@ -60,7 +60,12 @@ export const CheckoutConsoleActionResponse = zod.object({
 })
 
 
+export const GetDeveloperAdminQueryParams = zod.object({
+  "after": zod.coerce.string().optional()
+})
+
 export const GetDeveloperAdminResponse = zod.object({
+  "nextCursor": zod.string().nullable(),
   "paused": zod.boolean(),
   "accounts": zod.array(zod.object({
   "id": zod.string(),

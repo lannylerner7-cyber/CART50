@@ -8,6 +8,8 @@ import type { AdminDeveloper } from './adminDeveloper';
 import type { CheckoutAudit } from './checkoutAudit';
 
 export interface DeveloperAdmin {
+  /** @nullable */
+  nextCursor: string | null;
   paused: boolean;
   accounts: AdminDeveloper[];
   audit: CheckoutAudit[];

@@ -122,6 +122,18 @@ The owner list currently supports at most 500 accounts; pagination/archival is
 a launch gate. Rate limits include per-process limits, not a production-wide
 distributed quota. Measure and strengthen these before public scale.
 
+Continuation source supersedes those original limits: owner admin now pages 50
+summary rows by stable ID cursor, with recent audit projections and matching
+Previous/Next controls. Due outbox event IDs are selected across all accounts,
+not the former 501-account scan. Source migration 5 adds D1-backed atomic quota
+counters (database-clock minute windows), ingress/IP, selected endpoint and
+authenticated tenant/key budgets with Retry-After. Developer quota failures do
+not gate owner admin routes. Shared-store errors deny developer admission.
+The existing explicit proxy-CIDR configuration controls client IP attribution.
+These are locally tested source changes, not a hosted migration or capacity SLA.
+Verified archival and tombstone preservation remain a release blocker; histories
+have not been deleted and the per-account retention guards remain in place.
+
 ## Evidence and remaining gates
 
 Local HTTP tests cover owner/developer separation, recent-passkey admin gate,

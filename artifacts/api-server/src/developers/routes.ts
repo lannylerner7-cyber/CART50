@@ -9,6 +9,7 @@ import { sendSecurityMail, type SecuritySender } from "../vault/smtp";
 import { getMarket } from "../vault/market";
 import { destinationFor, execute, review, snapshot } from "./ledger";
 import { eligible, writable } from "./merchant";
+import {sharedBudget} from "./limits";
 import type { AuthenticationResponseJSON, RegistrationResponseJSON } from "@simplewebauthn/server";
 
 const emailSchema=z.string().trim().email().max(254).transform(s=>s.toLowerCase());
@@ -125,6 +126,7 @@ export function developerRouter(deps: DeveloperDependencies = {}) {
       res.json(payload(a,await issueSession(res,a.id,"full",false,a.keyHash)));return;
     }
     const {a,s}=await identify(req,true);
+    if(action!=="logout")await sharedBudget("developer-operations",a.id,60,res);
     if(action==="logout"){
       z.object({}).strict().parse(req.body);
       await updateAccount(a.id,a=>{a.sessions=a.sessions.filter(x=>x.hash!==s.hash);});

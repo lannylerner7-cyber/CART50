@@ -5,6 +5,12 @@ type Table = { name: string; create: string; columns: Column[] };
 // Code-owned definitions only. Never derive identifiers or DDL from requests/files.
 // A required column without a meaningful backfill may only be added to an empty table.
 export const metadataSchema: Table[] = [
+  {name:"developer_checkout_archive",
+   create:"CREATE TABLE IF NOT EXISTS developer_checkout_archive (id TEXT PRIMARY KEY, account_id TEXT NOT NULL, idem_hash TEXT NOT NULL, data TEXT NOT NULL, checksum TEXT NOT NULL)",
+   columns:[{name:"id",type:"TEXT",primary:true},{name:"account_id",type:"TEXT",required:true},{name:"idem_hash",type:"TEXT",required:true},{name:"data",type:"TEXT",required:true},{name:"checksum",type:"TEXT",required:true}]},
+  {name:"developer_rate_limits",
+   create:"CREATE TABLE IF NOT EXISTS developer_rate_limits (id TEXT PRIMARY KEY, window INTEGER NOT NULL, hits INTEGER NOT NULL)",
+   columns:[{name:"id",type:"TEXT",primary:true},{name:"window",type:"INTEGER",required:true},{name:"hits",type:"INTEGER",required:true}]},
   {
     name:"developer_security_audit",
     create:"CREATE TABLE IF NOT EXISTS developer_security_audit (id TEXT PRIMARY KEY, account_id TEXT NOT NULL, created_at TEXT NOT NULL, data TEXT NOT NULL)",
@@ -131,4 +137,8 @@ export async function ensureMetadataSchema(query: SchemaQuery) {
   await query("INSERT OR IGNORE INTO vault_schema_migrations(version,applied_at) VALUES(?,?)", [3, new Date().toISOString()]);
   await query("CREATE INDEX IF NOT EXISTS developer_security_audit_account_time ON developer_security_audit(account_id,created_at)");
   await query("INSERT OR IGNORE INTO vault_schema_migrations(version,applied_at) VALUES(?,?)", [4, new Date().toISOString()]);
+  await query("CREATE INDEX IF NOT EXISTS developer_rate_limits_window ON developer_rate_limits(window)");
+  await query("INSERT OR IGNORE INTO vault_schema_migrations(version,applied_at) VALUES(?,?)", [5, new Date().toISOString()]);
+  await query("CREATE UNIQUE INDEX IF NOT EXISTS developer_archive_idem ON developer_checkout_archive(account_id,idem_hash)");
+  await query("INSERT OR IGNORE INTO vault_schema_migrations(version,applied_at) VALUES(?,?)", [6, new Date().toISOString()]);
 }
