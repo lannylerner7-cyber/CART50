@@ -1,53 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { ArrowRight, Cookie, FileText, Lock, ShieldCheck, Wallet } from 'lucide-react';
-import { DeveloperIntro } from '@/components/developer-intro';
-import { Card, DevFrame, DevTopBar, Notice } from '@/components/developer-frame';
+import { Cookie, FileText } from 'lucide-react';
+import { Card, DevFrame, Notice } from '@/components/developer-frame';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { devErr, nextStep, useDev, useDevAction } from '@/lib/developer';
+import { devErr, useDev, useDevAction } from '@/lib/developer';
 
-export function Landing({ prefix = '' }: { prefix?: string }) {
-  const { session } = useDev();
-  return (
-    <div className="min-h-[100dvh] bg-background pb-20">
-      <DevTopBar right={session.authenticated
-        ? <Link href={prefix + nextStep(session)} className="pill-btn" data-testid="link-continue-setup">Continue</Link>
-        : <Link href={prefix + "/login"} className="pill-btn" data-testid="link-header-login">Sign in</Link>} />
-      <main className="mx-auto mt-8 grid w-full max-w-[1120px] items-center gap-10 px-5 md:mt-14 md:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] md:px-8">
-        <div className="order-2 md:order-1">
-          <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-cold">Developer access</div>
-          <h1 className="rise mt-3 font-display text-[2.4rem] font-bold leading-[1.02] md:text-[3.4rem]">Practice on a vault that looks real and holds nothing real.</h1>
-          <p className="rise rise-1 mt-4 max-w-[52ch] text-[16px] text-muted-foreground">Each developer gets a private Sandbox with its own simulated balance, history and destination. It never touches the owner's wallet, keys or funds. Live access stays locked until it is approved.</p>
-          <div className="rise rise-2 mt-7 flex flex-wrap gap-3">
-            {session.authenticated
-              ? <Link href={prefix + nextStep(session)} className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-[15px] font-bold text-primary-foreground" data-testid="link-resume">Resume setup <ArrowRight className="h-4 w-4" /></Link>
-              : <Link href={prefix + "/apply"} className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-[15px] font-bold text-primary-foreground" data-testid="link-apply">Apply <ArrowRight className="h-4 w-4" /></Link>}
-            <Link href={prefix + "/login"} className="pill-btn h-12" data-testid="link-login">I have an account</Link>
-          </div>
-          <ul className="rise rise-3 mt-10 grid gap-3 sm:grid-cols-2">
-            {[
-              { i: Wallet, t: 'Separate ledger', b: 'Simulated BTC per account. No owner balance is visible or reachable.' },
-              { i: ShieldCheck, t: 'Passkey required', b: 'Every account enrolls a passkey before the Sandbox opens.' },
-              { i: Lock, t: 'Live stays locked', b: 'Real payments need explicit approval and readiness checks.' },
-              { i: FileText, t: 'Plain terms', b: 'Read them in full before you share a name and email.' },
-            ].map((x) => (
-              <li key={x.t} className="rounded-[18px] border border-card-border bg-card p-4">
-                <x.i className="h-4 w-4 text-cold" />
-                <div className="mt-2 text-[14.5px] font-semibold">{x.t}</div>
-                <div className="mt-0.5 text-[13px] text-muted-foreground">{x.b}</div>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="order-1 md:order-2"><DeveloperIntro video={null} /></div>
-      </main>
-    </div>
-  );
-}
+export { Landing } from '@/pages/developers/landing';
 
 export function Apply() {
   const { session, setAcceptedTerms } = useDev();

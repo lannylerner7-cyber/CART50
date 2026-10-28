@@ -120,7 +120,7 @@ function DevGate({ atRoot = false }: { atRoot?: boolean }) {
   if (!value) {
     return <div className="grid min-h-[100dvh] place-items-center bg-background p-6"><div className="w-full max-w-md"><ErrorPanel error={s.error} onRetry={() => s.refetch()} title="Developer service unreachable" /></div></div>;
   }
-  return <DevProvider value={value}><div key={id??'anonymous'}>{atRoot ? <Landing prefix="/developers" /> : <Routes />}</div>{showIntro && <DeveloperIntroGate onDone={() => { introSeen = true; setShowIntro(false); }} />}</DevProvider>;
+  return <DevProvider value={value}><div key={id??'anonymous'} inert={showIntro || undefined} aria-hidden={showIntro || undefined}>{atRoot ? <Landing prefix="/developers" /> : <Routes />}</div>{showIntro && <DeveloperIntroGate onDone={() => { introSeen = true; setShowIntro(false); }} />}</DevProvider>;
 }
 
 /** Mounted under /developers with its own QueryClient: owner session, CSRF and caches are never touched. */

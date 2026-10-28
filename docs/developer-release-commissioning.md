@@ -1,5 +1,26 @@
 # Developer release commissioning — 2026-10-28
 
+## Developer intro and homepage presentation
+
+The public homepage now follows the uploaded storm/lightning/mascot clip, using
+small locally extracted stills and reduced-motion-aware presentation. Existing
+Apply/login routes are reused; owner routes and authentication are unchanged.
+The intro no longer closes on its former three-second start timeout, fixed
+15-second timer or media error. Normal completion follows the video's ended
+event; failed/blocked playback offers retry and Skip, and reduced motion bypasses
+the gate. The background entry content is inert while the gate is open.
+The video's bonus graphic is explicitly simulation credit, not real BTC/cash.
+Typecheck and frontend build passed. Focused browser checks passed responsive
+widths 390/768/1440 without horizontal overflow, error/Skip recovery, storyboard
+Pause/Replay, Sign in and Apply navigation without credential entry/submission.
+The original MP4 failed browser decoding (unsupported streams), so VP9 WebM is
+now the preferred source with MP4 retained as fallback. The unforced retest
+observed active WebM playback at 6.28 of 9.334 seconds with no media error and the
+gate still open; a later observation showed the homepage after playback. The
+native ended-event timestamp was not captured before unmount, so exact end-event
+timing is not certified. No mocked media end was used.
+No hosting, DNS, RP domain, Core storage or deployment changes were made.
+
 ## Owner-authorized homepage cutover
 
 The owner explicitly requested root developer entry now. The default build
