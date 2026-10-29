@@ -24,3 +24,12 @@ ending in `/mainvaultwallet`, without moving Core/signer storage or changing dom
 **How to apply:** Preserve owner login and nested navigation. A long path is not
 an authentication boundary. Keep the supplied video intro separate from the
 15-second provisioning presentation; neither timer establishes server readiness.
+
+The checkout starter test will be hosted separately on a new domain, not on
+the existing MainVault host/subdomains proposed earlier.
+
+**Why:** The owner corrected the hosting plan explicitly.
+
+**How to apply:** Keep MainVault as the API provider. Do not provision starter
+subdomains or containers on the existing vault host based on the superseded plan.
+The new domain has not yet been supplied.
