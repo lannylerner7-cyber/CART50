@@ -11,6 +11,15 @@ output:
 
 # Read this first
 
+### Two-host starter readiness — 2026-10-29
+
+Confirmed target spelling mainvaultwallet.com. Public main site serves noindex
+headers; sandbox and webhook subdomains did not resolve during the read-only
+check. Node/Python export now includes deny-all robots.txt and noindex headers;
+local generated-runtime assertions passed. Separate-host PUBLIC_ORIGIN setup is
+documented in docs/self-hosted-checkout-starter.md. DNS, TLS, capacity assessment,
+deployment and hosted signed webhook/return testing remain blocked/not performed.
+
 ## Developer self-hosted starter — 2026-10-29
 
 - Console now explains webhook receiver vs return URL, displays the current API

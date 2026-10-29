@@ -46,9 +46,11 @@ function view(o) {
 async function read(req) {let b=Buffer.alloc(0);for await(const part of req){b=Buffer.concat([b,part]);if(b.length>65536)throw Error('Request too large');}return b;}
 const server=http.createServer(async(req,res)=>{
   res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
+  res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
   const send=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(data));};
   try {
     const path=new URL(req.url,'http://localhost').pathname;
+    if(req.method==='GET'&&path==='/robots.txt'){res.writeHead(200,{'Content-Type':'text/plain'});return res.end('User-agent: *\nDisallow: /\n');}
     if(req.method==='POST'&&path===hookPath){
       const raw=await read(req), parts=/^t=(\d+),v1=([a-f0-9]{64})$/.exec(req.headers['x-vault-signature']||'');
       if(!parts||Math.abs(Date.now()/1000-Number(parts[1]))>300)return send(401,{error:'Invalid signature timestamp'});

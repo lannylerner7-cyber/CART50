@@ -62,6 +62,7 @@ def security(r):
     r.headers["Cache-Control"]="no-store"
     r.headers["X-Content-Type-Options"]="nosniff"
     r.headers["Referrer-Policy"]="no-referrer"
+    r.headers["X-Robots-Tag"]="noindex, nofollow, noarchive"
     return r
 @app.before_request
 def origin():
@@ -72,6 +73,8 @@ def failed(e):
     return jsonify(error="Request failed. Keep this order and retry; do not assume payment succeeded."),502
 @app.get("/")
 def home(): return send_from_directory("public","index.html")
+@app.get("/robots.txt")
+def robots(): return Response("User-agent: *\nDisallow: /\n",mimetype="text/plain")
 @app.get("/app.js")
 def script(): return send_from_directory("public","app.js")
 @app.get("/style.css")

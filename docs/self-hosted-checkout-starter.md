@@ -1,5 +1,35 @@
 # Self-hosted checkout starter
 
+## Owner's two-host test configuration
+
+Use the existing mainvaultwallet.com domain (not mainfaultwallet.com).
+Serve the same isolated starter through both
+`https://sandbox.mainvaultwallet.com` and
+`https://webhook.mainvaultwallet.com`. Save the webhook as
+`https://webhook.mainvaultwallet.com/webhooks/mainvault`.
+Set `PUBLIC_ORIGIN=https://sandbox.mainvaultwallet.com` in the starter's
+server environment: its browser origin differs from the webhook host.
+Use `MAINVAULT_API_BASE=https://mainvaultwallet.com/api` and credentials
+issued by that deployment, never Replit-preview credentials.
+
+The exact existing owner-prefixed login URL is the return destination.
+Copy it from the owner's vault link; do not replace it with the site's root,
+which is the developer homepage. A return does not unlock the vault.
+Do not publish that route in a sitemap or robots.txt.
+
+DNS records must target the actual hosting origin selected by the owner, not
+Cloudflare edge IPs returned by DNS lookup. Add both hostnames to the same
+Coolify starter service and provision valid TLS. Do not alter the main vault's
+service, volumes or Bitcoin RPC settings. Confirm host capacity before adding a
+container to the existing constrained host; no resize or deployment is implied.
+
+Read-only public checks on 2026-10-29: mainvaultwallet.com returned HTTPS 200 with
+X-Robots-Tag: noindex, nofollow, noarchive. Neither test subdomain resolved from
+the workspace. This is not evidence of completed DNS, hosting or webhook tests.
+Both starter runtimes now return a deny-all robots.txt and no-index headers on
+all responses, covered by local tests. Crawlers may ignore these instructions;
+they do not replace authentication or webhook verification.
+
 Open Developer → Checkout, save exact HTTPS return and webhook URLs, issue the
 server API key, and choose Node or Python in **Download a starter**. The archive
 contains source, a Dockerfile, Compose, a setup guide and an environment template.

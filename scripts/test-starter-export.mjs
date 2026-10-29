@@ -39,6 +39,8 @@ def upstream(method,url,json=None,**kwargs):
 server.requests.request=upstream
 server.requests.get=lambda *a,**kw: Reply({"price":"80000.00","time":datetime.now(timezone.utc).isoformat()})
 c=server.app.test_client();headers={"Origin":"http://localhost:4588"}
+assert c.get("/robots.txt").data==b"User-agent: *\\nDisallow: /\\n"
+assert c.get("/api/config").headers["X-Robots-Tag"]=="noindex, nofollow, noarchive"
 oid=str(uuid.uuid4());body={"id":oid,"cents":8000}
 assert c.post("/api/orders",json=body,headers=headers).status_code==502
 r=c.post("/api/orders",json=body,headers=headers);assert r.status_code==200,r.data
@@ -70,6 +72,8 @@ print("PASS Python: create, locked amount, repeat idempotency, QR, duplicate web
     for(let i=0;i<80;i++){try{if((await fetch('http://localhost:4588/api/config')).ok)break;}catch{}await new Promise(r=>setTimeout(r,100));}
     const call=async(path,data,headers={})=>fetch('http://localhost:4588'+path,{method:data?'POST':'GET',headers:{'Content-Type':'application/json',Origin:'http://localhost:4588',...headers},...(data?{body:typeof data==='string'?data:JSON.stringify(data)}:{})});
     const id=randomUUID(),body={id,cents:8000};
+    assert.equal(await(await call('/robots.txt')).text(),'User-agent: *\nDisallow: /\n');
+    assert.equal((await call('/api/config')).headers.get('x-robots-tag'),'noindex, nofollow, noarchive');
     assert.equal((await call('/api/orders',body)).status,502);
     let r=await call('/api/orders',body);assert.equal(r.status,200);let order=await r.json();assert.equal(order.amount_sats,100000);assert.equal(order.status,'pending');
     assert.deepEqual(await(await call('/api/orders',body)).json(),order);
