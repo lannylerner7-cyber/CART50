@@ -1,111 +1,88 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, FileText, KeyRound, Lock, Pause, Play, RotateCcw, ShieldCheck, Wallet, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Code2, FileText, Fingerprint, KeyRound, Link2, Mail, QrCode, Repeat, Scale, Shield, ShieldCheck, Webhook } from 'lucide-react';
 import { DevTopBar } from '@/components/developer-frame';
-import { asset } from '@/lib/assets';
+import { BRAND_MARK } from '@/lib/assets';
 import { nextStep, useDev } from '@/lib/developer';
 import './landing.css';
 
-const F = (n: string) => asset(`assets/strongroom/developer/${n}.jpg`);
-const FRAMES = [
-  { src: F('storm'), alt: 'Storm clouds over a cracked stone floor', cap: 'The storm gathers' },
-  { src: F('rocks'), alt: 'Rocks lifting off the ground', cap: 'The ground lifts' },
-  { src: F('strike'), alt: 'Green lightning striking the floor', cap: 'Lightning hits the Sandbox' },
-  { src: F('orb'), alt: 'Stone mascot inside a glowing orb marked $3000 bonus', cap: 'Your simulated balance' },
-  { src: F('bonus'), alt: 'Stone mascot above a $3000 bonus sign', cap: 'Ready to practice' },
-];
-
-function useReduced() {
-  const [r, setR] = useState(false);
-  useEffect(() => {
-    const m = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setR(m.matches);
-    const h = () => setR(m.matches);
-    m.addEventListener('change', h);
-    return () => m.removeEventListener('change', h);
-  }, []);
-  return r;
-}
-
-function Reveal({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+function Reveal({ children, className = '', delay = 0, from = 'up' }: { children: ReactNode; className?: string; delay?: number; from?: 'up' | 'left' | 'right' }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [on, setOn] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el || !('IntersectionObserver' in window)) { setOn(true); return; }
-    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setOn(true); io.disconnect(); } }, { threshold: 0.15 });
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setOn(true); io.disconnect(); } }, { threshold: 0.12 });
     io.observe(el);
     return () => io.disconnect();
   }, []);
-  return <div ref={ref} className={`dl-reveal ${on ? 'in' : ''} ${className}`} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
+  return <div ref={ref} className={`dl-reveal ${from} ${on ? 'in' : ''} ${className}`} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
 }
 
-function StoryPhone() {
-  const reduced = useReduced();
-  const [i, setI] = useState(reduced ? 4 : 0);
-  const [playing, setPlaying] = useState(!reduced);
-  useEffect(() => { if (reduced) { setI(4); setPlaying(false); } }, [reduced]);
-  useEffect(() => {
-    if (!playing) return;
-    if (i >= FRAMES.length - 1) { setPlaying(false); return; }
-    const t = setTimeout(() => setI((x) => x + 1), 1900);
-    return () => clearTimeout(t);
-  }, [i, playing]);
-  const done = i === FRAMES.length - 1 && !playing;
+function Example() { return <span className="dl-tag">Example</span>; }
+
+/** Illustrative hero composition: request, hosted session, webhook. All values are placeholders. */
+function HeroCards() {
   return (
-    <figure className="dl-stage relative mx-auto w-[min(72vw,320px)] md:w-[min(34vw,340px)]">
-      <div className="dl-phone dl-float">
-        {FRAMES.map((f, k) => <img key={f.src} src={f.src} alt={k === i ? f.alt : ''} aria-hidden={k !== i} className={k === i ? 'on' : ''} loading={k < 2 ? 'eager' : 'lazy'} />)}
-        <div className="absolute inset-x-0 top-0 flex gap-1 p-3" aria-hidden>
-          {FRAMES.map((f, k) => <span key={f.src} className="h-[3px] flex-1 rounded-full transition-colors" style={{ background: k <= i ? 'hsl(138 88% 58%)' : 'hsl(140 20% 95% / .2)' }} />)}
-        </div>
-        <div className="dl-mono absolute left-3 top-6 text-[10.5px] uppercase tracking-[0.18em] text-[hsl(140_20%_95%/.85)]" aria-live="polite">
-          {String(i + 1).padStart(2, '0')} / 05 · {FRAMES[i].cap}
-        </div>
-        {i >= 3 && <div className="absolute inset-x-3 bottom-3 rounded-2xl bg-[hsl(160_14%_4%/.78)] p-3 text-[12px] leading-snug backdrop-blur" data-testid="text-bonus-disclosure-phone">
-          <b className="dl-volt">Simulation credit.</b> The $3,000 bonus is a Sandbox balance for testing, not real BTC or cash, and cannot be withdrawn.
-        </div>}
+    <div className="relative mx-auto h-[460px] w-full max-w-[480px] sm:h-[500px]" role="img" aria-label="Illustrative example: a server request creates a checkout session, the shopper sees a hosted checkout, and a signed simulation webhook is delivered.">
+      <div className="dl-float-card dl-bob absolute left-0 top-0 w-[86%] p-4" aria-hidden>
+        <div className="flex items-center justify-between"><span className="dl-mono text-[11px] text-[hsl(200_8%_60%)]">POST /api/v1/checkout/sessions</span><Example /></div>
+        <pre className="dl-mono mt-3 text-[11.5px] leading-[1.7] text-[hsl(140_14%_88%)]">{`{
+  "amount_sats": 25000,
+  "reference": "order-123",
+  "return_url": "https://merchant.example/result"
+}`}</pre>
       </div>
-      <div className="mt-5 flex justify-center">
-        <button type="button" className="dl-ghost !min-h-10 !px-4 text-[13px]" onClick={() => done ? (setI(0), setPlaying(true)) : setPlaying((p) => !p)} data-testid="button-story-toggle"
-          aria-label={done ? 'Replay intro frames' : playing ? 'Pause intro frames' : 'Play intro frames'}>
-          {done ? <><RotateCcw className="h-4 w-4" /> Replay storm</> : playing ? <><Pause className="h-4 w-4" /> Pause</> : <><Play className="h-4 w-4" /> Play</>}
-        </button>
+      <div className="dl-float-card dl-bob-2 absolute right-0 top-[38%] w-[70%] p-4" aria-hidden>
+        <div className="flex items-center justify-between"><span className="text-[13px] font-semibold">Hosted checkout</span><Example /></div>
+        <div className="mt-3 flex items-center gap-3">
+          <div className="grid h-16 w-16 place-items-center rounded-xl border border-[hsl(var(--line))] bg-[hsl(200_16%_4%)]"><QrCode className="h-9 w-9 text-[hsl(140_14%_80%)]" /></div>
+          <div className="min-w-0">
+            <div className="dl-display text-[1.5rem] font-bold leading-none">25,000 <span className="text-[13px] dl-ash">sats</span></div>
+            <div className="mt-1 text-[11px] dl-ash">QR opens this checkout page</div>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-between rounded-lg bg-[hsl(140_20%_90%/.05)] px-3 py-2 text-[11.5px]"><span className="dl-ash">status</span><span className="dl-mono">open</span></div>
       </div>
-      <figcaption className="sr-only">Still frames from the main_vault developer intro.</figcaption>
-    </figure>
+      <div className="dl-float-card dl-bob-3 absolute bottom-0 left-[6%] w-[78%] p-4" aria-hidden>
+        <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-[13px] font-semibold"><Webhook className="h-4 w-4 dl-volt" /> Webhook delivered</span><Example /></div>
+        <div className="dl-mono mt-2 text-[11.5px] leading-[1.8]">
+          <div><span className="dl-ash">type</span> checkout.simulation_paid</div>
+          <div className="truncate"><span className="dl-ash">X-Vault-Signature</span> t=…,v1=…</div>
+        </div>
+      </div>
+    </div>
   );
 }
 
-const ROCKS = [[8, 14, 0], [18, 9, 2.5], [82, 16, 1], [91, 10, 4], [70, 8, 6], [30, 6, 5]];
-const STEPS = [
-  { img: 'rocks', n: '01', t: 'Apply', b: 'Read the terms in full, then share a name and an email. That is all we ask.' },
-  { img: 'strike', n: '02', t: 'Verify + passkey', b: 'Confirm with a one-time key, then enroll a passkey before anything opens.' },
-  { img: 'orb', n: '03', t: 'Practice', b: 'Your own Sandbox balance, history and destination. Run checkout flows end to end.' },
-  { img: 'bonus', n: '04', t: 'Request Live', b: 'Real payments need explicit approval and readiness checks, requested separately.' },
+const CAPS = [
+  { i: Code2, t: 'One server call', b: 'Create a session with integer satoshis, your reference and an approved HTTPS return URL. The response carries the hosted URL.' },
+  { i: Repeat, t: 'Idempotent by design', b: 'Send an Idempotency-Key. The same key and body return the original session; a different body returns 409.' },
+  { i: QrCode, t: 'Hosted, status-only page', b: 'Shoppers land on a hosted checkout. Its QR encodes the checkout URL, never a Bitcoin payment request.' },
+  { i: Webhook, t: 'Signed webhooks', b: 'HMAC-SHA256 over timestamp and raw body. Delivery is at least once, retried with bounded backoff.' },
+  { i: Fingerprint, t: 'Passkey-gated keys', b: 'Test keys are checkout-only, hashed at rest, expire after 90 days and require a recent passkey to issue.' },
+  { i: ShieldCheck, t: 'Explicit simulation', b: 'Only your authenticated simulate action marks a session paid, once. The shopper button only re-checks status.' },
 ];
-const PILLARS = [
-  { i: Wallet, t: 'Separate ledger', b: 'Simulated BTC per account. No owner balance is visible or reachable.' },
-  { i: ShieldCheck, t: 'Passkey required', b: 'Every account enrolls a passkey before the Sandbox opens.' },
-  { i: Lock, t: 'Live stays locked', b: 'Real payments need explicit approval and readiness checks.' },
-  { i: FileText, t: 'Plain terms', b: 'Read them in full before you share a name and email.' },
+
+const FLOW = [
+  { n: '01', t: 'Create', b: 'Your backend calls POST /api/v1/checkout/sessions with a Bearer sk_test key.', code: 'Authorization: Bearer sk_test_…\nIdempotency-Key: order-123-v1' },
+  { n: '02', t: 'Redirect', b: 'Send the shopper to the returned url. Sessions expire after 30 minutes.', code: '302 → session.url' },
+  { n: '03', t: 'Simulate', b: 'From your console, explicitly simulate receipt. Duplicate calls never credit twice.', code: 'status: open → paid (simulation)' },
+  { n: '04', t: 'Verify', b: 'Fulfil from the verified webhook, not from the return redirect.', code: 'checkout.simulation_paid\nverify v1 · dedupe by id' },
 ];
 
 export function Landing({ prefix = '' }: { prefix?: string }) {
   const { session } = useDev();
   const authed = session.authenticated;
+  const res = (h: string) => prefix + '/resources#' + h;
   const primary = authed
     ? <Link href={prefix + nextStep(session)} className="dl-btn" data-testid="link-resume">Resume setup <ArrowRight className="h-4 w-4" aria-hidden /></Link>
-    : <Link href={prefix + '/apply'} className="dl-btn" data-testid="link-apply">Apply for Sandbox <ArrowRight className="h-4 w-4" aria-hidden /></Link>;
+    : <Link href={prefix + '/apply'} className="dl-btn" data-testid="link-apply">Apply for access <ArrowRight className="h-4 w-4" aria-hidden /></Link>;
 
   return (
-    <div className="dl pb-16">
+    <div className="dl pb-10">
       <a href="#dl-main" className="dl-skip" data-testid="link-skip">Skip to content</a>
-      <div className="dl-clouds" style={{ backgroundImage: `url(${F('storm')})` }} aria-hidden />
-      <div className="dl-flash" aria-hidden />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[100vh] overflow-hidden" aria-hidden>
-        {ROCKS.map(([l, s, d]) => <span key={l} className="dl-rock" style={{ left: `${l}%`, bottom: 0, width: s, height: s * 0.8, animationDelay: `${d}s` }} />)}
-      </div>
+      <div className="dl-grid" aria-hidden />
       <div className="relative">
         <DevTopBar right={authed
           ? <Link href={prefix + nextStep(session)} className="pill-btn" data-testid="link-continue-setup">Continue</Link>
@@ -113,120 +90,124 @@ export function Landing({ prefix = '' }: { prefix?: string }) {
       </div>
 
       <main id="dl-main" className="relative mx-auto w-full max-w-[1180px] px-5 md:px-8">
-        {/* Hero */}
-        <section className="grid items-center gap-12 pt-8 md:grid-cols-[1.2fr_0.8fr] md:gap-8 md:pt-14 lg:pt-20" aria-labelledby="dl-hero">
+        <section className="grid items-center gap-12 pt-10 md:grid-cols-[1.05fr_0.95fr] md:gap-10 md:pt-16 lg:pt-20" aria-labelledby="dl-hero">
           <div>
-            <div className="rise inline-flex items-center gap-2 rounded-full border border-[hsl(138_88%_58%/.35)] bg-[hsl(138_88%_58%/.06)] px-3 py-1.5 dl-eyebrow">
-              <Zap className="h-3.5 w-3.5" aria-hidden /> Bitcoin checkout Sandbox
-            </div>
-            <h1 id="dl-hero" className="rise rise-1 dl-display mt-6 text-[2.9rem] font-extrabold leading-[0.9] sm:text-[4rem] lg:text-[5.6rem]">
-              Break your<br />checkout <span className="dl-volt">here</span>,<br /><span className="text-[hsl(140_20%_95%/.55)]">not in Live.</span>
+            <div className="rise dl-eyebrow">Bitcoin checkout API</div>
+            <h1 id="dl-hero" className="rise rise-1 dl-display mt-5 text-[2.7rem] font-extrabold leading-[0.95] sm:text-[3.6rem] lg:text-[4.6rem]">
+              Bitcoin checkout,<br />built around <span className="dl-volt">your server.</span>
             </h1>
-            <p className="rise rise-2 mt-6 max-w-[46ch] text-[17px] leading-relaxed dl-ash">
-              A private, simulated Bitcoin ledger for every developer. Create checkouts, simulate payments and watch status change, all before you ask for Live.
+            <p className="rise rise-2 mt-6 max-w-[48ch] text-[17px] leading-relaxed dl-ash">
+              Create a session from your backend, send shoppers to a hosted checkout, and confirm outcomes through signed webhooks. Build and test the full loop in an isolated simulation workspace.
             </p>
             <div className="rise rise-3 mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               {primary}
-              <Link href={prefix + '/login'} className="dl-ghost" data-testid="link-login">I have an account</Link>
+              <Link href={res('documentation')} className="dl-ghost" data-testid="link-hero-docs"><BookOpen className="h-4 w-4" aria-hidden /> Read the docs</Link>
             </div>
-            <dl className="rise rise-4 mt-10 grid max-w-[520px] grid-cols-3 gap-4 border-t border-[hsl(140_20%_90%/.12)] pt-5">
-              {[['Ledger', 'Simulated'], ['Access', 'Passkey'], ['Live', 'Approval only']].map(([k, v]) => (
-                <div key={k}><dt className="dl-mono text-[10.5px] uppercase tracking-[0.18em] text-[hsl(200_8%_58%)]">{k}</dt><dd className="mt-1 text-[14px] font-semibold">{v}</dd></div>
-              ))}
-            </dl>
+            <p className="rise rise-4 mt-8 max-w-[52ch] border-l-2 border-[hsl(var(--volt)/.5)] pl-4 text-[13.5px] leading-relaxed dl-ash" data-testid="text-environment">
+              Current environment: simulation only. Live access is not enabled and will be requested separately, subject to approval.
+            </p>
           </div>
-          <StoryPhone />
+          <Reveal from="right"><HeroCards /></Reveal>
         </section>
 
-        {/* Steps */}
-        <section className="mt-24 md:mt-32" aria-labelledby="dl-how">
-          <Reveal className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <section className="mt-28 md:mt-36" aria-labelledby="dl-caps">
+          <Reveal className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-end">
             <div>
-              <div className="dl-eyebrow">How it works</div>
-              <h2 id="dl-how" className="dl-display mt-3 max-w-[16ch] text-[2.2rem] font-bold leading-[0.95] md:text-[3.2rem]">From storm to strike in four steps.</h2>
+              <div className="dl-eyebrow">Capabilities</div>
+              <h2 id="dl-caps" className="dl-display mt-3 text-[2.1rem] font-bold leading-[1] md:text-[3rem]">Fewer moving parts between order and confirmation.</h2>
             </div>
-            <p className="max-w-[36ch] text-[15px] dl-ash">Start with the terms, verify your email and set up your passkey. No wallet to fund.</p>
+            <p className="max-w-[44ch] text-[15.5px] leading-relaxed dl-ash md:justify-self-end">A small, explicit surface: one creation endpoint, one hosted page, one signed event. Each behaviour is documented and testable.</p>
           </Reveal>
           <div className="dl-rule mt-8" />
-          <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((s, k) => (
-              <li key={s.n} className="dl-step" data-testid={`card-step-${s.n}`}>
-                <Reveal className="dl-card h-full overflow-hidden" delay={k * 90}>
-                  <div className="relative aspect-[4/3] overflow-hidden">
-                    <img src={F(s.img)} alt="" loading="lazy" className="h-full w-full object-cover object-[50%_40%]" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[hsl(160_12%_9%)] via-transparent to-transparent" />
-                    <span className="dl-mono absolute left-4 top-3 text-[2rem] font-semibold leading-none dl-volt">{s.n}</span>
-                  </div>
-                  <div className="p-5 pt-3"><h3 className="dl-display text-[1.35rem] font-bold">{s.t}</h3><p className="mt-1.5 text-[14px] leading-relaxed text-[hsl(200_8%_70%)]">{s.b}</p></div>
+          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {CAPS.map((c, k) => (
+              <li key={c.t}>
+                <Reveal className="dl-card h-full p-6" delay={(k % 3) * 90} from={k % 2 ? 'right' : 'left'}>
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-[hsl(var(--volt)/.1)]"><c.i className="h-5 w-5 dl-volt" aria-hidden /></span>
+                  <h3 className="mt-4 text-[16px] font-semibold">{c.t}</h3>
+                  <p className="mt-1.5 text-[14px] leading-relaxed text-[hsl(200_8%_68%)]">{c.b}</p>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mt-28 md:mt-36" aria-labelledby="dl-flow">
+          <Reveal>
+            <div className="dl-eyebrow">Integration</div>
+            <h2 id="dl-flow" className="dl-display mt-3 max-w-[20ch] text-[2.1rem] font-bold leading-[1] md:text-[3rem]">Four steps from request to verified event.</h2>
+          </Reveal>
+          <ol className="dl-track mt-8" tabIndex={0} aria-label="Integration steps, scroll horizontally on small screens" data-testid="list-flow">
+            {FLOW.map((s, k) => (
+              <li key={s.n}>
+                <Reveal className="dl-card flex h-full flex-col p-6" delay={k * 110} from="right">
+                  <span className="dl-mono text-[1.8rem] font-semibold leading-none dl-volt">{s.n}</span>
+                  <h3 className="dl-display mt-4 text-[1.4rem] font-bold">{s.t}</h3>
+                  <p className="mt-1.5 flex-1 text-[14px] leading-relaxed text-[hsl(200_8%_68%)]">{s.b}</p>
+                  <pre className="dl-code mt-5 whitespace-pre-wrap p-3 text-[11.5px]">{s.code}</pre>
                 </Reveal>
               </li>
             ))}
           </ol>
         </section>
 
-        {/* Bonus + pillars */}
-        <section className="mt-24 grid gap-10 md:mt-32 md:grid-cols-[0.85fr_1.15fr] md:items-center lg:gap-16" aria-labelledby="dl-bonus">
-          <Reveal>
-            <figure className="relative overflow-hidden rounded-[28px] border border-[hsl(138_88%_58%/.3)]">
-              <img src={F('bonus')} alt="Stone mascot above the $3000 bonus sign" loading="lazy" className="aspect-[4/5] w-full object-cover" />
-              <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[hsl(160_14%_4%/.95)] via-[hsl(160_14%_4%/.7)] to-transparent p-5 pt-20 md:p-6 md:pt-24">
-                <div className="dl-eyebrow">Simulation credit only</div>
-                <div className="dl-display mt-1 text-[2.1rem] font-extrabold leading-none md:text-[2.5rem]">$3,000 to break things with.</div>
-                <p className="mt-3 text-[13px] leading-snug text-[hsl(140_20%_95%/.8)]" data-testid="text-bonus-disclosure">
-                  Sandbox balance for testing only. Not real BTC, not cash, cannot be withdrawn.
-                </p>
-              </figcaption>
-            </figure>
-          </Reveal>
-          <Reveal delay={100}>
-            <div className="dl-eyebrow">What you get</div>
-            <h2 id="dl-bonus" className="dl-display mt-3 text-[2rem] font-bold leading-[1.02] md:text-[2.8rem]">A real-feeling checkout. <span className="dl-volt">A simulated ledger.</span></h2>
-            <p className="mt-4 max-w-[50ch] text-[16px] leading-relaxed dl-ash">Create checkouts, trigger payments explicitly and inspect each status change. Your account is fenced off from the owner's wallet, keys and funds.</p>
-            <ul className="mt-8 grid gap-3 sm:grid-cols-2">
-              {PILLARS.map((x) => (
-                <li key={x.t} className="dl-card p-5">
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-[hsl(138_88%_58%/.1)]"><x.i className="h-4 w-4 dl-volt" aria-hidden /></span>
-                  <h3 className="mt-3 text-[15px] font-semibold">{x.t}</h3>
-                  <p className="mt-1 text-[13.5px] leading-relaxed text-[hsl(200_8%_68%)]">{x.b}</p>
-                </li>
-              ))}
+        <section className="mt-24 grid gap-10 md:mt-32 md:grid-cols-[0.9fr_1.1fr] md:items-center" aria-labelledby="dl-verify">
+          <Reveal from="left">
+            <div className="dl-eyebrow">Webhook verification</div>
+            <h2 id="dl-verify" className="dl-display mt-3 text-[2rem] font-bold leading-[1.02] md:text-[2.7rem]">Trust the signature, not the redirect.</h2>
+            <p className="mt-4 max-w-[46ch] text-[15.5px] leading-relaxed dl-ash">A return URL tells you the shopper came back. The signed event tells you what happened. Verify the HMAC with constant-time comparison, reject stale timestamps and deduplicate by event id.</p>
+            <ul className="mt-6 space-y-2 text-[14px]">
+              {['Signing secret shown once, replaceable', 'Retries keep the event id and body', 'Public HTTPS endpoints on port 443'].map((x) => <li key={x} className="flex items-center gap-2"><Shield className="h-4 w-4 dl-volt" aria-hidden />{x}</li>)}
             </ul>
           </Reveal>
-        </section>
-
-        {/* Flow preview */}
-        <section className="mt-24 md:mt-32" aria-labelledby="dl-flow">
-          <Reveal className="grid gap-8 md:grid-cols-[0.9fr_1.1fr] md:items-center">
-            <div>
-              <div className="dl-eyebrow">The practice loop</div>
-              <h2 id="dl-flow" className="dl-display mt-3 text-[2rem] font-bold leading-[1.02] md:text-[2.6rem]">Create. Simulate. Inspect. Repeat.</h2>
-              <p className="mt-4 max-w-[44ch] text-[15.5px] leading-relaxed dl-ash">Explicitly simulate a payment, then inspect how your app responds to the checkout status. Practice without moving real Bitcoin.</p>
-            </div>
-            <div className="dl-term p-5 text-[13px] leading-[1.9] md:p-6" role="img" aria-label="Illustrative checkout lifecycle: created, payment simulated, status updated">
-              <div className="mb-3 flex items-center gap-2 border-b border-[hsl(140_20%_90%/.1)] pb-3 dl-mono text-[11px] uppercase tracking-[0.18em] text-[hsl(200_8%_55%)]">
-                <KeyRound className="h-3.5 w-3.5 dl-volt" aria-hidden /> illustrative sandbox flow
-              </div>
-              <div className="dl-mono"><span className="dl-volt">01</span> <span className="text-[hsl(200_8%_55%)]">checkout</span> created</div>
-              <div className="dl-mono"><span className="dl-volt">02</span> <span className="text-[hsl(200_8%_55%)]">payment</span> simulated by you</div>
-              <div className="dl-mono"><span className="dl-volt">03</span> <span className="text-[hsl(200_8%_55%)]">status</span> updated in your ledger</div>
-              <div className="dl-mono text-[hsl(200_8%_55%)]"><span className="dl-volt">--</span> live mode: locked</div>
-            </div>
+          <Reveal from="right" delay={100}>
+            <div className="mb-2 flex justify-end"><Example /></div>
+            <pre className="dl-code p-5" aria-label="Webhook verification checklist"><code>
+<span className="c">{'// Verification checklist — not executable code'}</span>{'\n'}
+{'01  Validate signature format and timestamp\n02  Reject stale or future timestamps\n03  HMAC-SHA256(timestamp + "." + raw body)\n04  Compare equal-length signatures in constant time\n05  Validate event type and deduplicate event ID\n06  Update test orders only'}
+            </code></pre>
           </Reveal>
         </section>
 
-        {/* Final CTA */}
-        <section className="relative mt-24 overflow-hidden rounded-[32px] dl-card px-6 py-16 text-center md:mt-32 md:py-24" aria-labelledby="dl-cta">
-          <img src={F('strike')} alt="" aria-hidden loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-30" />
-          <div className="absolute inset-0 bg-[radial-gradient(60%_80%_at_50%_100%,hsl(160_14%_4%/.2),hsl(160_14%_4%/.85))]" aria-hidden />
+        <section className="relative mt-28 overflow-hidden rounded-[32px] dl-card px-6 py-16 text-center md:mt-36 md:py-20" aria-labelledby="dl-cta">
+          <div className="absolute inset-0 bg-[radial-gradient(60%_90%_at_50%_120%,hsl(var(--volt)/.16),transparent)]" aria-hidden />
           <div className="relative">
-            <div className="dl-eyebrow">Your Sandbox is waiting</div>
-            <h2 id="dl-cta" className="dl-display mx-auto mt-3 max-w-[15ch] text-[2.4rem] font-extrabold leading-[0.95] md:text-[4rem]">Let the lightning hit the Sandbox.</h2>
-            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">{primary}<Link href={prefix + '/login'} className="dl-ghost" data-testid="link-cta-login">Sign in</Link></div>
+            <div className="dl-eyebrow">Get started</div>
+            <h2 id="dl-cta" className="dl-display mx-auto mt-3 max-w-[18ch] text-[2.2rem] font-extrabold leading-[1] md:text-[3.4rem]">Build your checkout flow against the simulation workspace.</h2>
+            <p className="mx-auto mt-4 max-w-[46ch] text-[15px] dl-ash">Apply with a name and email, verify, enroll a passkey and issue a test key.</p>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">{primary}<Link href={prefix + '/login'} className="dl-ghost" data-testid="link-cta-login">Sign in</Link></div>
           </div>
         </section>
-        <footer className="mt-10 flex flex-col items-center gap-2 text-center dl-mono text-[11px] tracking-widest text-[hsl(200_8%_52%)]">
-          <span>mainvaultwallet.com · developer sandbox</span>
-          <span className="normal-case tracking-normal">Sandbox balances, including bonus credit, are simulated and have no monetary value.</span>
+
+        <footer className="dl-card mt-10 p-6 md:p-10" data-testid="footer-landing">
+          <div className="grid gap-10 md:grid-cols-[1.2fr_1fr_1fr]">
+            <div>
+              <div className="flex items-center gap-3"><img src={BRAND_MARK} alt="" className="h-9 w-9" /><div><div className="dl-display text-[18px] font-bold">main_vault</div><div className="text-[12px] dl-ash">Bitcoin checkout for developers</div></div></div>
+              <p className="mt-4 max-w-[36ch] text-[13px] leading-relaxed dl-ash">Simulation environment. Balances and events have no monetary value.</p>
+            </div>
+            <nav aria-label="Legal">
+              <div className="dl-eyebrow !text-[hsl(200_8%_60%)]">Legal</div>
+              <ul className="mt-4 space-y-3 text-[14px]">
+                {[[Scale, 'Terms', 'terms'], [FileText, 'Policy', 'policy'], [Shield, 'Privacy', 'privacy']].map(([I, l, h]) => {
+                  const Icon = I as typeof Scale;
+                  return <li key={h as string}><Link href={res(h as string)} className="inline-flex items-center gap-2 hover:text-[hsl(var(--volt))]" data-testid={`link-footer-${h}`}><Icon className="h-4 w-4 dl-ash" aria-hidden />{l as string}</Link></li>;
+                })}
+              </ul>
+            </nav>
+            <nav aria-label="Developers">
+              <div className="dl-eyebrow !text-[hsl(200_8%_60%)]">Developers</div>
+              <ul className="mt-4 space-y-3 text-[14px]">
+                {[[BookOpen, 'Documentation', 'documentation'], [Link2, 'Integration', 'integration'], [Mail, 'Contact us', 'contact']].map(([I, l, h]) => {
+                  const Icon = I as typeof Scale;
+                  return <li key={h as string}><Link href={res(h as string)} className="inline-flex items-center gap-2 hover:text-[hsl(var(--volt))]" data-testid={`link-footer-${h}`}><Icon className="h-4 w-4 dl-ash" aria-hidden />{l as string}</Link></li>;
+                })}
+              </ul>
+            </nav>
+          </div>
+          <div className="mt-8 flex flex-col gap-2 border-t border-[hsl(var(--line))] pt-5 text-[12px] dl-ash sm:flex-row sm:justify-between">
+            <span className="dl-mono">mainvaultwallet.com</span>
+            <span className="inline-flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" aria-hidden /> Live access not enabled</span>
+          </div>
         </footer>
       </main>
     </div>

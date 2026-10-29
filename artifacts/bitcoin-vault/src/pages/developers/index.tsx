@@ -11,6 +11,7 @@ import { DEV_END_EVENT, DEV_SESSION_KEY, DevProvider, devQueryClient, endDevelop
 import { Apply, Landing, Register } from '@/pages/developers/apply';
 import { KeyPage, Passkey, Provision, Verify } from '@/pages/developers/onboarding';
 import { Live, Login } from '@/pages/developers/access';
+const ResourcesPage = lazy(() => import('@/pages/developers/resources'));
 const CheckoutConsolePage = lazy(() => import('@/pages/developers/checkout'));
 import NotFound from '@/pages/not-found';
 import { DeveloperIntroGate } from '@/components/developer-intro';
@@ -63,6 +64,7 @@ function Routes() {
         <Route path="/passkey"><Need when={(s) => !!s.verified}><Passkey /></Need></Route>
         <Route path="/provision"><Need when={(s) => !!s.passkeyEnrolled}><Provision /></Need></Route>
         <Route path="/key"><Need when={(s) => !!s.ready}><KeyPage /></Need></Route>
+        <Route path="/resources"><Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading resources</p>}><ResourcesPage /></Suspense></Route>
         <Route path="/login" component={Login} />
         <Route path="/live"><Need when={(s) => !!s.passkeyEnrolled}><Live /></Need></Route>
         <Route path="/checkout"><Need when={(s) => !!s.passkeyEnrolled}><Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading checkout console</p>}><CheckoutConsolePage /></Suspense></Need></Route>
