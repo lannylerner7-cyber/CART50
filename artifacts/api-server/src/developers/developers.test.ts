@@ -16,9 +16,13 @@ test("isolated developer lifecycle, email safety, provisioning and payment idemp
   const { readState, query }=await import("../vault/store");
   const mail=new Map<string,string>();
   let available=true,failMail=false;
+  const quote = process.env.LIVE_MARKET_TEST === "1"
+    ? await (await import("../vault/public-market")).fetchPublicPrice()
+    : {price:100000,updatedAt:new Date().toISOString(),source:"fixture quote — not market evidence"};
+  const expectedBalance=Number(300000n*100000000n/BigInt(Math.round(quote.price*100)));
   const app=express();app.use(express.json());app.use("/api/developers",developerRouter({
     send:async m=>{if(failMail)throw new Error("delivery failed");mail.set(m.to,m.text.match(/\n\n([A-Za-z0-9_-]{24})\n\n/)![1]);return {accepted:[m.to],rejected:[],response:"fixture"};},
-    quote:()=>({available,stale:!available,price:100000,updatedAt:new Date().toISOString(),source:"fixture quote — not market evidence"}),
+    quote:()=>({...quote,available,stale:!available}),
   }));
   app.use((e:any,_req:any,res:any,_next:any)=>res.status(e.status??400).json({error:e.message}));
   const server=app.listen(0,"127.0.0.1");
@@ -54,7 +58,7 @@ test("isolated developer lifecycle, email safety, provisioning and payment idemp
     available=true;
     assert.equal((await call(c,"/provision",{})).status,200);
     assert.equal((await call(c,"/provision",{})).status,200);
-    assert.equal((await accountBy("id",a.id))?.balanceSats,3000000);
+    assert.equal((await accountBy("id",a.id))?.balanceSats,expectedBalance);
     const issued=await call(c,"/issue-key",{});
     assert.equal(issued.b.key.length,86);
     assert.equal((await call(c,"/issue-key",{})).status,403,"fresh passkey proof consumed");

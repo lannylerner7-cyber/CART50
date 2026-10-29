@@ -116,13 +116,7 @@ JSON row. Database capacity/backup monitoring still applies. No automatic deleti
 or purge is authorized. The admin view shows the last 100 ordinary entries per
 account plus up to 100 security entries per account from the latest 1,000 global
 security events; older security records remain stored for authorized export.
-Archive/export retention and pagination must be implemented before public scale,
-never by putting the emergency controls behind the ordinary history limit.
-The owner list currently supports at most 500 accounts; pagination/archival is
-a launch gate. Rate limits include per-process limits, not a production-wide
-distributed quota. Measure and strengthen these before public scale.
-
-Continuation source supersedes those original limits: owner admin now pages 50
+Owner admin pages 50
 summary rows by stable ID cursor, with recent audit projections and matching
 Previous/Next controls. Due outbox event IDs are selected across all accounts,
 not the former 501-account scan. Source migration 5 adds D1-backed atomic quota
@@ -131,8 +125,10 @@ authenticated tenant/key budgets with Retry-After. Developer quota failures do
 not gate owner admin routes. Shared-store errors deny developer admission.
 The existing explicit proxy-CIDR configuration controls client IP attribution.
 These are locally tested source changes, not a hosted migration or capacity SLA.
-Verified archival and tombstone preservation remain a release blocker; histories
-have not been deleted and the per-account retention guards remain in place.
+Verified archive copy and receipt/idempotency lookup are implemented and locally
+tested. Pruning is restricted to disposable tests; no scheduler or public API
+performs archival. Hosted retention/restore approval remains a release blocker.
+Histories have not been deleted and per-account retention guards remain in place.
 
 ## Evidence and remaining gates
 
@@ -143,6 +139,25 @@ pause/freeze/suspend, adjustment reconciliation and approval remaining disabled.
 These are not proof of hosted mail, real-device passkeys, public webhook delivery,
 restoration, production abuse resistance or actual Bitcoin readiness.
 
-The prior signed-in browser run did not return a completed report. Do not count
-its scenarios as passed. Root homepage cutover remains off pending acceptance.
+The prior broad signed-in browser run did not return a completed report. Do not
+count its scenarios as passed; see developer-release-commissioning.md for later
+focused reports. The developer homepage is now the source default at root
+unless VITE_DEVELOPER_HOMEPAGE=false; owner navigation uses its configured prefix.
 No production deployment, Signet restart or real transfer is authorized here.
+
+## Pricing and verification — 2026-10-29
+
+The default backend price source is Coinbase Exchange BTC-USD, not Cloudflare
+Access. MARKET_PROVIDER=coinbase selects it explicitly. Requests are shared
+within each API process with a 60-second refresh throttle, one in-flight fetch,
+a ten-second timeout and no redirects or credentials. Provider errors stop
+provisioning; no synthetic price or automatic provider fallback is used.
+The trade timestamp must be within three minutes (maximum future skew 30 seconds).
+History contains observed quotes only; it is not a backfilled chart.
+
+All seven developer test files plus the public-price and Access-request suites
+passed (16 top-level tests). A separate disposable HTTP lifecycle run with
+LIVE_MARKET_TEST=1 used an actual fresh public quote and verified successful
+provisioning, repeat-call non-duplication, tenant separation and simulated sends.
+Its email transport and passkey enrollment are modeled: this is not a hosted
+signup, real-device WebAuthn, public webhook or real-Bitcoin acceptance claim.

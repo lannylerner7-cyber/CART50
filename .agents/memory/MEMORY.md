@@ -15,3 +15,4 @@
 - [Developer intro experience](developer-intro-experience.md) — finish the uploaded intro before revealing the homepage; use its imagery without presenting simulated credit as money.
 - [Emergency audit capacity](emergency-audit-capacity.md) — developer-controlled log quotas must not block owner suspension or revocation.
 - [Shared limiter choice](shared-limiter-choice.md) — owner selected existing D1, not another service; hosted migration needs separate authorization.
+- [Market provider choice](market-provider-choice.md) — direct public quotes keep Sandbox onboarding independent of Cloudflare Access; never invent prices.

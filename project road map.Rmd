@@ -11,6 +11,26 @@ output:
 
 # Read this first
 
+## Price-feed simplification — 2026-10-29
+
+- Source: direct Coinbase Exchange BTC/USD pricing is the default; optional
+  Cloudflare Worker mode must be selected explicitly. Credentials are never sent
+  to Coinbase. Cached per-process reads refresh at most once per minute.
+- Local/API evidence: 16 top-level developer/market tests passed, plus a separate
+  disposable HTTP lifecycle using a fresh real exchange quote. Provisioning and
+  duplicate prevention passed; passkey enrollment and email are modeled in this
+  test and do not establish hosted onboarding acceptance.
+- API and frontend typechecks passed. Checkout documentation now distinguishes
+  current pagination/archive source from outstanding hosted rollout gates.
+- Two additional existing market/credential tests and the production frontend
+  build passed. The API restarted without the previous Access 401 error.
+  A public mobile resources screenshot rendered; this is not signed-in acceptance.
+- Git push readiness is blocked: the configured SSH deploy identity and pinned
+  known-host file are absent in this workspace. Read-only remote access failed.
+  Restore Git authentication before attempting a push; never disable host checking.
+- No deployment, GitHub push, Signet restart, real transfer or hosted data
+  migration was performed for this change. Existing mainnet storage is untouched.
+
 This is the living project reference. It describes the repository, not a claim
 that every implemented feature has passed live commissioning. It is an R Markdown
 document containing ordinary Markdown; reading it requires no R runtime. Optional
@@ -1078,20 +1098,21 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-628 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+634 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
 | `.agents/agent_assets_metadata.toml` | 5315 | `fd850ae61e0519307dc1d3f37b35a89f9e863893f7329e0235d5c53916dde4c8` | Workspace asset metadata; not application logic. |
-| `.agents/memory/MEMORY.md` | 2472 | `133e82df836434013c7b5333fb39cc488480bd4593a1eb643db1e5e09d8f34b0` | Durable project decision/lesson: MEMORY. |
+| `.agents/memory/MEMORY.md` | 2630 | `e1f34e6dbbf74830a0893c67564e9eb1dccc8650476487072deb2320669cd5dc` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
 | `.agents/memory/developer-boundary.md` | 1548 | `d2b9ca125edeb0fe7664603895b4be04e53e08b95cc2c752965a1b2d05129b4f` | Durable project decision/lesson: developer-boundary. |
-| `.agents/memory/developer-intro-experience.md` | 1047 | `58177d0161ba13f415cc9713062778768f83078ecd975f96e1f5be72b3f4d91c` | Durable project decision/lesson: developer-intro-experience. |
+| `.agents/memory/developer-intro-experience.md` | 2058 | `13b7d2762434ffc31d7a76b75c9fd35fe72a6d01a222e0e2daea906fafe85285` | Durable project decision/lesson: developer-intro-experience. |
 | `.agents/memory/emergency-audit-capacity.md` | 735 | `6a4b0430853bd8632a3f0ad31e8386e709b03c4418c1323a4574d68a6eaa8fa4` | Durable project decision/lesson: emergency-audit-capacity. |
 | `.agents/memory/health-replication.md` | 2239 | `4b755891aeb81242e73bea695f5657520654aaec16e1e55f7eeb7971d631b2ec` | Durable project decision/lesson: health-replication. |
 | `.agents/memory/hosting-scope.md` | 4384 | `7b0ad7d558e79a77db161c532edf37035879cf2a010dd67e006f63b2e82ab3b0` | Durable project decision/lesson: hosting-scope. |
 | `.agents/memory/live-sandbox-boundary.md` | 2729 | `bacd5179c696cfbbe574181e62de5b77b644f902d8c69b64debdaf7a8941a569` | Durable project decision/lesson: live-sandbox-boundary. |
+| `.agents/memory/market-provider-choice.md` | 640 | `df47ee8af7cd03b61cfd6bd58c86cbb1614da42852a5562c3e5c46451b356eda` | Durable project decision/lesson: market-provider-choice. |
 | `.agents/memory/owner-access.md` | 1808 | `159d57009f9e05cc3a71f1adaf0eb452995a20aa1fe57e837629feb5d9d29088` | Durable project decision/lesson: owner-access. |
 | `.agents/memory/production-scope.md` | 2445 | `cecdac2d450084208b00f01f47c42811cc070069aeab74fe05b7e39cd73913af` | Durable project decision/lesson: production-scope. |
 | `.agents/memory/qr-verification.md` | 664 | `d33954d52db2f10659a65870510d5b76a6c88c72fab228a3c7d282d52caf4c79` | Durable project decision/lesson: qr-verification. |
@@ -1104,7 +1125,7 @@ to publish: review repository assets before release.
 | `.dockerignore` | 1308 | `baee3e84520fdf1074ee278b752611522e467dcdbe2216b14446893ba068863d` | Repository/tool configuration: .dockerignore. |
 | `.gitignore` | 911 | `04d7c0ec9e25280c87ff990c90b57492be5958258114a213e713fb01732857bd` | Repository/tool configuration: .gitignore. |
 | `.npmrc` | 56 | `1ded4f26f4851b35dae702edd5719d1be5ff31db6983858d088d5e6593ea7c99` | Repository/tool configuration: .npmrc. |
-| `.replit` | 619 | `579245dff1125dc8a620512d6c646586f1b8366960436a11f2e3facbf2b95021` | Repository/tool configuration: .replit. |
+| `.replit` | 856 | `8c9481890448c943c100b8d3bbcfac5329b96d4c0088880330e12fc0c3235bca` | Repository/tool configuration: .replit. |
 | `.replitignore` | 239 | `5add696818c05230042bee377eedf5177a2e5e5e8757ed13c8df2cd3b0011e06` | Repository/tool configuration: .replitignore. |
 | `Dockerfile` | 1598 | `d9d46ce7dd433ea1d72e55d25b1557e006eaf44104036a6331619a21f221e8ef` | Multi-stage production website/API image; non-root runtime and HTTP health check. |
 | `artifacts/api-server/.replit-artifact/artifact.toml` | 784 | `e461708bfe50f6eb964fa755cf0c6ba813c19392be055d5ef96c729aa0173539` | Managed artifact service/routing configuration; update through artifact tooling. |
@@ -1117,7 +1138,7 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/developers/backup-recovery.test.ts` | 1864 | `5bd4f2c5160000a6dfd398bceb6b3d1e64ad3115ce9bd4e8645e4fb8e2913472` | Regression tests for backup-recovery; local checks, not hosted evidence. |
 | `artifacts/api-server/src/developers/checkout-routes.ts` | 9928 | `b6e37d206cc1a4efe5a01d417b5ef519f84d33a5e6436cee288089fb0ea5daac` | checkout-routes.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/checkout.test.ts` | 9775 | `abdafbfff23c33f6629dc3cd0cf03d3c4e61c341e1713bf0e577a1ed4dda9e2e` | Regression tests for checkout; local checks, not hosted evidence. |
-| `artifacts/api-server/src/developers/developers.test.ts` | 8025 | `b91385e02a5b9d5011996542e0b9da19dc7d469f6580459ff959de8e68181095` | Regression tests for developers; local checks, not hosted evidence. |
+| `artifacts/api-server/src/developers/developers.test.ts` | 8264 | `8ffcbd6e4a37bc164c96709f4d02c5c16a2c4965c943b22c3dcb00f6dd8fbb91` | Regression tests for developers; local checks, not hosted evidence. |
 | `artifacts/api-server/src/developers/ledger.test.ts` | 1942 | `72754fbe712db507c296194587ef29de3d153c11152edcd44b1cf25a157167c4` | Regression tests for ledger; local checks, not hosted evidence. |
 | `artifacts/api-server/src/developers/ledger.ts` | 2860 | `03d914027b30ca94ea6dfb69db15f8f25895d11076d258f7b1c94ad8332fbffc` | ledger.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/limits.test.ts` | 2005 | `6805dbca5d91d17d37e9e8b0027e910c1863791620eea10be8200c9a34875300` | Regression tests for limits; local checks, not hosted evidence. |
@@ -1149,12 +1170,16 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/vault/engine.ts` | 4923 | `9a2315973fd2ffeb8693cf68df4514d7c53760bd0f7633dc99d3b6e74302f86d` | Private signer client and node readiness adapter. |
 | `artifacts/api-server/src/vault/login-security.test.ts` | 5051 | `df18c40288b82e0e73f8b8433319f97e44ab12851866781b6d75bf20eae4bd26` | Regression tests for login-security; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/login-security.ts` | 4108 | `13ca1fb8ccb409d3104f92f8c7af64ecaeea6bac36755883ccb56904a03a9ac9` | Login attempt tracking and access restrictions. |
+| `artifacts/api-server/src/vault/market-request.test.ts` | 1550 | `674d48410cb7d9547cee76687e6bf39cb8c64c4d9ec36774ba1450661f1d230a` | Regression tests for market-request; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/market-request.ts` | 1010 | `818cde9f076e62f5e45bb772f2c3946df3dfc2bd0806479bc4d33cec9dd9c1da` | market-request.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/market.test.ts` | 1172 | `32e98a536b8de783a48055cd1ff738b5d0ca8dd63f33533bda9ad8932fad2816` | Regression tests for market; local checks, not hosted evidence. |
-| `artifacts/api-server/src/vault/market.ts` | 3387 | `cfdf94b95d7f6c089ef281a2faa35c86bc001e598847d0b2c8509dba3e82f63c` | Market freshness, pricing state and alert evaluation. |
+| `artifacts/api-server/src/vault/market.ts` | 4008 | `2850c0533d428db4078983f1ddb5829c6702c391b62ef6841e0ef8d907e3a1bc` | Market freshness, pricing state and alert evaluation. |
 | `artifacts/api-server/src/vault/network.ts` | 527 | `74b5f26c3290c49a2e2db6943ac4a87219dd7275c14eb345a2c7621f10e294f2` | network.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/node-sync.test.ts` | 2417 | `f5c3d8bd9c44edd3f6849dcab2884044502c5eb4f95e1eae4fff35539dde76ea` | Regression tests for node-sync; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/node-sync.ts` | 2520 | `cddc137f4a12b1f12c647a3188b21b182bcc46d59a1425ec10fb1a2f784340fb` | node-sync.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/passkeys.ts` | 6148 | `06d79431b2104753d28a9ded40de45afa68b47697ad954e862827deb57b7a0cf` | WebAuthn passkey enrollment, authentication and management. |
+| `artifacts/api-server/src/vault/public-market.test.ts` | 1633 | `df186644d24132b25e9ca75afb88a98440b583346c4d09f758c0cb69bfcc3d13` | Regression tests for public-market; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/public-market.ts` | 1325 | `b1697ee2f3aa7065fd34e601d5db1a23d622626973d6c31ff4e9bc0b94a3f2ae` | public-market.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/qr-render.test.ts` | 2628 | `f15eae6384dd3004c4e54dd96e094896af5c4f48807c746e11cafa99b56bcbc0` | Regression tests for qr-render; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/read-flight.test.ts` | 2078 | `dd8f7ec226b44d685661049a827b1eb0b40db8bff731d18c8cf02fd0e88bf746` | Regression tests for read-flight; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/read-flight.ts` | 523 | `f5753228cb365a378c1dad710d5fbc395ca5d11d7f86c460b74dc5621c80da18` | read-flight.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
@@ -1195,7 +1220,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/branded-qr.tsx` | 1059 | `161d2024c73f0a763a4be93dd92cddcca03c6f1f46818689cef1de1ed6d17ea4` | branded-qr.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/data-table.tsx` | 10120 | `15af3d3bc09114998678cc044f2c4fe6fac77032aae8024c6f7ed724b00bee90` | data-table.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/developer-frame.tsx` | 6756 | `0abe55392b61b2a8067ce4e7244f56ec06d238038f7e3389d5927e74bb78dbff` | developer-frame.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/components/developer-intro.tsx` | 9662 | `b45bd68b997982942afa18cc61c06feac51c5f50ad208db5cafa91fd464ecb39` | developer-intro.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/developer-intro.tsx` | 9000 | `a53ee802d7ba6f6f2506e0f859d04791a32214a6932f21e3488706e682ded68f` | developer-intro.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/error-boundary.tsx` | 2735 | `c1ea4d88be8cd206a46bd87f19edf025b2504a70a2b65cd9c438e4a0e62dafe0` | error-boundary.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/kit.tsx` | 8463 | `44c5aa876dcf793e18313b1f9de3bbadf104e0a66164a37f8252935834f49164` | kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/login-bitcoin-hero.tsx` | 4358 | `de1f14a1dfb9386191b11dddf5ecb4658bd1e0737b5891e68b5febbee5703351` | login-bitcoin-hero.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
@@ -1288,10 +1313,11 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/pages/developers/access.tsx` | 11610 | `c2147463634c1195231ec3b3a5e54a84d310c87029aafe24704a654c37a9283b` | access wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/apply.tsx` | 7509 | `32358f33f78d013a304f01519e522c728496dca7cfecd4ca18fd81c81d9c800f` | apply wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/checkout.tsx` | 21858 | `40144a8a7f210ce0a03e66d3c63514d4bb3706b761f46f8a79c9d15d60efe726` | checkout wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/index.tsx` | 6914 | `f523c1c4642f6f89d2a90649a743647405a0cebffb3285efa1d834bb18725820` | index wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/landing.css` | 3131 | `042c52b378869fde544394e7c350bfaea86504e4578b94d9ff018860afe3c1fe` | landing.css wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/landing.tsx` | 11529 | `9a78c278d8162f799a8b4e727c8d8548214af09d5285cdf4f97ab5ea3ab64c40` | landing wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/onboarding.tsx` | 14132 | `287b4ea33a24ca74ddb1436a62a73f51563b1aaef7305104cf07f278fb2e70ea` | onboarding wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/index.tsx` | 7164 | `62d6e80cb8ea21482520d90e59f9a073f4c91745177f01887b0f715686c0dd70` | index wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/landing.css` | 6118 | `f7e7fab3b8a72b3d516c24c4261967f6daa6a34f67b9c4e95173404fea980eb4` | landing.css wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/landing.tsx` | 15525 | `aa95a33c1dd6cad844db7e8ffe62c1e4dc99e2c3a2ae656192fb2ed3c1d44a47` | landing wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/onboarding.tsx` | 14255 | `179327f6a86dfbc7d702915e64e0de126f54fc0bea15ac702df8b55e7af88b55` | onboarding wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/resources.tsx` | 6545 | `a5296bda0ce8c9bb69671f7df1983562ce80f4142b1c56810e5b7525e6a84019` | resources wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/explorer.tsx` | 4055 | `7d91e60eeba560738e2e1b925c5e2b9804f2f0e8b439aade2826542105bed57b` | explorer wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/hosted-checkout.tsx` | 7604 | `6fd848ef0856d701ab6a287f82ec172855990e787a9fdef69e5f8be4e4fcc92e` | hosted checkout wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/lock.tsx` | 13946 | `13f0cf4dcaed32c1a7437a12d27398bd40095a1c4a9032a7b5bde2cf1dbe3177` | lock wallet screen. |
@@ -1526,9 +1552,9 @@ to publish: review repository assets before release.
 | `deploy/vault-regtest.Dockerfile` | 768 | `556ac4df33192ce5b22af6fc3948f367b4b7096141f8b6e4a5df2a5a308c3e41` | Deployment configuration/tool: vault-regtest.Dockerfile; see deployment chapter and runbooks. |
 | `deploy/vault-regtest.Dockerfile.dockerignore` | 126 | `c87f626c7c5177a00915301822c369b06aba4b800dbb9cc96bfb24f80b130094` | Deployment configuration/tool: vault-regtest.Dockerfile.dockerignore; see deployment chapter and runbooks. |
 | `docs/coolify-bitcoin-setup.md` | 6457 | `79ea5ce97c779418b08abb5b0005cbee3bef98d72c9d7fe244dbad369b932e08` | Detailed coolify bitcoin setup runbook/status reference; respect dated evidence. |
-| `docs/coolify-deployment.md` | 13528 | `69d9278f3667c63efda3a002c625539b1a680d77a6eb1371fe19bff6d524e9c7` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
+| `docs/coolify-deployment.md` | 15094 | `057b41e8c68fcd84d75167d56030ca3b21c6db25c427b117a2fb8cebdcc525da` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
 | `docs/database-schema.md` | 3150 | `83c765f8d07d3008a0813094dd0ea961dbd923a960a3fee98537ad4ca494c47c` | Detailed database schema runbook/status reference; respect dated evidence. |
-| `docs/developer-access.md` | 8765 | `0ba711b2506eaf36cc88335f7d27a881d5c0ecdf51a0f52ad3982eba9852083a` | Detailed developer access runbook/status reference; respect dated evidence. |
+| `docs/developer-access.md` | 9276 | `3f8b1528bfa3c4db364f558086ddaeb1e48b662d7ae76bfa21509e20d7b90d10` | Detailed developer access runbook/status reference; respect dated evidence. |
 | `docs/developer-release-commissioning.md` | 18312 | `e6627161b430b1de3589948d58ec6d989c9a3ff2b930e4e8472e8199e2a977f7` | Detailed developer release commissioning runbook/status reference; respect dated evidence. |
 | `docs/github-readiness.md` | 11521 | `10908f86e6a211ff20ae51d92f6e0c11938d131426fdfa100a3c4f1979d82c65` | Detailed github readiness runbook/status reference; respect dated evidence. |
 | `docs/hosted-readiness-audit-2026-10-27.md` | 6240 | `bb8e32fb1ff2a4e8f35cb9bcf6ab41526d1ba0d91dbd4c014b26d3e1161fc6b7` | Detailed hosted readiness audit 2026 10 27 runbook/status reference; respect dated evidence. |
@@ -1539,7 +1565,7 @@ to publish: review repository assets before release.
 | `docs/mainnet-sync-monitor.md` | 1687 | `1aec872da31af91d241d5575f1034813b9179f4498d63a2c81ecb8c505d4bce2` | Detailed mainnet sync monitor runbook/status reference; respect dated evidence. |
 | `docs/receive-readiness.md` | 2926 | `ed851ccc6e98853b4468a3e82ef5c363fc1fcfc5205118aeea128b6606350b8d` | Detailed receive readiness runbook/status reference; respect dated evidence. |
 | `docs/request-recovery.md` | 2568 | `842926f8da879ba667c434e0c5dd0305c4312cf61ac500611ce36aa3bba2e207` | Detailed request recovery runbook/status reference; respect dated evidence. |
-| `docs/sandbox-checkout.md` | 9148 | `7cd0ae206c38948bee5040678b007a9622cad0f2bbd6e87d484cb2d29dd0dfe2` | Detailed sandbox checkout runbook/status reference; respect dated evidence. |
+| `docs/sandbox-checkout.md` | 10079 | `0c2f793ca8caf4422e5005f9d154b13274236e2797baf9bb0e34638581f706a6` | Detailed sandbox checkout runbook/status reference; respect dated evidence. |
 | `docs/server-held-custody.md` | 4265 | `d9785925e1ccf930279868dbcd503e7ce0b69391870463504e8c2f3421ce3f4a` | Detailed server held custody runbook/status reference; respect dated evidence. |
 | `docs/strongroom-complete-figma-design-brief.txt` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Detailed strongroom complete figma design brief.txt runbook/status reference; respect dated evidence. |
 | `docs/strongroom-figma-handoff.html` | 20206 | `1f27678f79f6e7e42f3905bcb4583b380b2e4f96687611fcff67df9c3f0fadc6` | Detailed strongroom figma handoff.html runbook/status reference; respect dated evidence. |
@@ -1663,7 +1689,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 224175 | `714025631ddd5482406a777dd349c3e90a733500a6408bd3690890ad40c7db49` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 64678 | `955cf24f8ae506ca5bb556d72f60d4627cfacbbf0bbfe3df7cad8a84b37b2000` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 66042 | `7410348c0b2a01fd9fd818db5c46d338378706e88de9fe9ab7b94e5d8c4dcb32` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/developer-capacity-check.mts` | 2050 | `ea82c34dfd141ec3f6b675df74e518473f356529d2c996e0c288ac9ca6de8527` | Operator/build utility: developer-capacity-check.mts; inspect flags before invoking. |

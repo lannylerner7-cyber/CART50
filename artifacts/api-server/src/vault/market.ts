@@ -3,6 +3,7 @@ import { changeState } from "./store";
 import { GetMarketResponse } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
 import { marketRequest } from "./market-request";
+import { fetchPublicPrice } from "./public-market";
 
 export type PricePoint = { time: string; price: number };
 export function alertCondition(kind: string, threshold: number, windowMinutes: number, price: number, now: number, history: PricePoint[]): boolean | null {
@@ -13,26 +14,37 @@ export function alertCondition(kind: string, threshold: number, windowMinutes: n
   return (base.price - price) / base.price * 100 >= threshold;
 }
 const unavailable = () => ({
-  available: false, price: null, currency: "USD", source: "Market Worker",
-  updatedAt: null, stale: true, message: "Market Worker not connected. No market prices are being fabricated.", history: [] as PricePoint[],
+  available: false, price: null, currency: "USD", source: "Market feed",
+  updatedAt: null, stale: true, message: "Waiting for a verified market quote. No market prices are being fabricated.", history: [] as PricePoint[],
 });
 let cache = unavailable() as ReturnType<typeof GetMarketResponse.parse>;
 let nextFetch = 0;
 let running = false;
 export async function refreshMarket() {
-  if (running || Date.now() < nextFetch || !process.env.MARKET_WORKER_URL) return;
+  if (running || Date.now() < nextFetch) return;
   running = true; nextFetch = Date.now() + 60000;
   try {
-    const { url, options } = marketRequest();
-    const response = await fetch(url, options);
-    if (!response.ok) {
-      // Status only: never log credentials, redirects or upstream response bodies.
-      logger.warn({ status: response.status }, "Market Worker rejected request");
-      throw new Error("Price feed unavailable");
+    const provider = process.env.MARKET_PROVIDER ?? "coinbase";
+    let body: unknown;
+    if (provider === "coinbase") {
+      body = await fetchPublicPrice();
+    } else if (provider === "cloudflare-worker") {
+      const { url, options } = marketRequest();
+      const response = await fetch(url, options);
+      if (!response.ok) {
+        logger.warn({ status: response.status }, "Market Worker rejected request");
+        throw new Error("Price feed unavailable");
+      }
+      body = await response.json();
+    } else {
+      throw new Error("Unsupported market provider");
     }
-    const candidate = GetMarketResponse.parse(await response.json());
+    const candidate = GetMarketResponse.parse(body);
     const timestamp = Date.parse(candidate.updatedAt ?? "");
-    if (!candidate.available || candidate.stale || !candidate.price || !Number.isFinite(timestamp) || Date.now() - timestamp > 180000 || timestamp > Date.now() + 30000 || candidate.currency !== "USD") throw new Error("Price feed is stale");
+    if (!candidate.available || candidate.stale || !Number.isFinite(candidate.price) || candidate.price! <= 0 || !Number.isFinite(timestamp) || Date.now() - timestamp > 180000 || timestamp > Date.now() + 30000 || candidate.currency !== "USD") throw new Error("Price feed is stale");
+    if (provider === "coinbase") {
+      candidate.history = [...cache.history.filter(p => Date.parse(p.time) >= Date.now() - 86400000 && p.time !== candidate.updatedAt), ...candidate.history].slice(-1440);
+    }
     cache = candidate;
     const now = Date.now();
     await changeState(s => {

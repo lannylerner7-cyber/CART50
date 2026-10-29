@@ -101,7 +101,11 @@ Names only; never put real secrets in these documents:
 - `DEVELOPER_MAIL_FROM` (or existing `SECURITY_ALERT_FROM`), existing SMTP
   configuration: independently verify authorized sender and actual delivery.
 - Existing `PUBLIC_ORIGIN`: exact same-origin HTTPS and passkey RP boundary.
-- Existing market feed configuration: fresh quotes are required for provisioning.
+- `MARKET_PROVIDER=coinbase` (default): direct public BTC/USD feed, cached/throttled
+  per API process for 60 seconds; no API key or Cloudflare Access dependency.
+  Prices older than three minutes or with invalid timestamps block provisioning.
+  `cloudflare-worker` remains an explicit alternative requiring its documented
+  URL, response contract and optional Access configuration; no silent fallback.
 
 Before public launch, verify D1 schema privileges/restore and tenant controls,
 mail delivery, WebAuthn on real supported devices, rate limits across deployed
@@ -129,8 +133,11 @@ the actual cryptographic WebAuthn verification with a virtual authenticator.
 For the subsequent focused browser results and actual Cloudflare read-only
 findings, see `docs/developer-release-commissioning.md`. Signup/recovery/rotation
 and owner-prefixed admin now have completed local reports. HTTPS checkout,
-two-developer browser isolation, intro skip and automatic expiry clearing remain
-open. The homepage switch remains off. The older broad-run record below is
+two-developer browser isolation and automatic expiry clearing still require
+their documented acceptance evidence. Normal intro Skip/Pause were removed at
+the owner's request; only playback-failure recovery remains. The developer
+homepage is now the source default, with owner pages under the dedicated prefix.
+The older broad-run record below is
 historical evidence, not the latest complete list of assertions.
 
 On 2026-10-28, both TypeScript checks and the frontend build passed. Twelve
