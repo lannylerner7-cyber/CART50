@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { changeState } from "./store";
 import { GetMarketResponse } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
+import { marketRequest } from "./market-request";
 
 export type PricePoint = { time: string; price: number };
 export function alertCondition(kind: string, threshold: number, windowMinutes: number, price: number, now: number, history: PricePoint[]): boolean | null {
@@ -12,7 +13,7 @@ export function alertCondition(kind: string, threshold: number, windowMinutes: n
   return (base.price - price) / base.price * 100 >= threshold;
 }
 const unavailable = () => ({
-  available: false, price: null, currency: "USD", source: "Kraken via Cloudflare Worker",
+  available: false, price: null, currency: "USD", source: "Market Worker",
   updatedAt: null, stale: true, message: "Market Worker not connected. No market prices are being fabricated.", history: [] as PricePoint[],
 });
 let cache = unavailable() as ReturnType<typeof GetMarketResponse.parse>;
@@ -22,10 +23,13 @@ export async function refreshMarket() {
   if (running || Date.now() < nextFetch || !process.env.MARKET_WORKER_URL) return;
   running = true; nextFetch = Date.now() + 60000;
   try {
-    const url = new URL(process.env.MARKET_WORKER_URL);
-    if (url.protocol !== "https:") throw new Error("Worker requires HTTPS");
-    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    if (!response.ok) throw new Error("Price feed unavailable");
+    const { url, options } = marketRequest();
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      // Status only: never log credentials, redirects or upstream response bodies.
+      logger.warn({ status: response.status }, "Market Worker rejected request");
+      throw new Error("Price feed unavailable");
+    }
     const candidate = GetMarketResponse.parse(await response.json());
     const timestamp = Date.parse(candidate.updatedAt ?? "");
     if (!candidate.available || candidate.stale || !candidate.price || !Number.isFinite(timestamp) || Date.now() - timestamp > 180000 || timestamp > Date.now() + 30000 || candidate.currency !== "USD") throw new Error("Price feed is stale");
@@ -39,7 +43,7 @@ export async function refreshMarket() {
         if (!crossed) { a.armed = true; continue; }
         if (!a.armed || (a.lastTriggeredAt && now - Date.parse(a.lastTriggeredAt) < a.cooldownMinutes * 60000)) continue;
         a.armed = false; a.lastTriggeredAt = new Date(now).toISOString();
-        s.notifications.push({ id: randomUUID(), title: a.name, message: `Bitcoin price alert: $${candidate.price!.toFixed(2)} USD (${a.kind === "below" ? "below threshold" : "percentage drop"}). Source: Kraken.`, createdAt: a.lastTriggeredAt, read: false });
+        s.notifications.push({ id: randomUUID(), title: a.name, message: `Bitcoin price alert: $${candidate.price!.toFixed(2)} USD (${a.kind === "below" ? "below threshold" : "percentage drop"}). Source: ${candidate.source}.`, createdAt: a.lastTriggeredAt, read: false });
       }
       s.notifications = s.notifications.slice(-500);
     });

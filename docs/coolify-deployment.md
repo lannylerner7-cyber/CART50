@@ -101,7 +101,22 @@ D1 access/schema, but a later D1/Core/SMTP outage is not represented by
 | `VAULT_STATIC_DIR` | `/app/public` (image default) |
 | `VAULT_ENGINE_URL` | Leave absent initially, or set to the verified private signer endpoint |
 | `VAULT_ENGINE_TOKEN` | Set with the engine URL; independent random value, at least 32 characters |
-| `MARKET_WORKER_URL` | Leave absent until the Worker and market permission are verified; then HTTPS `/price` URL |
+| `MARKET_WORKER_URL` | HTTPS price endpoint returning the app's market response contract; validate format and timestamp before relying on it |
+| `MARKET_CF_ACCESS_ORIGIN` | Exact authorized origin (scheme and host, no trailing slash) when using Access, e.g. `https://price.mainvaultwallet.com` |
+| `MARKET_CF_ACCESS_CLIENT_ID` | Server-only Cloudflare Access service-token Client ID; independent of SMTP and Cloudflare management tokens |
+| `MARKET_CF_ACCESS_CLIENT_SECRET` | Matching server-only service-token secret; an Access **Service Auth** policy must allow this token |
+
+Market requests never follow redirects or send Access headers to a different
+origin. Supplying only one Access credential fails closed. HTTP 401/403 or a
+login redirect means the price response has not been verified; do not replace
+missing prices with invented values. The current response contract requires
+`available`, positive `price`, `currency: "USD"`, `source`, `updatedAt`, `stale`,
+`message` and `history`. Price timestamps must be no older than three minutes
+and no more than thirty seconds ahead. Do not manufacture a timestamp from the
+time a response was fetched.
+
+Workspace configuration does not update Coolify. Configure the production
+service separately only when authorized, using its secrets UI.
 
 Get the offline generator from the repository at
 `artifacts/bitcoin-vault/public/offline-keygen.html`. Save it, disconnect from the
