@@ -12,8 +12,9 @@ recoverable rather than treating a failed start as a completed video.
 asked for a lively homepage inspired by the video's imagery.
 
 **How to apply:** keep the supplied video as the intro, not a source of repeated
-screenshots across the homepage. Clearly identify the video's bonus graphic as
-simulation credit, not real Bitcoin, withdrawable money or cash.
+screenshots across the homepage. The owner also requested removal of the
+simulation text overlay from the startup video. Keep truthful simulation
+disclosures in the product interface; do not describe bonus credit as real money.
 
 **Browser compatibility:** successful MP4 inspection with ffprobe does not prove
 browser decoding. The acceptance browser rejected the H264 stream, which the

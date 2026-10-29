@@ -138,7 +138,6 @@ export function DeveloperIntroGate({ onDone, video = DEVELOPER_INTRO_VIDEO, post
       <div className="absolute inset-x-0 top-0 h-1 bg-white/10"><div className="h-full bg-emerald-300 transition-[width]" style={{width:`${progress*100}%`}} /></div>
       <div className="absolute inset-x-0 bottom-24 px-5 text-center">
         {problem && <p role="status" className="mx-auto mb-3 max-w-md rounded-xl bg-black/85 p-3 text-sm text-white">{problem}</p>}
-        <p className="inline-block rounded-full bg-black/80 px-3 py-2 text-xs text-white">Simulation credit only · Not real BTC or cash</p>
       </div>
       {problem && <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-sidebar/90 to-transparent px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-10">
         <button type="button" onClick={retry} className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-card/90 px-4 text-[13px] font-semibold backdrop-blur" data-testid="button-intro-gate-retry">
