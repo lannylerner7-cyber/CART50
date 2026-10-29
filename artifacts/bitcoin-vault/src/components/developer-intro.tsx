@@ -77,15 +77,14 @@ export function DeveloperIntro({ video = DEVELOPER_INTRO_VIDEO, poster = DEVELOP
 
 /**
  * First-arrival gate: the portrait clip plays full screen before sign-in/apply UI.
- * Ends on clip end or explicit Skip. Playback problems offer retry/continue,
+ * Ends on clip end. Playback problems offer retry/continue,
  * never pretend the clip finished. Reduced motion bypasses the intro.
  */
 export function DeveloperIntroGate({ onDone, video = DEVELOPER_INTRO_VIDEO, poster = DEVELOPER_INTRO_POSTER, fallbackPoster = LOGIN_HERO }: { onDone: () => void; video?: string | null; poster?: string | null; fallbackPoster?: string }) {
   const reduced = useReducedMotion();
   const ref = useRef<HTMLVideoElement>(null);
-  const skipRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [posterSrc, setPosterSrc] = useState(poster || fallbackPoster);
-  const [paused, setPaused] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -103,38 +102,34 @@ export function DeveloperIntroGate({ onDone, video = DEVELOPER_INTRO_VIDEO, post
 
   useEffect(() => {
     if (reduced || !video) { doneRef.current(); return; }
-    skipRef.current?.focus();
+    dialogRef.current?.focus();
     const v = ref.current;
     let active = true;
     let started = false;
     const startTimer = setTimeout(() => { if (active && !started) setProblem('The intro is taking longer to load. You can retry or continue.'); }, 12000);
-    v?.play().then(() => { if (active) { started = true; setPaused(false); setProblem(null); } }).catch(() => {
-      if (active) { setPaused(true); setProblem('Automatic playback is unavailable. Press Play intro or continue.'); }
+    v?.play().then(() => { if (active) { started = true; setProblem(null); } }).catch(() => {
+      if (active) setProblem('Automatic playback is unavailable. Press Play intro or continue.');
     });
-    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') finish(); };
-    window.addEventListener('keydown', key);
-    return () => { active = false; clearTimeout(startTimer); clearTimeout(closeTimer.current); v?.pause(); window.removeEventListener('keydown', key); };
+    return () => { active = false; clearTimeout(startTimer); clearTimeout(closeTimer.current); v?.pause(); };
   }, [reduced, video, finish]);
 
   if (reduced || !video) return null;
-  const toggle = () => {
+  const retry = () => {
     const v = ref.current; if (!v) return;
-    if (v.paused || problem) {
-      if (v.error) v.load();
-      setProblem(null);
-      void v.play().then(() => setPaused(false)).catch(() => {
-        setPaused(true); setProblem('This browser could not play the intro. You can continue to the homepage.');
-      });
-    } else { v.pause(); setPaused(true); }
+    if (v.error) v.load();
+    setProblem(null);
+    void v.play().catch(() => {
+      setProblem('This browser could not play the intro. You can continue to the homepage.');
+    });
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="main_vault developer intro" className={cn('fixed inset-0 z-[100] grid place-items-center overflow-hidden bg-sidebar transition-opacity duration-300', leaving ? 'opacity-0' : 'opacity-100')} data-testid="overlay-developer-intro">
+    <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="main_vault developer intro" className={cn('fixed inset-0 z-[100] grid place-items-center overflow-hidden bg-sidebar transition-opacity duration-300', leaving ? 'opacity-0' : 'opacity-100')} data-testid="overlay-developer-intro">
       <img src={posterSrc} alt="" aria-hidden onError={() => setPosterSrc(fallbackPoster)} className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl" />
       <div className="relative aspect-[9/16] h-full max-h-[100dvh] max-w-full">
         <video ref={ref} poster={posterSrc} muted playsInline preload="auto" onEnded={finish}
           onTimeUpdate={e => { const v=e.currentTarget; if(Number.isFinite(v.duration)&&v.duration>0)setProgress(v.currentTime/v.duration); }}
-          onError={() => { setPaused(true); setProblem('The intro could not load or decode. Retry playback or continue to the homepage.'); }}
+          onError={() => { setProblem('The intro could not load or decode. Retry playback or continue to the homepage.'); }}
           className="h-full w-full object-contain" data-testid="video-developer-intro-gate">
           {video===DEVELOPER_INTRO_VIDEO && <source src={DEVELOPER_INTRO_WEBM} type="video/webm" />}
           <source src={video ?? undefined} type={video===DEVELOPER_INTRO_VIDEO ? 'video/mp4' : undefined} />
@@ -145,14 +140,14 @@ export function DeveloperIntroGate({ onDone, video = DEVELOPER_INTRO_VIDEO, post
         {problem && <p role="status" className="mx-auto mb-3 max-w-md rounded-xl bg-black/85 p-3 text-sm text-white">{problem}</p>}
         <p className="inline-block rounded-full bg-black/80 px-3 py-2 text-xs text-white">Simulation credit only · Not real BTC or cash</p>
       </div>
-      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-sidebar/90 to-transparent px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-10">
-        <button type="button" onClick={toggle} className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-card/90 px-4 text-[13px] font-semibold backdrop-blur" aria-label={paused ? 'Play intro' : 'Pause intro'} data-testid="button-intro-gate-toggle">
-          {paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}{paused ? 'Play' : 'Pause'}
+      {problem && <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-sidebar/90 to-transparent px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-10">
+        <button type="button" onClick={retry} className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-card/90 px-4 text-[13px] font-semibold backdrop-blur" data-testid="button-intro-gate-retry">
+          <Play className="h-4 w-4" /> Play intro
         </button>
-        <button ref={skipRef} type="button" onClick={finish} className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary px-5 text-[13px] font-bold text-primary-foreground" data-testid="button-intro-gate-skip">
-          Skip intro <SkipForward className="h-4 w-4" />
+        <button type="button" onClick={finish} className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-primary px-5 text-[13px] font-bold text-primary-foreground" data-testid="button-intro-gate-recovery">
+          Continue to homepage
         </button>
-      </div>
+      </div>}
     </div>
   );
 }

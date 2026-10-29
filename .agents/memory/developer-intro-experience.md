@@ -3,8 +3,9 @@ name: Developer intro experience
 description: User's direction for video-led developer entry and homepage imagery.
 ---
 
-Let the uploaded intro finish before revealing the homepage, unless the visitor
-explicitly skips or needs reduced motion. Keep playback failures honest and
+Let the uploaded intro finish before revealing the homepage. The owner explicitly
+requested permanent removal of startup Pause and Skip buttons; no Escape skip
+during normal playback. Preserve reduced-motion bypass. Keep playback failures honest and
 recoverable rather than treating a failed start as a completed video.
 
 **Why:** the user reported the homepage appearing before the video finished and
