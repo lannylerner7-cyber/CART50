@@ -11,6 +11,20 @@ output:
 
 # Read this first
 
+## Owner send USD estimates — 2026-10-29
+
+Personal send form, review amount/fee/total and known available balance now show
+display-only USD estimates from a fresh USD quote. BTC/satoshi payment payloads
+and signer policy remain authoritative; changing units preserves the amount.
+Invalid, stale, unavailable and failed-refresh quotes suppress estimates.
+
+Local evidence: conversion/freshness unit tests, frontend typecheck and build
+passed. Disposable signed-in browser acceptance passed amount/unit conversion,
+invalid input, stale/unavailable/settled failed refresh, unknown balance and
+390px/1280px overflow checks. Review/send browser assertions remain blocked:
+the mock signer returns paused policy. No review, real send, receipt or expiry
+acceptance is claimed by this run. The fixture does not establish hosted readiness.
+
 ## Price-feed simplification — 2026-10-29
 
 - Source: direct Coinbase Exchange BTC/USD pricing is the default; optional
@@ -1098,7 +1112,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-634 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+636 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -1306,6 +1320,8 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/session-lock.ts` | 1115 | `5962a8ac11ca1035e7024c1463f78897f2d93d42a22fa39f57cc770aa775ee39` | Client lock, protected cache clearing and cross-tab session notification. |
 | `artifacts/bitcoin-vault/src/lib/transfer-delay.test.ts` | 1514 | `72eb407e75c163ac8e923263fd2cf32b694395f15b99f4127a6542a5b89db7f6` | Regression tests for transfer-delay; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/transfer-delay.ts` | 1164 | `df573946bf3b4250cee7d7e3c8b91326cc627c32888e4c62bf32b0728222d486` | transfer-delay.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/usd-estimate.test.ts` | 1308 | `7c5b1fe583e403c6b893490588ca32a29d399ba277b0a6bcf1d1c920d66a919f` | Regression tests for usd-estimate; local checks, not hosted evidence. |
+| `artifacts/bitcoin-vault/src/lib/usd-estimate.ts` | 1331 | `8c16cfa076c86673b85f8e2ac012e4c70cb016f412f048d53e70694102db1697` | usd-estimate.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/utils.ts` | 170 | `afc0e1dc0e142d6b81f688d91087f81a4b2db4240cf70f55b6e5e4dcc199ebf1` | utils.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/vault.tsx` | 3543 | `4aad0cc8f08811709b537612bb3f3331469751a5952290f6245e1a342023b61e` | vault.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/main.tsx` | 446 | `e7e03b61f962dc1787ea029d4941424475455366b5a4f079c8fcb4f5df4d076c` | React browser mount entrypoint. |
@@ -1327,7 +1343,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/pages/sandbox/index.tsx` | 23221 | `301123a2b9d5e2f766884608a83fe97659375fede19d4300752ca63c46c13632` | index wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/sandbox/signet.tsx` | 16878 | `5fdbf36420d1733a9ac1748fcce951f8b2fdf1ed5d184bfbebecaa96416da98c` | signet wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/settings.tsx` | 14051 | `55627db5a661e65269607a9df8f84c5ea4737d17d63c32f7040a8157cca3ce2c` | settings wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/spending.tsx` | 18265 | `d9685b48aac946fe3cf1718805fe69abc2941bbec1b05cedf789e9aa3b2765ad` | spending wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/spending.tsx` | 19950 | `011d235715c423aecb2fa6bbffa8b4fd83d6d2114cd5268b887e0d41bb1a29fd` | spending wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 13645 | `bf143717bf45e4ca251194d3b850548eef81cad963cb8441f12504a7d4a3cb89` | transactions wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallet-detail.tsx` | 13055 | `c802644332e0e40db6d8718d9b7efbf9af7aed6236241a780cf04221ed51caae` | wallet detail wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallets.tsx` | 9598 | `ccdcf0a80728ec23bc9a147c2394e8d919a9c9c14d2714b1b7f7ba98f0f12284` | wallets wallet screen. |
@@ -1689,7 +1705,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 224175 | `714025631ddd5482406a777dd349c3e90a733500a6408bd3690890ad40c7db49` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 66042 | `7410348c0b2a01fd9fd818db5c46d338378706e88de9fe9ab7b94e5d8c4dcb32` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 66874 | `5a2950cb2b64b9fa3abed95600f65843200d6b6443f0a3e3df39e0d38dd8601e` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/developer-capacity-check.mts` | 2050 | `ea82c34dfd141ec3f6b675df74e518473f356529d2c996e0c288ac9ca6de8527` | Operator/build utility: developer-capacity-check.mts; inspect flags before invoking. |

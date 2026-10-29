@@ -14,6 +14,8 @@ import { CopyText } from '@/components/kit';
 import { useToast } from '@/hooks/use-toast';
 import { RecipientCheck } from '@/components/recipient-check';
 import { printText } from '@/lib/print';
+import { useGetMarket, getGetMarketQueryKey } from '@workspace/api-client-react';
+import { freshUsdPrice, usdEstimate } from '@/lib/usd-estimate';
 
 export default function Spending() {
   const qc = useQueryClient();
@@ -21,6 +23,7 @@ export default function Spending() {
   const csrf = useCsrf();
   const dash = useGetVaultDashboard({ query: { queryKey: getGetVaultDashboardQueryKey(), refetchInterval: POLL_MS } });
   const settings = useGetVaultSettings({ query: { queryKey: getGetVaultSettingsQueryKey() } });
+  const market = useGetMarket({ query: { queryKey: getGetMarketQueryKey(), refetchInterval: POLL_MS } });
   const review = useReviewPayment(csrf);
   const send = useSendPayment(csrf);
   const [address, setAddress] = useState('');
@@ -45,6 +48,11 @@ export default function Spending() {
     !!dash.dataUpdatedAt && Date.now() - dash.dataUpdatedAt <= POLL_MS * 3;
   const hot = source ? toBig(source.availableSats) : 0n;
   const mainnet = !!d && (d.node.network === 'main' || d.node.network === 'mainnet');
+  const usdPrice = mainnet ? freshUsdPrice(market.data, market.isError) : null;
+  const dollars = (value: string | null) => {
+    const formatted = usdEstimate(value, usdPrice);
+    return formatted ? `≈ ${formatted} USD` : 'USD estimate unavailable';
+  };
   const stale = !dash.dataUpdatedAt || Date.now() - dash.dataUpdatedAt > POLL_MS * 3 || !settings.dataUpdatedAt;
   const blocked = settings.isError ? 'Spending policy unavailable. Sending is disabled.' : dash.isError ? 'Node status unavailable. Sending is disabled.' : !d || !s ? 'Loading node status and policy' : stale ? 'Node status is stale. Sending is paused until a fresh sync.' : !d.node.connected ? 'Node disconnected. Spending is disabled.' : !mainnet ? 'The live mainnet engine is not commissioned. Review and sending are disabled.' : !d.mainnetEnabled ? 'Mainnet spending is disabled.' : s.sweepsPaused ? 'Sending is paused in Settings.' : null;
   const inputKey = `${walletId}|${address.trim()}|${sats ?? ''}|${feeRate}|${replacesTxid.trim()}`;
@@ -104,14 +112,19 @@ export default function Spending() {
                   <Label>Amount</Label>
                   <div className="flex min-w-0">
                     <Input value={amount} onChange={(e) => setAmount(e.target.value.trim())} className="h-12 rounded-l-2xl rounded-r-none font-mono text-lg" placeholder={unit === 'btc' ? '0.00100000' : '100000'} data-testid="input-amount" />
-                    <button type="button" onClick={() => { setUnit(unit === 'btc' ? 'sats' : 'btc'); setAmount(''); }} className="rounded-r-2xl border border-l-0 border-input bg-muted px-4 text-[12px] font-bold uppercase" data-testid="button-toggle-unit">{unit}</button>
+                    <button type="button" onClick={() => { setAmount(sats === null ? '' : unit === 'btc' ? sats : satsToBtc(sats).replaceAll(',', '')); setUnit(unit === 'btc' ? 'sats' : 'btc'); }} className="rounded-r-2xl border border-l-0 border-input bg-muted px-4 text-[12px] font-bold uppercase" data-testid="button-toggle-unit">{unit}</button>
                   </div>
                   {amount && !sats && <span className="font-mono text-[11px] text-destructive">invalid amount</span>}
                   {sats && unit === 'btc' && <span className="font-mono text-[11px] text-muted-foreground">{sats} sats</span>}
+                  <span className="text-sm text-muted-foreground" data-testid="text-send-usd" aria-live="polite">{sats ? dollars(sats) : 'Enter a Bitcoin amount to see its USD estimate.'}</span>
                 </div>
                 <div className="grid gap-1.5"><Label>Fee rate (sat/vB)</Label><Input value={feeRate} onChange={(e) => setFeeRate(e.target.value.trim())} className="font-mono" placeholder={s ? `max ${s.feeRateCeiling}` : '2.5'} data-testid="input-fee-rate" /></div>
               </div>
             </fieldset>
+            <p className="mt-3 text-xs text-muted-foreground" data-testid="text-send-quote">
+              {usdPrice !== null ? `Estimated using ${market.data?.source} · quote ${stamp(market.data!.updatedAt!)}.` : 'A fresh USD quote is unavailable. Bitcoin amounts remain unchanged.'}
+              {' '}USD values are estimates, not a locked exchange rate. This payment sends Bitcoin, not dollars.
+            </p>
             {review.isError && <div className="mt-4"><ErrorPanel error={review.error} title="Review rejected" /></div>}
             {!rv && <Button className="mt-5 h-12 w-full gap-2 rounded-full text-[15px] font-bold sm:w-auto sm:px-8" disabled={!!blocked || !valid || review.isPending || !!unknownId} onClick={doReview} data-testid="button-review"><ShieldCheck className="h-4 w-4" />{review.isPending ? 'Pricing' : 'Review payment'}</Button>}
           </Panel>
@@ -121,9 +134,9 @@ export default function Spending() {
               <p className="mb-3 text-sm" data-testid="text-review-source">From: {d?.wallets.find((w) => w.id === (rv.walletId ?? 'vault-spending'))?.label ?? rv.walletId ?? 'Spending vault'}</p>
               <div className="rounded-xl bg-muted/60 p-3 font-mono text-sm break-all" data-testid="text-review-address">{rv.address}</div>
               <div className="mt-4 grid grid-cols-1 gap-4 min-[420px]:grid-cols-3">
-                <Stat label="amount"><Btc sats={rv.amountSats} /></Stat>
-                <Stat label="fee"><Btc sats={rv.feeSats} className="text-muted-foreground" /></Stat>
-                <Stat label="total debit"><Btc sats={rv.totalSats} className="font-bold text-primary" /></Stat>
+                <Stat label="amount"><Btc sats={rv.amountSats} /><div className="text-xs text-muted-foreground" data-testid="text-review-amount-usd">{dollars(rv.amountSats)}</div></Stat>
+                <Stat label="fee"><Btc sats={rv.feeSats} className="text-muted-foreground" /><div className="text-xs text-muted-foreground" data-testid="text-review-fee-usd">{dollars(rv.feeSats)}</div></Stat>
+                <Stat label="total debit"><Btc sats={rv.totalSats} className="font-bold text-primary" /><div className="text-xs text-muted-foreground" data-testid="text-review-total-usd">{dollars(rv.totalSats)}</div></Stat>
               </div>
               <div className="mt-3"><Pill tone="ember">network {rv.network}</Pill></div>
               <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 text-sm">
@@ -147,6 +160,7 @@ export default function Spending() {
         <div className="min-w-0 space-y-4">
           <Panel title="Spending wallet">
             {dash.isLoading ? <Skel className="h-16" /> : balKnown ? <Stat label="available"><Btc sats={hot} size="lg" /></Stat> : <Stat label="available"><span className="font-display text-xl font-bold" data-testid="text-source-unknown">Unknown</span><div className="text-xs text-muted-foreground">Node offline or data stale. Not assumed to be zero.</div></Stat>}
+            {balKnown && <p className="mt-2 text-sm text-muted-foreground" data-testid="text-send-balance-usd">{dollars(source!.availableSats)}</p>}
           </Panel>
           <Panel title="Limits">
             {settings.isLoading ? <Skel className="h-28" /> : s ? (
