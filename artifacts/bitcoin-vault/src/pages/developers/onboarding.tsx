@@ -106,56 +106,55 @@ export function Provision() {
   const refresh = useRefreshSession();
   const prov = useDevAction();
   const reduced = useReducedMotion();
-  const [animDone, setAnimDone] = useState(reduced);
-  const [stage, setStage] = useState(0);
+  const [takingLong, setTakingLong] = useState(false);
   const started = useRef(false);
   const ready = !!session.ready;
 
   const run = () => { if (prov.isPending || ready) return; prov.mutate({ action: 'provision', data: {} }, { onSettled: () => { void refresh(); } }); };
   useEffect(() => { if (!started.current && !ready) { started.current = true; run(); } }); // fires once
   useEffect(() => {
-    if (reduced) { setAnimDone(true); return; }
-    const s = setInterval(() => setStage((x) => Math.min(STAGES.length - 1, x + 1)), 3000);
-    const t = setTimeout(() => setAnimDone(true), 15000);
-    return () => { clearInterval(s); clearTimeout(t); };
-  }, [reduced]);
+    setTakingLong(false);
+    if (!prov.isPending) return;
+    const t = setTimeout(() => setTakingLong(true), 20000);
+    return () => clearTimeout(t);
+  }, [prov.isPending]);
   // Poll server readiness (read only) while waiting; a lost response never triggers a second write.
   useEffect(() => { if (ready) return; const t = setInterval(() => { void refresh(); }, 4000); return () => clearInterval(t); }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const st = errStatus(prov.error);
   const failed = prov.isError && !ready;
   return (
-    <DevFrame step="Provision" title={ready ? 'Your Sandbox is ready.' : 'Building your Sandbox.'} desc="This runs on the server. The animation is decoration; the page waits for the server to confirm.">
+    <DevFrame step="Provision" title={ready ? 'Your Sandbox is ready.' : failed ? 'Setup needs attention.' : 'Setting up your Sandbox.'} desc={ready ? 'Your workspace is ready. Continue to securely save your login key.' : failed ? 'We couldn’t finish preparing your workspace. Your passkey is saved.' : 'We’re preparing your workspace and test balance.'}>
       <Card testId="card-provision">
         <div className="relative mx-auto grid h-44 w-44 place-items-center" aria-hidden>
-          {!reduced && <>
+          {!reduced && !failed && !ready && <>
             <span className="absolute inset-0 rounded-full border-2 border-dashed border-cold/40 [animation:spin_9s_linear_infinite]" />
             <span className="absolute inset-5 rounded-full border border-primary/40 [animation:spin_5s_linear_infinite_reverse]" />
             <span className="absolute inset-10 rounded-full bg-cold/10 [animation:pulse_2.4s_ease-in-out_infinite]" />
           </>}
-          {reduced && <span className="absolute inset-0 rounded-full border-2 border-cold/40" />}
+          {(reduced || failed || ready) && <span className="absolute inset-0 rounded-full border-2 border-cold/40" />}
           <img src={BRAND_MARK} alt="" className="relative h-14 w-14" />
         </div>
-        <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Provisioning" aria-valuetext={ready ? 'Complete' : 'In progress'}>
-          <div className={`h-full origin-left rounded-full ${ready ? 'bg-ok' : 'bg-cold'}`} style={{ transform: `scaleX(${ready ? 1 : reduced ? 0.5 : 0.9})`, transition: ready ? 'transform .6s ease-out' : reduced ? 'none' : 'transform 15s linear' }} />
+        <div className="mt-5 h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-label="Workspace setup" aria-valuetext={ready ? 'Complete' : failed ? 'Setup paused' : 'Awaiting confirmation'}>
+          <div className={`h-full origin-left rounded-full ${ready ? 'bg-ok' : 'bg-cold'}`} style={{ transform: `scaleX(${ready ? 1 : 0})` }} />
         </div>
         <ul className="mt-5 grid gap-1.5 text-[13.5px]" data-testid="list-provision-stages">
-          {STAGES.map((s, i) => (
-            <li key={s} className={ready || reduced || i <= stage ? 'text-foreground' : 'text-muted-foreground/60'}>{ready ? 'Done' : 'Awaiting confirmation'} · {s}</li>
+          {STAGES.map((s) => (
+            <li key={s} className={ready ? 'text-foreground' : 'text-muted-foreground'}>{ready ? 'Done' : failed ? 'Pending' : 'Preparing'} · {s}</li>
           ))}
         </ul>
         <div className="mt-5" aria-live="polite">
-          {ready ? <Notice tone="ok" testId="status-provision-ready">Server confirmed: ledger created and credited once.</Notice>
+          {ready ? <Notice tone="ok" testId="status-provision-ready">Your workspace and test balance are ready.</Notice>
             : failed ? (
               <Notice tone={outcomeUnknown(prov.error) && st !== 503 ? 'warn' : 'bad'} testId="status-provision-error">
-                {st === 503 ? 'A fresh market quote is unavailable, so the simulated balance cannot be priced yet. Nothing was credited. Retry in a minute.'
+                {st === 503 ? 'The pricing service is unavailable. Setup needs a current BTC/USD rate to calculate your test balance. Nothing has been credited. Retry once the service is restored.'
                   : outcomeUnknown(prov.error) ? 'The response was interrupted. Checking with the server; retrying is safe and never credits twice.'
                   : devErr(prov.error, 'Provisioning failed.')}
               </Notice>
-            ) : <p role="status" className="text-[13px] text-muted-foreground" data-testid="status-provisioning">Waiting for the server to confirm.</p>}
+            ) : <p role="status" className="text-[13px] text-muted-foreground" data-testid="status-provisioning">{takingLong ? 'This is taking longer than expected. We’re checking your setup status; please don’t create another account.' : 'Preparing your workspace. This page updates when setup is confirmed.'}</p>}
         </div>
         {failed && <Button variant="outline" className="mt-4 rounded-full" onClick={run} disabled={prov.isPending} data-testid="button-provision-retry"><RotateCw className="h-4 w-4" /> Retry provisioning</Button>}
-        {ready && <Button className="mt-4 h-12 w-full rounded-full font-bold" disabled={!animDone} onClick={() => nav('/key')} data-testid="button-provision-continue">{animDone ? 'Continue' : 'Finishing'}</Button>}
+        {ready && <Button className="mt-4 h-12 w-full rounded-full font-bold" onClick={() => nav('/key')} data-testid="button-provision-continue">Continue</Button>}
       </Card>
     </DevFrame>
   );
