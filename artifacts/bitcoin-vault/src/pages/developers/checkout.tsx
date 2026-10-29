@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ROTATE_WINDOW_MS, devErr, useDev } from '@/lib/developer';
+import { ApiBaseRow, StarterExport, WebhookHelp, Help, currentApiBase } from '@/components/starter-export';
 import { usePasskeySignIn } from '@/pages/developers/access';
 import { errStatus, satsToBtc, stamp } from '@/lib/vault';
 
@@ -42,34 +43,42 @@ function Secret({ label, value, file, onDone }: { label: string; value: string; 
   );
 }
 
-const PY = `import os, uuid, requests
+const pySnippet = (base: string) => `import os, requests
 
-API_BASE = os.environ["VAULT_API_BASE"]          # e.g. https://<this-site>/api
+# Explicit API base for the deployment that issued your key.
+API_BASE = os.environ.get("VAULT_API_BASE", "${base}")
 KEY = os.environ["VAULT_CHECKOUT_KEY"]           # server-only secret
 
-def create_checkout(amount_sats: int, order_ref: str) -> str:
+def create_checkout(order) -> str:
+    # order.idempotency_key is generated ONCE when the order is created and
+    # stored with it in your database. Retries reuse it, so a network retry
+    # never creates a second checkout. Do not make a new uuid per attempt.
     r = requests.post(
         f"{API_BASE}/v1/checkout/sessions",
-        json={"amount_sats": amount_sats, "reference": order_ref,
-              "return_url": "https://shop.example/thanks"},   # must be allowlisted
+        json={"amount_sats": order.amount_sats, "reference": order.ref,
+              "return_url": "https://shop.example/thanks"},   # must be saved exactly
         headers={"Authorization": f"Bearer {KEY}",
-                 "Idempotency-Key": str(uuid.uuid4())},
+                 "Idempotency-Key": order.idempotency_key},
         timeout=10,
     )
     r.raise_for_status()
-    return r.json()["url"]  # redirect the buyer here`;
+    return r.json()["url"]  # redirect the buyer here (simulation)`;
 
-const NODE = `// server.js (Node 18+), never shipped to the browser
-const API_BASE = process.env.VAULT_API_BASE; // https://<this-site>/api
+const nodeSnippet = (base: string) => `// server.js (Node 18+), never shipped to the browser
+// Explicit API base for the deployment that issued your key.
+const API_BASE = process.env.VAULT_API_BASE ?? '${base}';
 const KEY = process.env.VAULT_CHECKOUT_KEY;
 
 app.post('/pay', async (req, res) => {
+  // Load the persisted order. Its idempotencyKey was created once with the
+  // order and is reused on every retry; never crypto.randomUUID() per attempt.
+  const order = await db.orders.get(req.body.order);
   const r = await fetch(\`\${API_BASE}/v1/checkout/sessions\`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json',
       Authorization: \`Bearer \${KEY}\`,
-      'Idempotency-Key': crypto.randomUUID() },
-    body: JSON.stringify({ amount_sats: 21000, reference: req.body.order,
+      'Idempotency-Key': order.idempotencyKey },
+    body: JSON.stringify({ amount_sats: order.amountSats, reference: order.ref,
       return_url: 'https://shop.example/thanks' }),
   });
   if (!r.ok) return res.status(502).send('checkout unavailable');
@@ -133,10 +142,12 @@ export default function CheckoutConsolePage() {
 
   const urlsValid = urls.length <= 5 && urls.every(httpsOk);
   const hookValid = hook.trim() === '' || httpsOk(hook.trim());
-  const save = async () => {
+  const save = async (): Promise<boolean> => {
     const r = await run('settings', { returnUrls: urls, webhookUrl: hook.trim() }, 'settings');
     if (r?.webhookSecret) setWhSecret(r.webhookSecret);
+    return !!r;
   };
+  const dirty = !!d && (hook.trim() !== (d.webhookUrl ?? '') || urls.length !== d.returnUrls.length || urls.some((u, i) => u !== d.returnUrls[i]));
   const addUrl = () => { const v = newUrl.trim(); if (!httpsOk(v) || urls.includes(v) || urls.length >= 5) return; setUrls([...urls, v]); setNewUrl(''); };
 
   const doConfirm = async () => {
@@ -179,7 +190,7 @@ export default function CheckoutConsolePage() {
             </div>
             <div className="grid gap-5 md:grid-cols-2">
               <Card testId="card-settings">
-                <div className="text-[13px] font-semibold">Return URLs and webhook</div>
+                <div className="flex items-center gap-1 text-[13px] font-semibold">Return URLs and webhook <WebhookHelp /></div>
                 <p className="mt-1 text-[12.5px] text-muted-foreground">Exact HTTPS URLs, up to five. Buyers are only ever sent back to one of these.</p>
                 <ul className="mt-3 space-y-2">
                   {urls.map((u, i) => (
@@ -187,9 +198,9 @@ export default function CheckoutConsolePage() {
                   ))}
                 </ul>
                 <div className="mt-2 flex gap-2"><Input value={newUrl} onChange={(e) => setNewUrl(e.target.value)} placeholder="https://shop.example/thanks" disabled={urls.length >= 5} data-testid="input-return-url" /><Button variant="outline" onClick={addUrl} disabled={!httpsOk(newUrl.trim()) || urls.length >= 5} data-testid="button-add-url"><Plus className="h-4 w-4" /></Button></div>
-                <div className="mt-4 grid gap-1.5"><Label htmlFor="hook">Webhook URL (empty disables)</Label><Input id="hook" value={hook} onChange={(e) => setHook(e.target.value)} placeholder="https://shop.example/hooks/checkout" data-testid="input-webhook-url" /></div>
+                <div className="mt-4 grid gap-1.5"><Label htmlFor="hook" className="flex items-center gap-1">Webhook URL (empty disables) <Help label="Webhook vs return URL"><p>Webhook: your deployed HTTPS server that receives signed POSTs. Return URL: the exact page the buyer's browser lands on afterwards. Neither the redirect nor an "I've sent" click proves payment.</p></Help></Label><Input id="hook" value={hook} onChange={(e) => setHook(e.target.value)} placeholder="https://shop.example/hooks/checkout" data-testid="input-webhook-url" /></div>
                 {!hookValid && <p className="mt-1 text-[12px] text-destructive">Must be an HTTPS URL.</p>}
-                <Button className="mt-4 rounded-full" disabled={!urlsValid || !hookValid || busy !== null} onClick={save} data-testid="button-save-settings">{busy === 'settings' ? 'Saving' : 'Save'}</Button>
+                <Button className="mt-4 rounded-full" disabled={!urlsValid || !hookValid || busy !== null} onClick={() => { void save(); }} data-testid="button-save-settings">{busy === 'settings' ? 'Saving' : 'Save'}</Button>
                 <Button variant="outline" className="mt-4 ml-2 rounded-full" disabled={!hook.trim() || !hookValid || !urlsValid || busy!==null} onClick={()=>setConfirm({action:'settings',data:{returnUrls:urls,webhookUrl:hook.trim(),reason:'rotate-webhook'},title:'Replace webhook signing secret?',body:'Save the new secret on your server. Existing queued events retain their previous signing secret.'})} data-testid="button-rotate-webhook">Replace signing secret</Button>
               </Card>
 
@@ -209,6 +220,9 @@ export default function CheckoutConsolePage() {
                 </div>
               </Card>
             </div>
+
+            <ApiBaseRow />
+            <StarterExport saved={d} dirty={dirty} busy={busy !== null} onSave={save} />
 
             <Card testId="card-preview">
               <div className="text-[13px] font-semibold">Create a preview checkout</div>
@@ -268,9 +282,9 @@ export default function CheckoutConsolePage() {
 
         <Card testId="card-docs">
           <div className="text-[13px] font-semibold">Integrate from your server</div>
-          <p className="mt-1 text-[12.5px] text-muted-foreground"><span className="font-mono">API_BASE</span> is this site's origin plus <span className="font-mono">/api</span>. Call it from your backend with the key and an Idempotency-Key, then redirect the buyer to the returned URL. The key never appears in HTML or client JavaScript.</p>
+          <p className="mt-1 text-[12.5px] text-muted-foreground">Set <span className="font-mono">API_BASE</span> explicitly. For this window it is <span className="font-mono">{currentApiBase()}</span>. Call it from your backend with the key and an Idempotency-Key stored with the order (reused on retries), then redirect the buyer to the returned URL. The key never appears in HTML or client JavaScript.</p>
           <div className="mt-3 flex gap-1">{(['py', 'node', 'html'] as const).map((t) => <Button key={t} size="sm" variant={tab === t ? 'default' : 'ghost'} className="rounded-full" onClick={() => setTab(t)} data-testid={`tab-docs-${t}`}>{t === 'py' ? 'Python' : t === 'node' ? 'Node' : 'HTML'}</Button>)}</div>
-          <pre className="mt-3 overflow-x-auto rounded-xl bg-sidebar p-4 font-mono text-[12px] text-sidebar-foreground" data-testid="text-docs-code">{tab === 'py' ? PY : tab === 'node' ? NODE : HTML}</pre>
+          <pre className="mt-3 overflow-x-auto rounded-xl bg-sidebar p-4 font-mono text-[12px] text-sidebar-foreground" data-testid="text-docs-code">{tab === 'py' ? pySnippet(currentApiBase()) : tab === 'node' ? nodeSnippet(currentApiBase()) : HTML}</pre>
         </Card>
       </main>
 

@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import type { AddressInfo } from "node:net";
 
-export async function startMockSigner(token: string) {
+export async function startMockSigner(token: string, options: { allowMockPayments?: boolean } = {}) {
   const state = { online: true, lookupError: false, shortReview: false };
   const address = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
   const now = () => new Date().toISOString();
@@ -17,7 +17,7 @@ export async function startMockSigner(token: string) {
   const transactions: Record<string, unknown>[] = [];
   const reviews = new Map<string, Record<string, any>>();
   const submitted = new Map<string, Record<string, unknown>>();
-  let settings = { sweepsPaused: true, feeRateCeiling: "10", totalFeeCeilingSats: "10000", hotExposureLimitSats: "1000000" };
+  let settings = { sweepsPaused: !options.allowMockPayments, feeRateCeiling: "10", totalFeeCeilingSats: "10000", hotExposureLimitSats: "1000000" };
   const server = createServer(async (req, res) => {
     res.setHeader("Content-Type", "application/json");
     if (req.headers.authorization !== `Bearer ${token}`) { res.writeHead(401).end("{}"); return; }

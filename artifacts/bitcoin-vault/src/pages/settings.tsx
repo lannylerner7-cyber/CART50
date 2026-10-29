@@ -11,6 +11,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { PolicyError, Btc, ErrorPanel, PageHeader, Panel, Pill, Skel, SkelRows, Stat } from '@/components/kit';
 import { CREDENTIAL_RE, POLL_MS, ago, errMsg, stamp, useCsrf } from '@/lib/vault';
 import { useToast } from '@/hooks/use-toast';
+import { useGetMarket, getGetMarketQueryKey } from '@workspace/api-client-react';
+import { freshUsdPrice } from '@/lib/usd-estimate';
 
 export default function SettingsPage() {
   return (
@@ -31,6 +33,10 @@ function Operational() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const q = useGetVaultSettings({ query: { queryKey: getGetVaultSettingsQueryKey() } });
+  const market = useGetMarket({ query: { queryKey: getGetMarketQueryKey(), refetchInterval: POLL_MS } });
+  const [, tick] = useState(0);
+  useEffect(() => { const timer = setInterval(() => tick(x => x + 1), 1000); return () => clearInterval(timer); }, []);
+  const quoteReady = freshUsdPrice(market.data, market.isError) !== null;
   const upd = useUpdateVaultSettings(useCsrf());
   const [f, setF] = useState({ sweepsPaused: false, feeRateCeiling: '', totalFeeCeilingSats: '', hotExposureLimitSats: '' });
   const init = useRef(false);
@@ -50,7 +56,8 @@ function Operational() {
             <Stat label="network"><Pill tone="ember">{s.network}</Pill></Stat>
             <Stat label="destruction"><Pill tone="neutral">{s.destructionPolicy}</Pill></Stat>
             <Stat label="wallet expiry"><span className="font-mono text-sm">{s.expiryHours}h</span></Stat>
-            <Stat label="price provider"><span className="text-sm">{s.provider} · {s.priceCurrency}</span> <Pill tone={s.externalConfigured ? 'ok' : 'neutral'}>{s.externalConfigured ? 'configured' : 'unconfigured'}</Pill></Stat>
+            <Stat label="configured price provider"><span className="text-sm" data-testid="text-settings-provider">{s.provider} · {s.priceCurrency}</span><div className="mt-1" data-testid="text-settings-market-status"><Pill tone={quoteReady ? 'ok' : 'neutral'}>{quoteReady ? 'fresh quote available' : 'quote unavailable'}</Pill></div><p className="mt-1 text-xs text-muted-foreground">{quoteReady ? `Reported source: ${market.data?.source}` : 'Configuration does not confirm price-feed availability.'}</p></Stat>
+            <Stat label="private signer"><Pill tone={s.externalConfigured ? 'ok' : 'neutral'}>{s.externalConfigured ? 'configured' : 'unconfigured'}</Pill></Stat>
           </div>
           <label className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
             <div><div className="text-sm font-medium">Pause sending and sweeps</div><div className="text-xs text-muted-foreground">Stop outgoing payments and automatic consolidation into your configured main or cold vault.</div></div>

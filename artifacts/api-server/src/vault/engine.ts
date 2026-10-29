@@ -2,6 +2,7 @@ import { HttpError } from "./auth";
 import * as Z from "@workspace/api-zod";
 import { configuredNetwork } from "./network";
 import { ReadFlight } from "./read-flight";
+import { marketProviderLabel } from "./market-provider";
 
 let active = 0;
 export type EngineEnvironment = "live" | "sandbox";
@@ -68,5 +69,5 @@ export async function nodeStatus() {
 export async function operationalSettings() {
   // The signer is authoritative. Never claim a cached D1 policy is enforced.
   const settings = Z.UpdateVaultSettingsBody.parse(await engine("/settings"));
-  return { ...settings, network: configuredNetwork(), destructionPolicy: "wait_for_drainage_storage_unverified", expiryHours: 120, provider: "Kraken via Cloudflare Worker", priceCurrency: "USD", externalConfigured: !!process.env.VAULT_ENGINE_URL };
+  return { ...settings, network: configuredNetwork(), destructionPolicy: "wait_for_drainage_storage_unverified", expiryHours: 120, provider: marketProviderLabel(), priceCurrency: "USD", externalConfigured: !!process.env.VAULT_ENGINE_URL };
 }

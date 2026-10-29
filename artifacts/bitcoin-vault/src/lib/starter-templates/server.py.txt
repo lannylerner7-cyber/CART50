@@ -1,0 +1,143 @@
+import os, json, sqlite3, time, re, hmac, hashlib, io, threading
+from decimal import Decimal, ROUND_CEILING
+from urllib.parse import urlparse
+from datetime import datetime
+import requests, qrcode
+from flask import Flask, request, jsonify, send_from_directory, Response
+
+config = json.load(open("config.json"))
+BASE = os.getenv("MAINVAULT_API_BASE", config["apiBase"]).rstrip("/")
+KEY, SECRET = os.getenv("MAINVAULT_API_KEY", ""), os.getenv("MAINVAULT_WEBHOOK_SECRET", "")
+if urlparse(BASE).scheme != "https" or not KEY.startswith("sk_test_") or not SECRET:
+    raise RuntimeError("Configure HTTPS API base, sandbox key and webhook secret")
+ORIGIN = os.getenv("PUBLIC_ORIGIN", urlparse(config["webhookUrl"]).scheme + "://" + urlparse(config["webhookUrl"]).netloc)
+HOOK = urlparse(config["webhookUrl"]).path
+os.makedirs("data", exist_ok=True)
+app = Flask(__name__, static_folder=None)
+app.config["MAX_CONTENT_LENGTH"] = 65536
+UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$", re.I)
+def database():
+    c = sqlite3.connect("data/orders.sqlite", timeout=10)
+    c.row_factory = sqlite3.Row
+    return c
+with database() as c:
+    c.executescript("PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS orders(id TEXT PRIMARY KEY,cents INTEGER,sats INTEGER,checkout TEXT); CREATE TABLE IF NOT EXISTS events(id TEXT PRIMARY KEY,body TEXT NOT NULL);")
+def api(path, data=None, idem=None):
+    headers = {"Authorization": "Bearer " + KEY}
+    if idem: headers["Idempotency-Key"] = idem
+    r = requests.request("POST" if data else "GET", BASE + path, json=data, headers=headers, timeout=10, allow_redirects=False)
+    if r.status_code != 200: raise ValueError("Upstream request rejected")
+    return r.json()
+quote_cache=None
+quote_lock=threading.Lock()
+def load_price():
+    r = requests.get("https://api.exchange.coinbase.com/products/BTC-USD/ticker", timeout=10, allow_redirects=False)
+    if r.status_code != 200: raise ValueError("Quote unavailable")
+    q = r.json()
+    at = datetime.fromisoformat(q["time"].replace("Z", "+00:00")).timestamp()
+    p = Decimal(q["price"])
+    if not p.is_finite() or p <= 0 or not -30 <= time.time() - at <= 180: raise ValueError("Stale quote")
+    return {"price": float(p), "updatedAt": q["time"], "source": "Coinbase Exchange BTC-USD"}
+def price():
+    global quote_cache
+    with quote_lock:
+        if quote_cache and time.time()-quote_cache[0]<60:
+            at=datetime.fromisoformat(quote_cache[1]["updatedAt"].replace("Z","+00:00")).timestamp()
+            if time.time()-at<=180: return quote_cache[1]
+        quote_cache=None
+        value=load_price()
+        quote_cache=(time.time(),value)
+        return value
+def validate(c, o):
+    if c.get("environment") != "simulation" or c.get("reference") != o["id"] or c.get("amount_sats") != o["sats"] or c.get("status") not in ("pending", "expired", "simulation_paid"):
+        raise ValueError("Checkout mismatch")
+    u, b = urlparse(c["url"]), urlparse(BASE)
+    if (u.scheme,u.netloc) != (b.scheme,b.netloc) or not u.path.startswith("/checkout/"): raise ValueError("Checkout URL mismatch")
+    return c
+def view(o):
+    c = json.loads(o["checkout"]) if o["checkout"] else {}
+    return {"orderId":o["id"],"cents":o["cents"],"amount_sats":o["sats"],"status":c.get("status","creating"),"checkoutUrl":c.get("url"),"qrUrl":"/api/orders/"+o["id"]+"/qr" if c else None,"pageName":config["pageName"],"returnUrl":config["returnUrl"],"environment":"simulation"}
+@app.after_request
+def security(r):
+    r.headers["Cache-Control"]="no-store"
+    r.headers["X-Content-Type-Options"]="nosniff"
+    r.headers["Referrer-Policy"]="no-referrer"
+    return r
+@app.before_request
+def origin():
+    if request.method == "POST" and request.path != HOOK and request.headers.get("Origin") != ORIGIN:
+        return jsonify(error="Origin rejected"),403
+@app.errorhandler(Exception)
+def failed(e):
+    return jsonify(error="Request failed. Keep this order and retry; do not assume payment succeeded."),502
+@app.get("/")
+def home(): return send_from_directory("public","index.html")
+@app.get("/app.js")
+def script(): return send_from_directory("public","app.js")
+@app.get("/style.css")
+def style(): return send_from_directory("public","style.css")
+@app.get("/api/config")
+def public_config(): return jsonify(pageName=config["pageName"],returnUrl=config["returnUrl"],environment="simulation")
+@app.get("/api/quote")
+def quote(): return jsonify(price())
+@app.post("/api/orders")
+def create_order():
+    b=request.get_json()
+    if not UUID.fullmatch(str(b.get("id",""))) or type(b.get("cents")) is not int or not 1 <= b["cents"] <= 100000000:
+        return jsonify(error="Invalid order"),400
+    with database() as c:
+        o=c.execute("SELECT * FROM orders WHERE id=?",(b["id"],)).fetchone()
+        if not o:
+            q=price()
+            pc=int(Decimal(str(q["price"]))*100 + Decimal("0.5"))
+            sats=(b["cents"]*100000000+pc-1)//pc
+            if sats>10000000: return jsonify(error="Maximum checkout is 0.1 simulated BTC"),400
+            c.execute("INSERT OR IGNORE INTO orders VALUES(?,?,?,NULL)",(b["id"],b["cents"],sats))
+            c.commit()
+            o=c.execute("SELECT * FROM orders WHERE id=?",(b["id"],)).fetchone()
+        if o["cents"]!=b["cents"]: return jsonify(error="Do not change an existing order amount"),409
+        if not o["checkout"]:
+            data=validate(api("/v1/checkout/sessions",{"amount_sats":o["sats"],"reference":o["id"],"return_url":config["returnUrl"]},o["id"]),o)
+            c.execute("UPDATE orders SET checkout=? WHERE id=?",(json.dumps(data),o["id"]))
+            o=c.execute("SELECT * FROM orders WHERE id=?",(o["id"],)).fetchone()
+        return jsonify(view(o))
+@app.get("/api/orders/<oid>")
+def get_order(oid):
+    with database() as c:
+        o=c.execute("SELECT * FROM orders WHERE id=?",(oid,)).fetchone()
+        if not o or not o["checkout"]: return jsonify(error="Order not found"),404
+        old=json.loads(o["checkout"])
+        data=validate(api("/v1/checkout/sessions/"+old["id"]),o)
+        if data["id"]!=old["id"]: raise ValueError("ID mismatch")
+        c.execute("UPDATE orders SET checkout=? WHERE id=?",(json.dumps(data),oid))
+        return jsonify(view(dict(o,checkout=json.dumps(data))))
+@app.get("/api/orders/<oid>/qr")
+def qr(oid):
+    with database() as c: o=c.execute("SELECT * FROM orders WHERE id=?",(oid,)).fetchone()
+    if not o or not o["checkout"]: return jsonify(error="Order not found"),404
+    output=io.BytesIO()
+    qrcode.make(json.loads(o["checkout"])["url"]).save(output,format="PNG")
+    return Response(output.getvalue(),mimetype="image/png")
+def webhook():
+    raw=request.get_data()
+    sig=re.fullmatch(r"t=(\d+),v1=([a-f0-9]{64})",request.headers.get("X-Vault-Signature",""))
+    if not sig or abs(time.time()-int(sig[1]))>300: return jsonify(error="Invalid signature timestamp"),401
+    expected=hmac.new(SECRET.encode(),sig[1].encode()+b"."+raw,hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected,sig[2]): return jsonify(error="Invalid signature"),401
+    e=json.loads(raw);d=e.get("data",{})
+    if not UUID.fullmatch(str(e.get("id",""))) or e["id"]!=request.headers.get("X-Vault-Event-Id") or e.get("type")!="checkout.simulation_paid" or d.get("environment")!="simulation" or d.get("status")!="simulation_paid":
+        return jsonify(error="Unsupported event"),400
+    with database() as c:
+        c.execute("BEGIN IMMEDIATE")
+        old=c.execute("SELECT body FROM events WHERE id=?",(e["id"],)).fetchone()
+        if old: return (jsonify(received=True),200) if old["body"]==raw.decode() else (jsonify(error="Event conflict"),409)
+        o=c.execute("SELECT * FROM orders WHERE id=?",(d.get("reference"),)).fetchone()
+        if not o or not o["checkout"]: return jsonify(error="Order not reconciled yet; retry"),409
+        checkout=json.loads(o["checkout"])
+        if checkout["id"]!=d.get("id") or o["sats"]!=d.get("amount_sats"): return jsonify(error="Order mismatch"),409
+        checkout["status"]="simulation_paid"
+        c.execute("INSERT INTO events VALUES(?,?)",(e["id"],raw.decode()))
+        c.execute("UPDATE orders SET checkout=? WHERE id=?",(json.dumps(checkout),o["id"]))
+    return jsonify(received=True) # Simulation only. Never fulfil real orders.
+app.add_url_rule(HOOK,"webhook",webhook,methods=["POST"])
+if __name__=="__main__": app.run(host="0.0.0.0",port=int(os.getenv("PORT","3000")))

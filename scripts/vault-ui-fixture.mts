@@ -21,7 +21,7 @@ Object.assign(process.env, {
 const credentialPath = join(directory, "disposable-test-credential.txt");
 writeFileSync(credentialPath, credential.toString("base64url"), {mode: 0o600});
 const token = randomBytes(32).toString("hex");
-const mock = mockEnabled ? await (await import("./vault-ui-mock-signer.mts")).startMockSigner(token) : null;
+const mock = mockEnabled ? await (await import("./vault-ui-mock-signer.mts")).startMockSigner(token, { allowMockPayments: true }) : null;
 if (mock) Object.assign(process.env, {
   BITCOIN_NETWORK: "main", ALLOW_MAINNET: "true", VAULT_ENGINE_URL: mock.url,
   VAULT_ENGINE_TOKEN: token, MAINNET_MONITOR_URL: mock.url, MAINNET_MONITOR_TOKEN: token,

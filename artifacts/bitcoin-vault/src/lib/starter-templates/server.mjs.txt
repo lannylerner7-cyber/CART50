@@ -1,0 +1,108 @@
+import http from 'node:http';
+import fs from 'node:fs';
+import { randomUUID, createHmac, timingSafeEqual } from 'node:crypto';
+import { DatabaseSync } from 'node:sqlite';
+import QRCode from 'qrcode';
+const config = JSON.parse(fs.readFileSync('./config.json'));
+const base = (process.env.MAINVAULT_API_BASE || config.apiBase).replace(/\/$/, '');
+if (new URL(base).protocol !== 'https:') throw Error('API base requires HTTPS');
+const key = process.env.MAINVAULT_API_KEY, secret = process.env.MAINVAULT_WEBHOOK_SECRET;
+if (!key?.startsWith('sk_test_') || !secret) throw Error('Set sandbox API key and webhook secret in .env.mainvaultwallet');
+const origin = process.env.PUBLIC_ORIGIN || new URL(config.webhookUrl).origin;
+const hookPath = new URL(config.webhookUrl).pathname;
+fs.mkdirSync('./data', {recursive:true});
+const db = new DatabaseSync('./data/orders.sqlite');
+db.exec('PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, cents INTEGER, sats INTEGER, checkout TEXT); CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY, body TEXT NOT NULL)');
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+async function api(path, data, id) {
+  const r = await fetch(base + path, {method:data ? 'POST':'GET', redirect:'error', signal:AbortSignal.timeout(10000),
+    headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json',...(id?{'Idempotency-Key':id}:{})}, ...(data?{body:JSON.stringify(data)}:{})});
+  if (!r.ok) throw Error(`MainVault returned HTTP ${r.status}. Retry the same order, not a new order.`);
+  return r.json();
+}
+let quoteCache=null,quoteFlight=null;
+async function loadQuote() {
+  const r = await fetch('https://api.exchange.coinbase.com/products/BTC-USD/ticker',{redirect:'error',signal:AbortSignal.timeout(10000)});
+  if (!r.ok) throw Error('Price provider unavailable');
+  const q = await r.json(), at=Date.parse(q.time), price=Number(q.price);
+  if (!Number.isFinite(at)||Date.now()-at>180000||at>Date.now()+30000||!Number.isFinite(price)||price<=0) throw Error('Fresh price unavailable');
+  return {price,updatedAt:new Date(at).toISOString(),source:'Coinbase Exchange BTC-USD'};
+}
+async function quote() {
+  if(quoteCache&&Date.now()-quoteCache.fetched<60000&&Date.now()-Date.parse(quoteCache.value.updatedAt)<180000)return quoteCache.value;
+  if(!quoteFlight)quoteFlight=loadQuote().then(value=>{quoteCache={value,fetched:Date.now()};return value;}).catch(e=>{quoteCache=null;throw e;}).finally(()=>{quoteFlight=null;});
+  return quoteFlight;
+}
+function verifyCheckout(c,o) {
+  if(c.environment!=='simulation'||c.reference!==o.id||c.amount_sats!==o.sats||!['pending','expired','simulation_paid'].includes(c.status)) throw Error('Checkout response mismatch');
+  const u=new URL(c.url); if(u.origin!==new URL(base).origin||!u.pathname.startsWith('/checkout/'))throw Error('Untrusted checkout URL');
+  return c;
+}
+function view(o) {
+  const c=o.checkout?JSON.parse(o.checkout):null;
+  return {orderId:o.id,cents:o.cents,amount_sats:o.sats,status:c?.status||'creating',checkoutUrl:c?.url||null,
+    qrUrl:c?`/api/orders/${o.id}/qr`:null,pageName:config.pageName,returnUrl:config.returnUrl,environment:'simulation'};
+}
+async function read(req) {let b=Buffer.alloc(0);for await(const part of req){b=Buffer.concat([b,part]);if(b.length>65536)throw Error('Request too large');}return b;}
+const server=http.createServer(async(req,res)=>{
+  res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');
+  const send=(status,data)=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(data));};
+  try {
+    const path=new URL(req.url,'http://localhost').pathname;
+    if(req.method==='POST'&&path===hookPath){
+      const raw=await read(req), parts=/^t=(\d+),v1=([a-f0-9]{64})$/.exec(req.headers['x-vault-signature']||'');
+      if(!parts||Math.abs(Date.now()/1000-Number(parts[1]))>300)return send(401,{error:'Invalid signature timestamp'});
+      const sig=createHmac('sha256',secret).update(parts[1]+'.').update(raw).digest();
+      if(!timingSafeEqual(sig,Buffer.from(parts[2],'hex')))return send(401,{error:'Invalid signature'});
+      const e=JSON.parse(raw), d=e.data;
+      if(e.id!==req.headers['x-vault-event-id']||!uuid.test(e.id)||e.type!=='checkout.simulation_paid'||d?.environment!=='simulation'||d.status!=='simulation_paid')return send(400,{error:'Unsupported event'});
+      const old=db.prepare('SELECT body FROM events WHERE id=?').get(e.id);
+      if(old)return send(old.body===raw.toString()?200:409,{received:old.body===raw.toString()});
+      const o=db.prepare('SELECT * FROM orders WHERE id=?').get(d.reference);
+      if(!o?.checkout)return send(409,{error:'Order not reconciled yet; retry delivery'});
+      const c=JSON.parse(o.checkout);
+      if(c.id!==d.id||o.sats!==d.amount_sats)return send(409,{error:'Order mismatch'});
+      db.exec('BEGIN IMMEDIATE');
+      try {db.prepare('INSERT INTO events VALUES (?,?)').run(e.id,raw.toString());c.status='simulation_paid';db.prepare('UPDATE orders SET checkout=? WHERE id=?').run(JSON.stringify(c),o.id);db.exec('COMMIT');}
+      catch(e){db.exec('ROLLBACK');throw e;}
+      return send(200,{received:true}); // Test event only. NEVER fulfil real orders.
+    }
+    if(req.method==='POST'&&req.headers.origin!==origin)return send(403,{error:'Origin rejected'});
+    if(req.method==='GET'&&path==='/api/config')return send(200,{pageName:config.pageName,returnUrl:config.returnUrl,environment:'simulation'});
+    if(req.method==='GET'&&path==='/api/quote')return send(200,await quote());
+    if(req.method==='POST'&&path==='/api/orders'){
+      const b=JSON.parse(await read(req));
+      if(!uuid.test(b.id)||!Number.isSafeInteger(b.cents)||b.cents<1||b.cents>100000000)return send(400,{error:'Invalid order'});
+      let o=db.prepare('SELECT * FROM orders WHERE id=?').get(b.id);
+      if(!o){
+        const q=await quote(), pc=Math.round(q.price*100);
+        const sats=Number((BigInt(b.cents)*100000000n+BigInt(pc)-1n)/BigInt(pc));
+        if(sats>10000000)return send(400,{error:'Maximum checkout is 0.1 simulated BTC'});
+        db.prepare('INSERT OR IGNORE INTO orders VALUES (?,?,?,NULL)').run(b.id,b.cents,sats);
+        o=db.prepare('SELECT * FROM orders WHERE id=?').get(b.id);
+      }
+      if(o.cents!==b.cents)return send(409,{error:'Do not change an existing order amount'});
+      if(!o.checkout){
+        const c=verifyCheckout(await api('/v1/checkout/sessions',{amount_sats:o.sats,reference:o.id,return_url:config.returnUrl},o.id),o);
+        db.prepare('UPDATE orders SET checkout=? WHERE id=?').run(JSON.stringify(c),o.id);
+        o=db.prepare('SELECT * FROM orders WHERE id=?').get(o.id);
+      }
+      return send(200,view(o));
+    }
+    const match=/^\/api\/orders\/([0-9a-f-]+)(\/qr)?$/.exec(path);
+    if(req.method==='GET'&&match){
+      const o=db.prepare('SELECT * FROM orders WHERE id=?').get(match[1]);
+      if(!o?.checkout)return send(404,{error:'Order not found'});
+      const c=JSON.parse(o.checkout);
+      if(match[2]){res.writeHead(200,{'Content-Type':'image/svg+xml'});return res.end(await QRCode.toString(c.url,{type:'svg',margin:3}));}
+      const latest=verifyCheckout(await api('/v1/checkout/sessions/'+encodeURIComponent(c.id)),o);
+      if(latest.id!==c.id)throw Error('Checkout ID mismatch');
+      db.prepare('UPDATE orders SET checkout=? WHERE id=?').run(JSON.stringify(latest),o.id);
+      return send(200,view({...o,checkout:JSON.stringify(latest)}));
+    }
+    const file={'/':'index.html','/app.js':'app.js','/style.css':'style.css'}[path];
+    if(req.method==='GET'&&file){res.writeHead(200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html'});return res.end(fs.readFileSync('./public/'+file));}
+    send(404,{error:'Not found'});
+  }catch{send(502,{error:'Request failed. Keep this order and retry; do not assume payment succeeded.'});}
+});
+server.listen(Number(process.env.PORT||3000),'0.0.0.0');

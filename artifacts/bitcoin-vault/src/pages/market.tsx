@@ -20,7 +20,7 @@ export default function Market() {
 
   return (
     <div className="space-y-6">
-      <PageHeader kicker="Market" title="Market" desc="Reference price from your configured provider. Used only for alerts, never for vault arithmetic." />
+      <PageHeader kicker="Market" title="Market" desc="Reference price for USD estimates and alerts. It does not change Bitcoin payment amounts or guarantee an exchange rate." />
       {m.isError && <ErrorPanel error={m.error} onRetry={() => m.refetch()} title="Market feed unavailable" />}
       {m.isLoading && <Skel className="h-64" />}
       {d && (

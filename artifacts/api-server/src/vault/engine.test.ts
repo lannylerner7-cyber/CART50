@@ -19,6 +19,8 @@ test("policy comes from signer, never stale metadata; outages fail closed", asyn
   const oldURL = process.env.VAULT_ENGINE_URL;
   const oldToken = process.env.VAULT_ENGINE_TOKEN;
   const oldNetwork = process.env.BITCOIN_NETWORK, oldAllow = process.env.ALLOW_MAINNET;
+  const oldProvider = process.env.MARKET_PROVIDER;
+  delete process.env.MARKET_PROVIDER;
   process.env.BITCOIN_NETWORK = "main"; process.env.ALLOW_MAINNET = "true";
   process.env.VAULT_ENGINE_URL = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   process.env.VAULT_ENGINE_TOKEN = "test-only-not-an-owner-credential";
@@ -27,6 +29,9 @@ test("policy comes from signer, never stale metadata; outages fail closed", asyn
     const policy = await operationalSettings();
     assert.equal(policy.sweepsPaused, false);
     assert.equal(policy.feeRateCeiling, "2");
+    assert.equal(policy.provider, "Coinbase Exchange BTC-USD");
+    process.env.MARKET_PROVIDER = "cloudflare-worker";
+    assert.equal((await operationalSettings()).provider, "Cloudflare market Worker");
     available = false;
     await assert.rejects(operationalSettings, /signer offline/);
   } finally {
@@ -34,6 +39,7 @@ test("policy comes from signer, never stale metadata; outages fail closed", asyn
     if (oldToken === undefined) delete process.env.VAULT_ENGINE_TOKEN; else process.env.VAULT_ENGINE_TOKEN = oldToken;
     if (oldNetwork === undefined) delete process.env.BITCOIN_NETWORK; else process.env.BITCOIN_NETWORK = oldNetwork;
     if (oldAllow === undefined) delete process.env.ALLOW_MAINNET; else process.env.ALLOW_MAINNET = oldAllow;
+    if (oldProvider === undefined) delete process.env.MARKET_PROVIDER; else process.env.MARKET_PROVIDER = oldProvider;
     await new Promise<void>(resolve => server.close(() => resolve()));
   }
 });

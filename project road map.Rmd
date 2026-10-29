@@ -11,6 +11,41 @@ output:
 
 # Read this first
 
+## Developer self-hosted starter — 2026-10-29
+
+- Console now explains webhook receiver vs return URL, displays the current API
+  base explicitly, and exports Node/Python tar.gz starter source after saved
+  return/webhook settings and API-key issuance. The external Coolify domain
+  mainvaultwallet.com is user supplied; a public health request returned 200,
+  which is NOT merchant authentication, webhook or hosted checkout acceptance.
+- Export includes Dockerfile/Compose, persistent SQLite orders/event tombstones,
+  UI HTML/CSS/JS, configuration and placeholder-only environment template.
+  No saved API key or signing secret is embedded.
+- Buyer enters a USD reference amount; fresh Coinbase pricing locks simulated
+  sats on creation. QR opens the hosted simulation checkout, never a Bitcoin
+  payment address. Status polling/button cannot mark paid; simulation_paid
+  triggers navigation to the configured return page.
+- Local Node/Python mocked upstream checks passed: export contents, gzip/tar,
+  create/locked amount, lost-response retry with retained order, repeated
+  creation, QR responses, identical signed-event replay, invalid signature and
+  cross-origin rejection. Frontend typecheck/build passed.
+- NOT verified: Docker image builds, hosted secrets/config, actual HTTPS webhook
+  delivery, browser download flow or signed-in visual acceptance of the new
+  console. No hosted changes, Signet restart or real transfer.
+
+## Owner-send follow-up and provider audit — 2026-10-29
+
+- Isolated mock signer accepts explicit allowMockPayments from the fixture;
+  real signer policy and network boundaries unchanged.
+- Settings now distinguishes configured market provider, fresh quote
+  availability and private signer configuration. Default Coinbase and explicit
+  Cloudflare Worker attribution covered by regression tests; unsupported
+  provider names do not echo arbitrary configuration. Ten targeted tests and
+  both typechecks passed.
+- Focused browser run exceeded its time budget and was stopped without a report.
+  Review amount/fee/total, acknowledgement, expiry and mock receipt assertions
+  are still UNVERIFIED. Do not count the cancelled run as a pass.
+
 ## Owner send USD estimates — 2026-10-29
 
 Personal send form, review amount/fee/total and known available balance now show
@@ -1112,7 +1147,7 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-636 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+647 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
@@ -1180,14 +1215,16 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/vault/auth.ts` | 4658 | `8eb7f062aeddae21781b3dbd409c5f1a2b19ace7db80ffd95f794ba3f57ee4e5` | Owner-key verification, session authentication and request protections. |
 | `artifacts/api-server/src/vault/burst.test.ts` | 2353 | `f3e520a039e6803da77f02911aade92559648b200b64d9af2adc92a4f42a07ff` | Regression tests for burst; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/credential.test.ts` | 1405 | `b55efa6443b025f1b0e3f9be9dd46873d6abcda8a4d00c4d403dd857ee1e4f04` | Regression tests for credential; local checks, not hosted evidence. |
-| `artifacts/api-server/src/vault/engine.test.ts` | 5617 | `2bf584913c05496ef7bf698e41c0c99152817629133ce917f367b180d9f471c8` | Regression tests for engine; local checks, not hosted evidence. |
-| `artifacts/api-server/src/vault/engine.ts` | 4923 | `9a2315973fd2ffeb8693cf68df4514d7c53760bd0f7633dc99d3b6e74302f86d` | Private signer client and node readiness adapter. |
+| `artifacts/api-server/src/vault/engine.test.ts` | 6030 | `969716c4a4ac0badf3c92ce613a43a814e8bcf59efac12d252945eebb435792e` | Regression tests for engine; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/engine.ts` | 4971 | `616d0cd0e7f47193a82945575d2617034587919a26416dd621edf314c1c2756a` | Private signer client and node readiness adapter. |
 | `artifacts/api-server/src/vault/login-security.test.ts` | 5051 | `df18c40288b82e0e73f8b8433319f97e44ab12851866781b6d75bf20eae4bd26` | Regression tests for login-security; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/login-security.ts` | 4108 | `13ca1fb8ccb409d3104f92f8c7af64ecaeea6bac36755883ccb56904a03a9ac9` | Login attempt tracking and access restrictions. |
+| `artifacts/api-server/src/vault/market-provider.test.ts` | 713 | `23c653a02136b0bf085a2da6bd70cd64e773dbe9921c66889fefe1a533515498` | Regression tests for market-provider; local checks, not hosted evidence. |
+| `artifacts/api-server/src/vault/market-provider.ts` | 396 | `d5d9caae5673c9e576f140166adcd6c5a6353ce862acd7f418aa1613347d3753` | market-provider.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/market-request.test.ts` | 1550 | `674d48410cb7d9547cee76687e6bf39cb8c64c4d9ec36774ba1450661f1d230a` | Regression tests for market-request; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/market-request.ts` | 1010 | `818cde9f076e62f5e45bb772f2c3946df3dfc2bd0806479bc4d33cec9dd9c1da` | market-request.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/market.test.ts` | 1172 | `32e98a536b8de783a48055cd1ff738b5d0ca8dd63f33533bda9ad8932fad2816` | Regression tests for market; local checks, not hosted evidence. |
-| `artifacts/api-server/src/vault/market.ts` | 4008 | `2850c0533d428db4078983f1ddb5829c6702c391b62ef6841e0ef8d907e3a1bc` | Market freshness, pricing state and alert evaluation. |
+| `artifacts/api-server/src/vault/market.ts` | 4073 | `d005ef12778e48be649c034deb4f81d5cb694503500e23e7fe2c2cd683c82823` | Market freshness, pricing state and alert evaluation. |
 | `artifacts/api-server/src/vault/network.ts` | 527 | `74b5f26c3290c49a2e2db6943ac4a87219dd7275c14eb345a2c7621f10e294f2` | network.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/node-sync.test.ts` | 2417 | `f5c3d8bd9c44edd3f6849dcab2884044502c5eb4f95e1eae4fff35539dde76ea` | Regression tests for node-sync; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/node-sync.ts` | 2520 | `cddc137f4a12b1f12c647a3188b21b182bcc46d59a1425ec10fb1a2f784340fb` | node-sync.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
@@ -1246,6 +1283,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/sandbox-shell.tsx` | 6351 | `1f572b25bf4769dae7b17acbd09b53a1b071f63e2997f7bbec9adab6a5dc3512` | sandbox-shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/sheet.tsx` | 2748 | `ebc64aa8cd585f254e5b45e5f858e73b66809a2b4ba3f3c958192800f5299992` | sheet.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/shell.tsx` | 8270 | `811d9c3311141e88722d960c9f33b77c71292deea2352595bce5ff5dc141b0a7` | shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/starter-export.tsx` | 11295 | `2cc6dc824f9daadfa8b5dacbef589def6c0f5e8c6da704c57e1a8e439862dd47` | starter-export.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/tx-row.tsx` | 2730 | `5c82f6b311c84afc3559efb1786a1a3136bd2c94d4ed2547b18a34ad6a82f07c` | tx-row.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/ui/accordion.tsx` | 2013 | `8e4230a3e6d38bfab7b02f00f9e948c8c4038432c5b1bf2d0ea44dc8b5ce09cc` | Reusable accordion UI primitive (wallet app). |
 | `artifacts/bitcoin-vault/src/components/ui/alert-dialog.tsx` | 4447 | `d76901a06e6881e94aa3847fde2602ee6f6ddc9f4cace9fa238627a5572bd24e` | Reusable alert-dialog UI primitive (wallet app). |
@@ -1318,6 +1356,12 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/sandbox.ts` | 1088 | `ae71e4015961856727e1ac86738c7d3656cf517802edf15a2c0c7dd61e37c081` | sandbox.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.test.ts` | 1648 | `86e951698a47a5037b3e43156cad26fc0ccb79f49fd1e723efd3d5fbd9d99eb0` | Regression tests for session-lock; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.ts` | 1115 | `5962a8ac11ca1035e7024c1463f78897f2d93d42a22fa39f57cc770aa775ee39` | Client lock, protected cache clearing and cross-tab session notification. |
+| `artifacts/bitcoin-vault/src/lib/starter-archive.ts` | 9093 | `deae1ba1b158e8e1beb9d1af2f22d4e4ee2a8ce3dda3c51a4f13475809868f5e` | starter-archive.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/starter-templates/app.js.txt` | 2892 | `a7a9e58e78b2d9ac59b2f8be93b5667f0a80f3936b67112c4b4687ff73ade441` | app.js.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/starter-templates/index.html.txt` | 1542 | `71a84227eadfdbb8bd88e5ce7c58eafe3d431fbf181d782cb44f06c23a1faa57` | index.html.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/starter-templates/server.mjs.txt` | 8073 | `b7f6162e35e9b18ac7e80085357913247fbf9b40ff2c23456a381d23bb59c591` | server.mjs.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/starter-templates/server.py.txt` | 8459 | `6d996d0e90b439fe236398712ba359574b52bb1508e74def09400022d87a030a` | server.py.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/starter-templates/style.css.txt` | 1470 | `3d65b6d7576ffdb20d9631a612609c252aae5c68f356a18849ed2152673d3ca2` | style.css.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/transfer-delay.test.ts` | 1514 | `72eb407e75c163ac8e923263fd2cf32b694395f15b99f4127a6542a5b89db7f6` | Regression tests for transfer-delay; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/transfer-delay.ts` | 1164 | `df573946bf3b4250cee7d7e3c8b91326cc627c32888e4c62bf32b0728222d486` | transfer-delay.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/usd-estimate.test.ts` | 1308 | `7c5b1fe583e403c6b893490588ca32a29d399ba277b0a6bcf1d1c920d66a919f` | Regression tests for usd-estimate; local checks, not hosted evidence. |
@@ -1328,7 +1372,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/pages/admin.tsx` | 15335 | `c92decd495b60c5f08f159a9f0e2a88e57266715a140f25ef4abc9388c72d176` | admin wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/access.tsx` | 11610 | `c2147463634c1195231ec3b3a5e54a84d310c87029aafe24704a654c37a9283b` | access wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/apply.tsx` | 7509 | `32358f33f78d013a304f01519e522c728496dca7cfecd4ca18fd81c81d9c800f` | apply wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/checkout.tsx` | 21858 | `40144a8a7f210ce0a03e66d3c63514d4bb3706b761f46f8a79c9d15d60efe726` | checkout wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/checkout.tsx` | 23289 | `c7d9156a0e13c1cee5109bd94338bfefc28be426dfb12deffd519b7fcac709b8` | checkout wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/index.tsx` | 7164 | `62d6e80cb8ea21482520d90e59f9a073f4c91745177f01887b0f715686c0dd70` | index wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/landing.css` | 6118 | `f7e7fab3b8a72b3d516c24c4261967f6daa6a34f67b9c4e95173404fea980eb4` | landing.css wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/landing.tsx` | 15525 | `aa95a33c1dd6cad844db7e8ffe62c1e4dc99e2c3a2ae656192fb2ed3c1d44a47` | landing wallet screen. |
@@ -1337,12 +1381,12 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/pages/explorer.tsx` | 4055 | `7d91e60eeba560738e2e1b925c5e2b9804f2f0e8b439aade2826542105bed57b` | explorer wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/hosted-checkout.tsx` | 7604 | `6fd848ef0856d701ab6a287f82ec172855990e787a9fdef69e5f8be4e4fcc92e` | hosted checkout wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/lock.tsx` | 13946 | `13f0cf4dcaed32c1a7437a12d27398bd40095a1c4a9032a7b5bde2cf1dbe3177` | lock wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/market.tsx` | 12992 | `14cd80f3ce873399796657e9df49d1d40d09448e749adb1df3b665102e545acb` | market wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/market.tsx` | 13015 | `448119cd3f61196d97d53c13027077904864406b3a69a0bd06b0b76f78d22f50` | market wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/not-found.tsx` | 1147 | `74653c0b180b50c89622040611f5050e5d4d14cf908f756bccdd44d6009b7bbe` | not found wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/overview.tsx` | 16447 | `b2e2b663f19aa745b781a9b90a25a974cfed1d644e61721ae6294606c072b03f` | overview wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/sandbox/index.tsx` | 23221 | `301123a2b9d5e2f766884608a83fe97659375fede19d4300752ca63c46c13632` | index wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/sandbox/signet.tsx` | 16878 | `5fdbf36420d1733a9ac1748fcce951f8b2fdf1ed5d184bfbebecaa96416da98c` | signet wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/settings.tsx` | 14051 | `55627db5a661e65269607a9df8f84c5ea4737d17d63c32f7040a8157cca3ce2c` | settings wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/settings.tsx` | 14963 | `ed94b8be823dc6678b76919972d78f13dee3908fde51479d05f1214598480b4b` | settings wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/spending.tsx` | 19950 | `011d235715c423aecb2fa6bbffa8b4fd83d6d2114cd5268b887e0d41bb1a29fd` | spending wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 13645 | `bf143717bf45e4ca251194d3b850548eef81cad963cb8441f12504a7d4a3cb89` | transactions wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallet-detail.tsx` | 13055 | `c802644332e0e40db6d8718d9b7efbf9af7aed6236241a780cf04221ed51caae` | wallet detail wallet screen. |
@@ -1582,6 +1626,7 @@ to publish: review repository assets before release.
 | `docs/receive-readiness.md` | 2926 | `ed851ccc6e98853b4468a3e82ef5c363fc1fcfc5205118aeea128b6606350b8d` | Detailed receive readiness runbook/status reference; respect dated evidence. |
 | `docs/request-recovery.md` | 2568 | `842926f8da879ba667c434e0c5dd0305c4312cf61ac500611ce36aa3bba2e207` | Detailed request recovery runbook/status reference; respect dated evidence. |
 | `docs/sandbox-checkout.md` | 10079 | `0c2f793ca8caf4422e5005f9d154b13274236e2797baf9bb0e34638581f706a6` | Detailed sandbox checkout runbook/status reference; respect dated evidence. |
+| `docs/self-hosted-checkout-starter.md` | 3094 | `9afb256f24e43869d111f2726a711003975af4316ade38191a13639d3cf7beac` | Detailed self hosted checkout starter runbook/status reference; respect dated evidence. |
 | `docs/server-held-custody.md` | 4265 | `d9785925e1ccf930279868dbcd503e7ce0b69391870463504e8c2f3421ce3f4a` | Detailed server held custody runbook/status reference; respect dated evidence. |
 | `docs/strongroom-complete-figma-design-brief.txt` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Detailed strongroom complete figma design brief.txt runbook/status reference; respect dated evidence. |
 | `docs/strongroom-figma-handoff.html` | 20206 | `1f27678f79f6e7e42f3905bcb4583b380b2e4f96687611fcff67df9c3f0fadc6` | Detailed strongroom figma handoff.html runbook/status reference; respect dated evidence. |
@@ -1705,7 +1750,7 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 224175 | `714025631ddd5482406a777dd349c3e90a733500a6408bd3690890ad40c7db49` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 66874 | `5a2950cb2b64b9fa3abed95600f65843200d6b6443f0a3e3df39e0d38dd8601e` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 69054 | `87ec496b571e1228c3b10ba2521e7952cf035bfbe92072ef0396438b3f2215c7` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/developer-capacity-check.mts` | 2050 | `ea82c34dfd141ec3f6b675df74e518473f356529d2c996e0c288ac9ca6de8527` | Operator/build utility: developer-capacity-check.mts; inspect flags before invoking. |
@@ -1718,6 +1763,7 @@ to publish: review repository assets before release.
 | `scripts/signet-setup-generator.template.html` | 4034 | `d6759aa0108ade15a7860000bd41661bd94ad8d802b7570186938be91104844a` | Operator/build utility: signet-setup-generator.template.html; inspect flags before invoking. |
 | `scripts/signet-setup-generator.test.mjs` | 2443 | `86fa7380f089d2c83a524ccbbff680097b6b4372be0a43ec793d74f60a16c08f` | Regression tests for signet-setup-generator; local checks, not hosted evidence. |
 | `scripts/src/hello.ts` | 46 | `9a865c3de9900891e697e1ee8632dd565ce69bd7cb6b610e48b26bc0ee9e81e9` | Operator/build utility: hello.ts; inspect flags before invoking. |
+| `scripts/test-starter-export.mjs` | 7376 | `82238202ea7adcf3ec6af66ccf685f42b926ed24b4f8ee20528437839487843a` | Operator/build utility: test-starter-export.mjs; inspect flags before invoking. |
 | `scripts/tsconfig.json` | 157 | `636dea76ed898c62e56d6657ed97bb3edc85feb0ea8256b5198849d5c6cf462a` | TypeScript compilation/project-reference configuration. |
 | `scripts/update-roadmap.mjs` | 9075 | `246b1a11d004e22cf25612bdebe84bdf7487aa3113383be614d25dc5b8fa40f5` | Deterministic file inventory generator and stale-document check. |
 | `scripts/update-roadmap.test.mjs` | 2302 | `835d9b356ce704b84be849bbfd976c95077ad5db223624b5d85bc8ed8d98c889` | Regression tests for update-roadmap; local checks, not hosted evidence. |
@@ -1728,8 +1774,8 @@ to publish: review repository assets before release.
 | `scripts/vault-live-probe.test.mjs` | 2036 | `3d39bce9677f184c6e13a5c8c985cb55be158965a9b9cc316e19fd4b956a4731` | Regression tests for vault-live-probe; local checks, not hosted evidence. |
 | `scripts/vault-package.test.mjs` | 5244 | `3fca7c9c48ac9353fd55293d75ff09149dbcc83b6185c0eb0adab65d18125147` | Regression tests for vault-package; local checks, not hosted evidence. |
 | `scripts/vault-release.sh` | 2413 | `7bb1b6fd9606776f9d10b239ae3d973f2d5221f91632972550d41e3563f1a362` | Operator/build utility: vault-release.sh; inspect flags before invoking. |
-| `scripts/vault-ui-fixture.mts` | 2667 | `30d5e4c8411f5cab8a14594f1b493cdfbd6d8fa4bfe8e7978c5613c6b931c9ee` | Operator/build utility: vault-ui-fixture.mts; inspect flags before invoking. |
-| `scripts/vault-ui-mock-signer.mts` | 4624 | `ba36b33e30ea4dccd35ec9e558c1bdade1936d87441d43e8c393e4ed873552cb` | Operator/build utility: vault-ui-mock-signer.mts; inspect flags before invoking. |
+| `scripts/vault-ui-fixture.mts` | 2696 | `c5593dd396e0a2e7711f47e5603760e435486f4d72e8003a420305aa6b41186a` | Operator/build utility: vault-ui-fixture.mts; inspect flags before invoking. |
+| `scripts/vault-ui-mock-signer.mts` | 4693 | `9c4062fbf53534ab05bccf493528c8a1bea4bb07a61e5b676aded798d22c1b10` | Operator/build utility: vault-ui-mock-signer.mts; inspect flags before invoking. |
 | `scripts/vault-verify.sh` | 1278 | `ae4084c55e5282f05fc2e74665530dafe0132ae22458b13c1c626c58c8056d86` | Operator/build utility: vault-verify.sh; inspect flags before invoking. |
 | `services/vault-engine/admission.go` | 679 | `75535c621e210d79a5e9b54e102490bafeef0f19dbe926b9a74049a4ab6dcf87` | admission.go module in services/vault-engine; see the owning subsystem above. |
 | `services/vault-engine/admission_test.go` | 1981 | `4359fa9b2e35332a0f7f2a3ad241dd7691f7b3f0b30658d036507f7622e58baf` | Regression tests for admission; local checks, not hosted evidence. |

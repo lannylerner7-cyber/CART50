@@ -4,6 +4,7 @@ import { GetMarketResponse } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
 import { marketRequest } from "./market-request";
 import { fetchPublicPrice } from "./public-market";
+import { marketProviderLabel } from "./market-provider";
 
 export type PricePoint = { time: string; price: number };
 export function alertCondition(kind: string, threshold: number, windowMinutes: number, price: number, now: number, history: PricePoint[]): boolean | null {
@@ -14,7 +15,7 @@ export function alertCondition(kind: string, threshold: number, windowMinutes: n
   return (base.price - price) / base.price * 100 >= threshold;
 }
 const unavailable = () => ({
-  available: false, price: null, currency: "USD", source: "Market feed",
+  available: false, price: null, currency: "USD", source: marketProviderLabel(),
   updatedAt: null, stale: true, message: "Waiting for a verified market quote. No market prices are being fabricated.", history: [] as PricePoint[],
 });
 let cache = unavailable() as ReturnType<typeof GetMarketResponse.parse>;
