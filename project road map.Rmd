@@ -11,6 +11,47 @@ output:
 
 # Read this first
 
+### Independent developer identity continuation — 2026-10-29
+
+**Implemented in source:** an opt-in independent runtime reuses developer
+onboarding/passkeys/sessions through a developer-only metadata adapter. Shared
+security primitives no longer require owner authentication/storage imports.
+Legacy hosted storage behavior remains the default outside the independent
+runtime; no account or hosted data has been migrated. Scoped wallet-key
+issuance/rotation/revocation requires a full developer session, CSRF, same origin
+and recent passkey verification. The local console includes a masked one-time
+key panel. Developer wallet keys are checked against persisted independent
+metadata; checkout credentials and owner credentials do not authorize them.
+
+**Automated evidence:** all 17 developer/foundation tests passed, including
+independent registration storage, scope denial, fresh-passkey enforcement,
+rotation/revocation, tenant separation and absent owner routes. Existing
+developer lifecycle, checkout/archive, budget, recovery and ledger tests passed.
+Both packages typecheck and the frontend production build passed.
+This is disposable local evidence, not hosted acceptance or a new WebAuthn
+browser certification.
+
+**Browser gate remains incomplete:** the fixture answered HTTP 200 and accepted
+disposable seeding, but the browser initially rendered the ordinary preview's
+intentionally unavailable page rather than the independent service. The tester
+was asked to verify the exact origin and use direct local navigation; the
+resumed run did not supply a completed report within its timebox and was stopped.
+No authenticated browser assertions from that attempt count as passed.
+Approval/expiry, changed-input handling after an unknown response, duplicate
+prevention, receipt download/print, two-context isolation, admin-only controls,
+401 clearing and phone/tablet/desktop acceptance remain an explicit open gate.
+Fix browser-to-fixture transport before another acceptance pass; do not mount the
+new service in the combined production backend to bypass this boundary.
+
+**Design delivered:** docs/developer-settlement-design.md specifies independent
+observer/signer responsibilities, persisted artifact recovery, replacement
+lineage, fair leased outbox traversal, HTTPS signature/replay handling, restore/
+reconciliation drills, archival tombstones, D1 budget commissioning and separate
+billing decisions. It recommends dedicated transactional ledger storage and
+fenced authorization before selecting/provisioning a hosted database.
+No real signer, automatic hosted delivery or multi-instance authorization-fence
+implementation is claimed. Those remain readiness work, not an enabled Live API.
+
 ### Isolated developer wallet foundation — 2026-10-29
 
 **Delivered locally, not commissioned:** independent loopback service and

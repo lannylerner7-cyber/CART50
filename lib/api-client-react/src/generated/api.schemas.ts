@@ -4,6 +4,31 @@
  * Api
  * OpenAPI spec version: 0.1.0
  */
+export type DeveloperWalletKeyRequestScopesItem = typeof DeveloperWalletKeyRequestScopesItem[keyof typeof DeveloperWalletKeyRequestScopesItem];
+
+
+export const DeveloperWalletKeyRequestScopesItem = {
+  'wallet:read': 'wallet:read',
+  'wallet:write': 'wallet:write',
+  'wallet:fees': 'wallet:fees',
+  'wallet:simulate': 'wallet:simulate',
+} as const;
+
+export interface DeveloperWalletKeyRequest {
+  /**
+     * @minItems 1
+     * @maxItems 4
+     */
+  scopes: DeveloperWalletKeyRequestScopesItem[];
+  revoke?: boolean;
+}
+
+export interface DeveloperWalletKeyResult {
+  /** @nullable */
+  key: string | null;
+  revoked: boolean;
+}
+
 export interface FoundationSession {
   enabled: boolean;
   environment: string;

@@ -8,6 +8,7 @@ import {
   type Rec, str, num, fmtSats, errStatusOf, errText, definitive, newKey, Field, inputCls, btnCls, ghostCls,
   Section, Alert, Tag, toneFor, ReceiptActions, Pager,
 } from '@/components/wallet-foundation-kit';
+import { DeveloperWalletKey } from '@/components/developer-wallet-key';
 
 type Kind = GetWalletFoundationViewKind;
 type Coll = { items: Rec[]; next: number | null; stack: number[]; loading: boolean; error: string | null };
@@ -103,6 +104,7 @@ export default function WalletFoundationPage() {
   if (!authed) {
     return (
       <Frame>
+        <DeveloperWalletKey />
         <Section title="Open local foundation profile">
           <form onSubmit={signIn} className="flex max-w-md flex-col gap-3" autoComplete="off">
             <Field label="Local fixture bearer token" hint="Held in memory only for this tab. Never stored, never logged. Reload to forget it.">

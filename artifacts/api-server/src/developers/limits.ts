@@ -1,7 +1,7 @@
 import type {Request,Response,NextFunction} from "express";
 import {createHash} from "node:crypto";
-import {initializeMetadata,query} from "../vault/store";
-import {HttpError} from "../vault/auth";
+import {initializeMetadata,query} from "./storage";
+import {HttpError} from "../lib/security";
 
 export const BUDGET_SQL=`INSERT INTO developer_rate_limits(id,window,hits)
     VALUES(?,CAST(strftime('%s','now') AS INTEGER)/60,1)
@@ -19,7 +19,7 @@ export async function sharedBudget(scope:string,identity:string,limit:number,res
 let cleanupAt=0;
 export async function developerLimits(req:Request,res:Response,next:NextFunction){
   if(req.path==="/developers/logout"){next();return;}
-  if(!/^\/(developers|developer-console|checkout|v1\/checkout)(\/|$)/.test(req.path)){next();return;}
+  if(!/^\/(developers|developer-console|developer-wallet|checkout|v1\/checkout)(\/|$)/.test(req.path)){next();return;}
   res.setHeader("Cache-Control","no-store");
   try{
     // req.ip uses the existing explicit trusted-proxy CIDR configuration.

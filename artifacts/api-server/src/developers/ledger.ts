@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { HttpError } from "../vault/auth";
+import { HttpError } from "../lib/security";
 import { centsFor, type Account, type DevSession } from "./store";
 
 export const destinationFor = (a: Account) => `sandbox-${a.id}`;

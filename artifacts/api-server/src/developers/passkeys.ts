@@ -2,8 +2,8 @@ import { randomBytes } from "node:crypto";
 import type { Request, Response } from "express";
 import { generateRegistrationOptions, generateAuthenticationOptions, verifyRegistrationResponse, verifyAuthenticationResponse,
   type RegistrationResponseJSON, type AuthenticationResponseJSON } from "@simplewebauthn/server";
-import { cookie, expectedOrigin, hash, HttpError } from "../vault/auth";
-import { initializeMetadata, query } from "../vault/store";
+import { cookie, expectedOrigin, hash, HttpError } from "../lib/security";
+import { initializeMetadata, query } from "./storage";
 import { accountBy, audit, updateAccount } from "./store";
 import { activeSession, cookieOptions, identify, issueSession, payload } from "./auth";
 

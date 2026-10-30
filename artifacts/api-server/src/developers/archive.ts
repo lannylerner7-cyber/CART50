@@ -1,5 +1,5 @@
 import {createHash} from "node:crypto";
-import {initializeMetadata,query} from "../vault/store";
+import {initializeMetadata,query} from "./storage";
 import {updateAccount} from "./store";
 import type {Checkout,Delivery} from "./merchant";
 const digest=(s:string)=>createHash("sha256").update(s).digest("hex");

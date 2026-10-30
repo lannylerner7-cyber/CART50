@@ -3,10 +3,9 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { activeSession, cookieOptions, DEV_COOKIE, identify, issueSession, payload } from "./auth";
 import { accountBy, audit, createAccount, updateAccount } from "./store";
-import { credentialHash, equal, hash, HttpError, verifyOrigin } from "../vault/auth";
+import { credentialHash, equal, hash, HttpError, verifyOrigin } from "../lib/security";
 import { registrationOptions, registrationVerify, loginOptions, loginVerify } from "./passkeys";
 import { sendSecurityMail, type SecuritySender } from "../vault/smtp";
-import { getMarket } from "../vault/market";
 import { destinationFor, execute, review, snapshot } from "./ledger";
 import { eligible, writable } from "./merchant";
 import {sharedBudget} from "./limits";
@@ -16,6 +15,8 @@ const emailSchema=z.string().trim().email().max(254).transform(s=>s.toLowerCase(
 const DRAFT = "Developer Sandbox preview terms\n\nThis workspace is a simulation for learning the interface. It does not hold Bitcoin, money or cash-valued Signet coins.\n\nKeep your login key and passkeys safe. Do not share credentials or use the service to harm others. Live access requires separate approval and readiness checks.\n\nWe use your name and email to create and verify your account. Necessary secure cookies keep you signed in. Optional tracking is off.\n\nThese are draft preview terms, not approved production terms. Production registration remains closed until approved terms and privacy disclosures are configured.";
 export type DeveloperDependencies = { send?: SecuritySender; quote?: () => { available: boolean; stale: boolean; price: number | null; updatedAt: string | null; source: string } };
 export function developerRouter(deps: DeveloperDependencies = {}) {
+  if(process.env.FOUNDATION_LOCAL==="1"&&(!deps.quote||!deps.send))throw Error("Independent developer runtime requires explicit mail and quote providers");
+  const quote=async()=>deps.quote?deps.quote():(await import("../vault/market")).getMarket();
   const router=Router();
   const limits=new Map<string,{count:number,until:number}>();
   const terms=()=> {
@@ -43,7 +44,7 @@ export function developerRouter(deps: DeveloperDependencies = {}) {
   });
   router.get("/sandbox",async(req,res)=>{
     const {a,s}=await identify(req,true);
-    const q=(deps.quote??getMarket)(), at=Date.parse(q.updatedAt??"");
+    const q=await quote(), at=Date.parse(q.updatedAt??"");
     const fresh=q.available && !q.stale && q.price && Number.isFinite(at) && Date.now()-at<=180000 && at<=Date.now()+30000;
     const priceCents=fresh?Math.round(q.price!*100):0;
     const amountCents=Number.isSafeInteger(priceCents)&&priceCents>0
@@ -134,7 +135,7 @@ export function developerRouter(deps: DeveloperDependencies = {}) {
     }
     if(action==="provision"){
       z.object({}).strict().parse(req.body);
-      const q=(deps.quote??getMarket)();
+      const q=await quote();
       const at=Date.parse(q.updatedAt??"");
       if(a.provisioning!=="ready" && (!q.available||q.stale||!q.price||!Number.isFinite(at)||Date.now()-at>180000||at>Date.now()+30000))
         throw new HttpError(503,"A fresh BTC/USD quote is unavailable. Provisioning is waiting; no simulated Bitcoin amount has been invented.");

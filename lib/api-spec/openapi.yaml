@@ -10,6 +10,7 @@
     }
   ],
   "paths": {
+    "/developer-wallet/key":{"post":{"operationId":"rotateDeveloperWalletKey","requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeveloperWalletKeyRequest"}}}},"responses":{"200":{"description":"Independent runtime only; developer session, CSRF and fresh passkey required. One-time secret never stored plaintext.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeveloperWalletKeyResult"}}}}}}},
     "/wallet-foundation/session":{"get":{"operationId":"getWalletFoundationSession","responses":{"200":{"description":"Local profile availability only, not authentication","content":{"application/json":{"schema":{"$ref":"#/components/schemas/FoundationSession"}}}}}}},
     "/wallet-foundation/view":{"get":{"operationId":"getWalletFoundationView","parameters":[{"name":"kind","in":"query","required":true,"schema":{"type":"string","enum":["customer","wallet","assignment","deposit","withdrawal","transfer","event","fee","audit","usage"]}},{"name":"after","in":"query","schema":{"type":"integer","minimum":0}}],"responses":{"200":{"description":"Authenticated tenant-scoped keyset page; bearer local-profile credential required","content":{"application/json":{"schema":{"$ref":"#/components/schemas/FoundationPage"}}}}}}},
     "/wallet-foundation/commands":{"post":{"operationId":"walletFoundationCommand","parameters":[{"name":"Idempotency-Key","in":"header","required":true,"schema":{"type":"string"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/FoundationCommand"}}}},"responses":{"200":{"description":"Durable local operation; never calls a real signer","content":{"application/json":{"schema":{"$ref":"#/components/schemas/FoundationRecord"}}}}}}},
@@ -1865,6 +1866,8 @@
   },
   "components": {
     "schemas": {
+      "DeveloperWalletKeyRequest":{"type":"object","required":["scopes"],"properties":{"scopes":{"type":"array","items":{"type":"string","enum":["wallet:read","wallet:write","wallet:fees","wallet:simulate"]},"minItems":1,"maxItems":4},"revoke":{"type":"boolean"}}},
+      "DeveloperWalletKeyResult":{"type":"object","required":["key","revoked"],"properties":{"key":{"type":["string","null"]},"revoked":{"type":"boolean"}}},
       "FoundationSession":{"type":"object","required":["enabled","environment","liveEnabled"],"properties":{"enabled":{"type":"boolean"},"environment":{"type":"string"},"liveEnabled":{"type":"boolean"}}},
       "FoundationRecord":{"type":"object","additionalProperties":true},
       "FoundationCommand":{"type":"object","required":["action","data"],"properties":{"action":{"type":"string","enum":["customer","wallet","batch","fee","deposit","deposit-state","transfer","review","approve","withdrawal-state","control","event-lease","event-ack"]},"data":{"$ref":"#/components/schemas/FoundationRecord"}}},

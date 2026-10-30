@@ -7,6 +7,21 @@
 import * as zod from 'zod';
 
 
+export const rotateDeveloperWalletKeyBodyScopesMax = 4;
+
+
+
+export const RotateDeveloperWalletKeyBody = zod.object({
+  "scopes": zod.array(zod.enum(['wallet:read', 'wallet:write', 'wallet:fees', 'wallet:simulate'])).min(1).max(rotateDeveloperWalletKeyBodyScopesMax),
+  "revoke": zod.boolean().optional()
+})
+
+export const RotateDeveloperWalletKeyResponse = zod.object({
+  "key": zod.string().nullable(),
+  "revoked": zod.boolean()
+})
+
+
 export const GetWalletFoundationSessionResponse = zod.object({
   "enabled": zod.boolean(),
   "environment": zod.string(),

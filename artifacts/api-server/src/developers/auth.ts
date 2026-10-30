@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import type { Request, Response } from "express";
-import { cookie, equal, hash, HttpError } from "../vault/auth";
+import { cookie, equal, hash, HttpError } from "../lib/security";
 import { accountBy, updateAccount, type Account, type DevSession } from "./store";
 
 export const DEV_COOKIE = "__Host-developer_session";

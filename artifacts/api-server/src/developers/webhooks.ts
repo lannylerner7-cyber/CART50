@@ -1,10 +1,10 @@
 import {createCipheriv,createDecipheriv,createHash,createHmac,randomBytes,randomUUID} from "node:crypto";
 import {resolve4} from "node:dns/promises";
 import {request} from "node:https";
-import {HttpError} from "../vault/auth";
+import {HttpError} from "../lib/security";
 import {updateAccount} from "./store";
 import {merchant,type Delivery} from "./merchant";
-import {initializeMetadata,query} from "../vault/store";
+import {initializeMetadata,query} from "./storage";
 function encryptionKey(){
   if(!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length<32)throw new HttpError(503,"Webhook encryption is not configured");
   return createHash("sha256").update("developer-webhooks:"+process.env.SESSION_SECRET).digest();

@@ -1,5 +1,35 @@
 # Developer wallet foundation: local profile
 
+## Independent identity continuation
+
+The opt-in runtime now reuses existing developer email/passkey/session onboarding
+with a dedicated developer-only metadata adapter. Shared security primitives have
+no custody imports; the legacy combined application's storage adapter remains the
+default outside this explicitly configured runtime. No hosted account or database
+has been moved.
+
+POST /api/developer-wallet/key issues/rotates or revokes an independent wallet key
+using a full developer session, CSRF, same-origin validation and a fresh passkey.
+Allowed scopes are wallet:read, wallet:write, wallet:fees and wallet:simulate;
+the last is available only in this local-only service. Keys are one-time returned,
+hashed in metadata and expire after 30 days. Rotation invalidates the prior key.
+Checkout keys do not implicitly authorize this service, and wallet keys do not
+authorize personal owner routes.
+
+The foundation page offers key management through the existing developer sign-in
+flow. Its isolated fixture seeds two disposable verified account markers for
+focused wallet tests; those markers are NOT WebAuthn acceptance evidence.
+The fixture now has separate metadata and ledger files, and resolves developer
+credentials through persisted account metadata instead of an in-memory access
+list. Only independent admin credentials use the explicit administrative list.
+Existing onboarding simulation credit is not silently copied into this ledger.
+
+The runtime remains loopback/local-only and rejects production startup.
+Per-request authorization is not proof of multi-instance revocation fencing
+across the two local databases. See docs/developer-settlement-design.md for the
+transactional authorization, signing, observer, outbox and restoration design and
+the separately authorized migration/rollback gates.
+
 ## Scope and trust boundaries
 
 The new foundation is an opt-in, independent **local service**, not a replacement
@@ -12,8 +42,8 @@ secrets before importing the service and binds only to loopback.
 This proves application-level separation in a disposable profile. It does NOT
 prove OS/network isolation: processes in this workspace share an OS user. A
 production deployment needs independent service identities, filesystem mounts,
-credentials and network policy. The existing combined backend and developer
-metadata query dependency are intentionally unchanged: switching existing
+credentials and network policy. The existing combined backend's hosted
+metadata layout is intentionally unchanged: switching existing
 accounts/storage is not authorized. No existing account has been migrated.
 
 Personal custody must be an unreachable service from developer custody.

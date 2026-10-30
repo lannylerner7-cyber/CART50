@@ -3,6 +3,7 @@ import express from "express";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { Ledger, LedgerError, type Principal } from "./ledger";
+import {HttpError} from "../lib/security";
 export const foundationStatic = express.static;
 export type Access={tokenHash:string;principal:Principal;expires:number};
 export function assertIsolatedEnvironment(env:NodeJS.ProcessEnv=process.env){
@@ -27,23 +28,32 @@ const commandData:Record<string,z.ZodType>={
   "event-lease":z.object({}).strict(),
   "event-ack":z.object({id,lease:id,delivered:z.boolean()}).strict(),
 };
-export function foundationApp(ledger:Ledger,access:Access[],env:NodeJS.ProcessEnv=process.env){
+export function foundationApp(ledger:Ledger,access:Access[],env:NodeJS.ProcessEnv=process.env,extension?:{
+  setup(app:express.Express):void;
+  resolve(req:express.Request):Promise<Principal>;
+}){
   assertIsolatedEnvironment(env);
   const app=express();app.disable("x-powered-by");app.set("trust proxy",false);
   app.use((_req,res,next)=>{res.setHeader("Cache-Control","no-store");res.setHeader("X-Robots-Tag","noindex, nofollow, noarchive");next();});
   app.use(express.json({limit:"16kb"}));
+  extension?.setup(app);
   app.get("/api/wallet-foundation/session",(_req,res)=>res.json({enabled:true,environment:"local-simulation",liveEnabled:false}));
-  app.use("/api/wallet-foundation",(req,res,next)=>{
+  app.use("/api/wallet-foundation",async(req,res,next)=>{
     // Trust no forwarded identity/IP; all budgets live in the profile database.
     try{ledger.budget("ingress:"+req.socket.remoteAddress,600);}catch(e){next(e);return;}
     const token=req.get("authorization")?.replace(/^Bearer /,"")??"";
     const hash=createHash("sha256").update(token).digest("hex");
     const found=access.find(x=>timingSafeEqual(Buffer.from(hash),Buffer.from(x.tokenHash)));
-    if(!found||found.expires<=Date.now()){res.status(401).json({error:"Local profile credential missing or expired"});return;}
-    res.locals.principal=found.principal;
+    let principal:Principal;
+    try{
+      if(found&&found.expires>Date.now())principal=found.principal;
+      else if(!found&&extension)principal=await extension.resolve(req);
+      else throw new LedgerError(401,"Local profile credential missing or expired");
+    }catch(e){next(e);return;}
+    res.locals.principal=principal;
     try {
       // Emergency admin controls have their own budget, never tenant write quota.
-      ledger.budget(found.principal.tenant+":"+found.principal.role,found.principal.role==="admin"?120:240);
+      ledger.budget(principal.tenant+":"+principal.role,principal.role==="admin"?120:240);
       next();
     }catch(e){next(e);}
   });
@@ -59,7 +69,7 @@ export function foundationApp(ledger:Ledger,access:Access[],env:NodeJS.ProcessEn
     res.json(ledger.command(res.locals.principal,req.get("Idempotency-Key")??"",b.action,data));
   });
   app.use((err:unknown,_req:express.Request,res:express.Response,_next:express.NextFunction)=>{
-    res.status(err instanceof LedgerError?err.status:err instanceof z.ZodError?400:503).json({error:err instanceof LedgerError?err.message:"Local service rejected the request"});
+    res.status(err instanceof LedgerError||err instanceof HttpError?err.status:err instanceof z.ZodError?400:503).json({error:err instanceof LedgerError||err instanceof HttpError?err.message:"Local service rejected the request"});
   });
   return app;
 }

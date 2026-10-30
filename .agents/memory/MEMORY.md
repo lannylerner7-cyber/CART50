@@ -16,3 +16,4 @@
 - [Emergency audit capacity](emergency-audit-capacity.md) — developer-controlled log quotas must not block owner suspension or revocation.
 - [Shared limiter choice](shared-limiter-choice.md) — owner selected existing D1, not another service; hosted migration needs separate authorization.
 - [Market provider choice](market-provider-choice.md) — direct public quotes keep Sandbox onboarding independent of Cloudflare Access; never invent prices.
+- [Fixture browser boundary](fixture-browser-boundary.md) — verify actual browser origin/API target before independent-runtime acceptance; API seeds are not UI evidence.

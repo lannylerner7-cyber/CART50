@@ -32,6 +32,8 @@ import type {
   DeveloperAdmin,
   DeveloperSandbox,
   DeveloperSession,
+  DeveloperWalletKeyRequest,
+  DeveloperWalletKeyResult,
   Error,
   ExploreVaultParams,
   Explorer,
@@ -103,6 +105,88 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getRotateDeveloperWalletKeyUrl = () => {
+
+
+
+
+  return `/api/developer-wallet/key`
+}
+
+export const rotateDeveloperWalletKey = async (developerWalletKeyRequest: DeveloperWalletKeyRequest, options?: Parameters<typeof customFetch>[1]): Promise<DeveloperWalletKeyResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<DeveloperWalletKeyResult>(getRotateDeveloperWalletKeyUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(developerWalletKeyRequest)
+  }
+);}
+
+
+
+
+
+export const getRotateDeveloperWalletKeyMutationKey = () => ['rotateDeveloperWalletKey'] as const;
+
+export const getRotateDeveloperWalletKeyMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rotateDeveloperWalletKey>>, TError,RotateDeveloperWalletKeyMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof rotateDeveloperWalletKey>>, TError,RotateDeveloperWalletKeyMutationVariables, TContext> => {
+
+const mutationKey = getRotateDeveloperWalletKeyMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof rotateDeveloperWalletKey>>, RotateDeveloperWalletKeyMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  rotateDeveloperWalletKey(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RotateDeveloperWalletKeyMutationResult = NonNullable<Awaited<ReturnType<typeof rotateDeveloperWalletKey>>>
+    export type RotateDeveloperWalletKeyMutationBody = BodyType<DeveloperWalletKeyRequest>
+    export type RotateDeveloperWalletKeyMutationError = ErrorType<unknown>
+    export type RotateDeveloperWalletKeyMutationVariables = {data: BodyType<DeveloperWalletKeyRequest>}
+
+    export const useRotateDeveloperWalletKey = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof rotateDeveloperWalletKey>>, TError,RotateDeveloperWalletKeyMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof rotateDeveloperWalletKey>>,
+        TError,
+        RotateDeveloperWalletKeyMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRotateDeveloperWalletKeyMutationOptions(options));
+    }
 
 export const getGetWalletFoundationSessionUrl = () => {
 
