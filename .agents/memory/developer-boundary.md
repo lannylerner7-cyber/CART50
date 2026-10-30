@@ -33,3 +33,14 @@ the existing MainVault host/subdomains proposed earlier.
 **How to apply:** Keep MainVault as the API provider. Do not provision starter
 subdomains or containers on the existing vault host based on the superseded plan.
 The new domain has not yet been supplied.
+
+The owner wants approved Live developers to create batches of temporary receiving
+wallets, with a unique receiving wallet per payment, and configure developer fees
+in their Live dashboard. They described batch receiving creation as "unlimited."
+
+**Why:** External developer applications should create receiving destinations on
+their customers' behalf and request withdrawals through the API.
+
+**How to apply:** Treat these as intended product scope, not implemented or
+commissioned capabilities. Explain capacity/rate controls separately from product
+wallet-count limits. Preserve the temporary-wallet drainage/destruction boundary.
