@@ -54,6 +54,12 @@ storage separation rather than relying on one D1 database for everything.
 
 **Why:** The owner explicitly prioritizes protecting personal and customer funds.
 
+Stage developer ledger work in a disposable independent local process before
+cutting over the existing shared hosted account storage.
+**Why:** Reusing the combined owner backend for a financial prototype would
+undermine the requested custody boundary; moving existing accounts without an
+approved migration would risk data and auth continuity.
+
 **How to apply:** Diagnose process, credentials, signer, storage and network
 isolation before Live commissioning. This direction is not authorization to
 migrate databases, move keys or deploy. The proposed platform revenue model is

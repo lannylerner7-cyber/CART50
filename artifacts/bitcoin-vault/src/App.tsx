@@ -22,6 +22,7 @@ const SandboxRouter = lazy(() => import('@/pages/sandbox'));
 const AdminPage = lazy(() => import('@/pages/admin'));
 const HostedCheckoutPage = lazy(() => import('@/pages/hosted-checkout'));
 const DevelopersApp = lazy(() => import('@/pages/developers'));
+const WalletFoundationPage = lazy(() => import('@/pages/developers/wallet-foundation'));
 import { SandboxShell } from '@/components/sandbox-shell';
 import { lockClient, LOCK_EVENT } from '@/lib/session-lock';
 import { retryRead, readRetryDelay, transientReadError } from '@/lib/request-recovery';
@@ -140,6 +141,9 @@ function Entry() {
   const [location] = useLocation();
   if (location.startsWith('/checkout/')) {
     return <Suspense fallback={<div className="grid min-h-[100dvh] place-items-center bg-sidebar"><VaultMark className="h-12 w-12" /></div>}><Route path="/checkout/:token">{(p) => <HostedCheckoutPage token={p.token} />}</Route></Suspense>;
+  }
+  if (location === '/developers/wallet-foundation') {
+    return <Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading wallet foundation…</p>}><WalletFoundationPage /></Suspense>;
   }
   if (isOwnerLocation(location)) {
     return <Route path={OWNER_BASE} nest><Gate /></Route>;

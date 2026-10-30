@@ -11,6 +11,55 @@ output:
 
 # Read this first
 
+### Isolated developer wallet foundation — 2026-10-29
+
+**Delivered locally, not commissioned:** independent loopback service and
+disposable credential/SQLite profile; separate developer and admin principals;
+tenant-scoped customer/wallet/batch API and dashboard; keyset pages; atomic
+integer-satoshi postings, output deduplication, pending/available/reserved
+buckets, reversal/deficit freeze, fee-versioned reviews and explicit approval,
+unknown-broadcast reservation retention, local confirmation receipts, leased
+manual outbox, non-billable usage and independent emergency controls.
+
+See docs/developer-wallet-foundation.md for the API, storage recommendation,
+scope boundaries, recovery and billing decisions. The existing hosted combined
+backend/account records have NOT been migrated. The new API is not mounted in
+the ordinary website backend. Its exact frontend route reports unavailable there
+truthfully. The local fixture is the only enabled runtime.
+
+**Evidence passed:** seven automated local tests covering batches/idempotency,
+tenant/scope isolation, deposit uniqueness/reversal, review expiry/approval/fee
+snapshot, uncertain broadcast recovery, journal conservation/immutability,
+leased-event retries, emergency control despite tenant-budget exhaustion,
+disposable online backup restore, a two-process competing reservation race and
+HTTP credential expiry/absent owner routes. API and frontend typechecks,
+OpenAPI generation and production frontend build passed. Public 390px route
+capture shows the intended unavailable boundary without horizontal clipping.
+
+**Browser gate NOT passed:** initial fixture launch failed because its root
+script imported Express outside that package's dependency boundary. The import
+was corrected; localhost:4401 returned 200. The resumed isolated browser pass
+then exceeded its timebox without a completed report and was stopped.
+Persisted fixture operations are not substitutes for browser assertions.
+Do not count receipt print/download, responsive authenticated flows,
+two-browser identity isolation or cache clearing as browser-passed.
+No credentials/screenshots from a real owner were used.
+
+**Intentionally deferred scope:** integration of real developer onboarding/API-key
+issuance with independent metadata/runtime; production database selection and
+authorized migration; independent real signer/observer adapters; automatic
+fair cross-tenant webhook dispatch and hosted delivery evidence; archival and
+retention approval. The foundation uses a deterministic local transaction
+stand-in, not Bitcoin signatures. Its limiter is local SQLite; it does not
+replace the existing D1 limiter or establish distributed-hosted readiness.
+
+**Separate gates:** personal mainnet commissioning still requires full sync,
+authorization, fresh monitoring, retained storage, restored backups and explicit
+approval for a small real receive/send. Developer Live requires its own custody,
+database, reconciliation, abuse-control, recovery and capacity gates. Signet
+remains paused. No deployment, host change, real transfer, fee collection or
+Git push occurred.
+
 ### Two-host starter readiness — 2026-10-29
 
 Confirmed target spelling mainvaultwallet.com. Public main site serves noindex

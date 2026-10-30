@@ -7,6 +7,46 @@
 import * as zod from 'zod';
 
 
+export const GetWalletFoundationSessionResponse = zod.object({
+  "enabled": zod.boolean(),
+  "environment": zod.string(),
+  "liveEnabled": zod.boolean()
+})
+
+
+export const getWalletFoundationViewQueryAfterMin = 0;
+
+
+
+export const GetWalletFoundationViewQueryParams = zod.object({
+  "kind": zod.enum(['customer', 'wallet', 'assignment', 'deposit', 'withdrawal', 'transfer', 'event', 'fee', 'audit', 'usage']),
+  "after": zod.coerce.number().int().min(getWalletFoundationViewQueryAfterMin).optional()
+})
+
+export const GetWalletFoundationViewResponse = zod.object({
+  "items": zod.array(zod.record(zod.string(), zod.unknown())),
+  "nextCursor": zod.number().int().nullable(),
+  "environment": zod.string(),
+  "liveEnabled": zod.boolean(),
+  "control": zod.record(zod.string(), zod.unknown()),
+  "fee": zod.record(zod.string(), zod.unknown()),
+  "role": zod.string(),
+  "tenant": zod.string()
+})
+
+
+export const WalletFoundationCommandHeader = zod.object({
+  "Idempotency-Key": zod.string()
+})
+
+export const WalletFoundationCommandBody = zod.object({
+  "action": zod.enum(['customer', 'wallet', 'batch', 'fee', 'deposit', 'deposit-state', 'transfer', 'review', 'approve', 'withdrawal-state', 'control', 'event-lease', 'event-ack']),
+  "data": zod.record(zod.string(), zod.unknown())
+})
+
+export const WalletFoundationCommandResponse = zod.record(zod.string(), zod.unknown())
+
+
 export const GetDeveloperConsoleResponse = zod.object({
   "accountId": zod.string(),
   "status": zod.string(),

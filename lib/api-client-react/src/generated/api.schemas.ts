@@ -4,6 +4,50 @@
  * Api
  * OpenAPI spec version: 0.1.0
  */
+export interface FoundationSession {
+  enabled: boolean;
+  environment: string;
+  liveEnabled: boolean;
+}
+
+export interface FoundationRecord { [key: string]: unknown }
+
+export type FoundationCommandAction = typeof FoundationCommandAction[keyof typeof FoundationCommandAction];
+
+
+export const FoundationCommandAction = {
+  customer: 'customer',
+  wallet: 'wallet',
+  batch: 'batch',
+  fee: 'fee',
+  deposit: 'deposit',
+  'deposit-state': 'deposit-state',
+  transfer: 'transfer',
+  review: 'review',
+  approve: 'approve',
+  'withdrawal-state': 'withdrawal-state',
+  control: 'control',
+  'event-lease': 'event-lease',
+  'event-ack': 'event-ack',
+} as const;
+
+export interface FoundationCommand {
+  action: FoundationCommandAction;
+  data: FoundationRecord;
+}
+
+export interface FoundationPage {
+  items: FoundationRecord[];
+  /** @nullable */
+  nextCursor: number | null;
+  environment: string;
+  liveEnabled: boolean;
+  control: FoundationRecord;
+  fee: FoundationRecord;
+  role: string;
+  tenant: string;
+}
+
 export interface CheckoutCreate {
   amount_sats: number;
   reference: string;
@@ -678,6 +722,30 @@ export type WebAuthnInputResponse = { [key: string]: unknown };
 export interface WebAuthnInput {
   response: WebAuthnInputResponse;
 }
+
+export type GetWalletFoundationViewParams = {
+kind: GetWalletFoundationViewKind;
+/**
+ * @minimum 0
+ */
+after?: number;
+};
+
+export type GetWalletFoundationViewKind = typeof GetWalletFoundationViewKind[keyof typeof GetWalletFoundationViewKind];
+
+
+export const GetWalletFoundationViewKind = {
+  customer: 'customer',
+  wallet: 'wallet',
+  assignment: 'assignment',
+  deposit: 'deposit',
+  withdrawal: 'withdrawal',
+  transfer: 'transfer',
+  event: 'event',
+  fee: 'fee',
+  audit: 'audit',
+  usage: 'usage',
+} as const;
 
 export type GetDeveloperAdminParams = {
 after?: string;

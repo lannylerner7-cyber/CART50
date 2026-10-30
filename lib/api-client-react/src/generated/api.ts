@@ -35,10 +35,15 @@ import type {
   Error,
   ExploreVaultParams,
   Explorer,
+  FoundationCommand,
+  FoundationPage,
+  FoundationRecord,
+  FoundationSession,
   GetDeveloperAdminParams,
   GetDeveloperSandboxAddressParams,
   GetRecipientParams,
   GetSandboxAddressParams,
+  GetWalletFoundationViewParams,
   HealthStatus,
   HostedCheckout,
   Market,
@@ -98,6 +103,237 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetWalletFoundationSessionUrl = () => {
+
+
+
+
+  return `/api/wallet-foundation/session`
+}
+
+export const getWalletFoundationSession = async ( options?: Parameters<typeof customFetch>[1]): Promise<FoundationSession> => {
+
+  return customFetch<FoundationSession>(getGetWalletFoundationSessionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWalletFoundationSessionQueryKey = () => {
+    return [
+    `/api/wallet-foundation/session`
+    ] as const;
+    }
+
+
+export const getGetWalletFoundationSessionQueryOptions = <TData = Awaited<ReturnType<typeof getWalletFoundationSession>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWalletFoundationSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWalletFoundationSessionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWalletFoundationSession>>> = ({ signal }) => getWalletFoundationSession({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWalletFoundationSession>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWalletFoundationSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getWalletFoundationSession>>>
+export type GetWalletFoundationSessionQueryError = ErrorType<unknown>
+
+
+
+export function useGetWalletFoundationSession<TData = Awaited<ReturnType<typeof getWalletFoundationSession>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWalletFoundationSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWalletFoundationSessionQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetWalletFoundationViewUrl = (params: GetWalletFoundationViewParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/wallet-foundation/view?${stringifiedParams}` : `/api/wallet-foundation/view`
+}
+
+export const getWalletFoundationView = async (params: GetWalletFoundationViewParams, options?: Parameters<typeof customFetch>[1]): Promise<FoundationPage> => {
+
+  return customFetch<FoundationPage>(getGetWalletFoundationViewUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWalletFoundationViewQueryKey = (params?: GetWalletFoundationViewParams,) => {
+    return [
+    `/api/wallet-foundation/view`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetWalletFoundationViewQueryOptions = <TData = Awaited<ReturnType<typeof getWalletFoundationView>>, TError = ErrorType<unknown>>(params: GetWalletFoundationViewParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWalletFoundationView>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWalletFoundationViewQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWalletFoundationView>>> = ({ signal }) => getWalletFoundationView(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWalletFoundationView>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWalletFoundationViewQueryResult = NonNullable<Awaited<ReturnType<typeof getWalletFoundationView>>>
+export type GetWalletFoundationViewQueryError = ErrorType<unknown>
+
+
+
+export function useGetWalletFoundationView<TData = Awaited<ReturnType<typeof getWalletFoundationView>>, TError = ErrorType<unknown>>(
+ params: GetWalletFoundationViewParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWalletFoundationView>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWalletFoundationViewQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getWalletFoundationCommandUrl = () => {
+
+
+
+
+  return `/api/wallet-foundation/commands`
+}
+
+export const walletFoundationCommand = async (foundationCommand: FoundationCommand, options?: Parameters<typeof customFetch>[1]): Promise<FoundationRecord> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<FoundationRecord>(getWalletFoundationCommandUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(foundationCommand)
+  }
+);}
+
+
+
+
+
+export const getWalletFoundationCommandMutationKey = () => ['walletFoundationCommand'] as const;
+
+export const getWalletFoundationCommandMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof walletFoundationCommand>>, TError,WalletFoundationCommandMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof walletFoundationCommand>>, TError,WalletFoundationCommandMutationVariables, TContext> => {
+
+const mutationKey = getWalletFoundationCommandMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof walletFoundationCommand>>, WalletFoundationCommandMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  walletFoundationCommand(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type WalletFoundationCommandMutationResult = NonNullable<Awaited<ReturnType<typeof walletFoundationCommand>>>
+    export type WalletFoundationCommandMutationBody = BodyType<FoundationCommand>
+    export type WalletFoundationCommandMutationError = ErrorType<unknown>
+    export type WalletFoundationCommandMutationVariables = {data: BodyType<FoundationCommand>}
+
+    export const useWalletFoundationCommand = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof walletFoundationCommand>>, TError,WalletFoundationCommandMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof walletFoundationCommand>>,
+        TError,
+        WalletFoundationCommandMutationVariables,
+        TContext
+      > => {
+      return useMutation(getWalletFoundationCommandMutationOptions(options));
+    }
 
 export const getGetDeveloperConsoleUrl = () => {
 
