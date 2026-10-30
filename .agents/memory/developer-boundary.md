@@ -44,3 +44,18 @@ their customers' behalf and request withdrawals through the API.
 **How to apply:** Treat these as intended product scope, not implemented or
 commissioned capabilities. Explain capacity/rate controls separately from product
 wallet-count limits. Preserve the temporary-wallet drainage/destruction boundary.
+
+Personal owner custody must never be accessible, debited, swept or used as a
+funding fallback through developer APIs. The owner describes developer accounts
+as child vaults and the personal account as the "brains": administrative
+oversight must not imply shared signing authority or pooled personal funds.
+They want a separate Live developer-management/admin surface and stronger
+storage separation rather than relying on one D1 database for everything.
+
+**Why:** The owner explicitly prioritizes protecting personal and customer funds.
+
+**How to apply:** Diagnose process, credentials, signer, storage and network
+isolation before Live commissioning. This direction is not authorization to
+migrate databases, move keys or deploy. The proposed platform revenue model is
+an $8–$10 application fee plus monthly API-usage billing; exact price, refund
+terms, billing units and payment provider remain undecided.
