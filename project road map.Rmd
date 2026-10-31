@@ -11,6 +11,42 @@ output:
 
 # Read this first
 
+### Focused wallet acceptance and financial authority — 2026-10-31
+
+The browser-to-fixture blocker is resolved using direct loopback navigation and
+a per-run response fingerprint checked before credentials. Completed local
+browser evidence now covers explicit approval, review expiry, actual receipt
+download, receipt popup/print invocation (stubbed), phone/tablet/desktop document
+bounds, post-commit approval-response loss, changed-input blocking, same-key
+recovery, stable unknown/broadcast identity and fee-cap reconciliation.
+The recovery run ended at 89,700 available / zero reserved from 100,000 with
+10,000 sent and 300 actual fee. A second review was never approved.
+
+The source now fences wallet-key changes in the local financial database before
+metadata changes; only the current epoch activates. Financial commands check
+that grant inside their write transaction, including idempotent replays.
+Interrupted changes fail closed and require fresh authorized issuance.
+Independent emergency ingress is unavailable to forged admin/forwarded headers
+and is not consumed by ordinary shared-IP traffic.
+
+All 20 developer/foundation tests and API typecheck pass, including stale
+principal rejection after independent-process revocation and a WAL-aware local
+snapshot/recovery drill. This does not prove hosted/distributed storage safety.
+General metadata suspension still needs coordinated financial controls; real
+signer/observer adapters, automatic fair webhook delivery, complete secret
+restore and shared hosted budgets remain uncommissioned.
+
+See docs/developer-wallet-acceptance-2026-10-31.md for exact evidence and remaining
+hosted boundaries. The final browser report also passed separate developer
+contexts, tenant-override rejection, admin oversight without spending authority,
+and wallet-key expiry clearing protected page state without reload. B remained
+authorized after A expired. This is bearer-profile evidence, not new WebAuthn
+session-cookie certification. Both disposable fixtures were stopped/deleted.
+API startup/build and diff checks passed; no push or deployment was performed.
+Prior incomplete reports remain historical, not retroactive passes. No owner
+storage migration, custody-key access, mainnet datadir/config change or deployed
+Worker namespace change was performed. Signet remains paused.
+
 ### Independent developer identity continuation — 2026-10-29
 
 **Implemented in source:** an opt-in independent runtime reuses developer

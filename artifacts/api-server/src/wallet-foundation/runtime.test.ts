@@ -48,7 +48,7 @@ test("independent onboarding storage, scoped keys, fresh passkey rotation and ow
     const rotated=await issue(["wallet:read","wallet:write"]);assert.equal(rotated.status,200);
     const second=(await rotated.json() as {key:string}).key;assert.equal((await get(first)).status,401);
     const created=await write(second,{action:"customer",data:{label:"Allowed"}});assert.equal(created.status,200);
-    assert.equal(ledger.page({tenant:b.id,role:"developer",scopes:["wallet:read"]},"customer").items.length,0);
+    assert.equal(ledger.page({tenant:b.id,role:"admin",scopes:["wallet:read"]},"customer").items.length,0);
     await updateAccount(a.id,current=>{current.sessions[0].passkeyAt=Date.now();});
     assert.equal((await issue(["wallet:read"],true)).status,200);
     assert.equal((await get(second)).status,401);

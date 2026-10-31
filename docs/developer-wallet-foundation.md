@@ -25,10 +25,19 @@ list. Only independent admin credentials use the explicit administrative list.
 Existing onboarding simulation credit is not silently copied into this ledger.
 
 The runtime remains loopback/local-only and rejects production startup.
-Per-request authorization is not proof of multi-instance revocation fencing
-across the two local databases. See docs/developer-settlement-design.md for the
-transactional authorization, signing, observer, outbox and restoration design and
-the separately authorized migration/rollback gates.
+Wallet-key changes now invalidate a monotonically increasing authorization epoch
+in the financial database FIRST, then persist identity metadata, then activate
+only that exact epoch. Financial commands recheck the hash, epoch, expiry and
+scopes after obtaining BEGIN IMMEDIATE, even for idempotent replays. Interrupted
+changes remain disabled: verify the passkey and issue a fresh key to recover.
+There is no fallback to an old metadata key or automatic grant import.
+
+This is a fail-closed local protocol, not a cross-database transaction. An
+independent-process revocation test proves a previously resolved principal cannot
+reserve against the same local ledger after invalidation. General metadata
+suspension still requires coordinated financial controls; real signer workers
+and a hosted transactional database have not been commissioned. See
+docs/developer-settlement-design.md for the remaining boundaries.
 
 ## Scope and trust boundaries
 
@@ -61,7 +70,7 @@ Build the existing frontend, then run:
 FOUNDATION_LOCAL=1 pnpm --filter @workspace/api-server exec tsx ../../scripts/wallet-foundation-fixture.mts
 ```
 
-Visit `http://localhost:4401/developers/wallet-foundation`. The startup log gives
+Visit `http://127.0.0.1:4401/developers/wallet-foundation`. The startup log gives
 the path of a mode-0600 temporary JSON file containing developerA, developerB and
 adminA tokens; it never prints them. Tokens expire after 30 minutes. Enter one
 in the local console, then the input clears. The UI holds credentials in memory
@@ -71,6 +80,21 @@ and removes the disposable directory. Never supply owner credentials.
 The main app exposes the same exact frontend path but not the foundation API.
 It shows an unavailable state there. This is intentional; do not mount the
 foundation in the combined hosted service to bypass commissioning.
+
+### Browser transport and deterministic response-loss checks
+
+Before entering a disposable token, verify the session response has enabled=true
+and its X-Foundation-Fixture header matches the public /__foundation-fixture
+fingerprint. Use the actual loopback browser URL, not a preview-bound navigation
+that silently points at the ordinary application.
+
+The fixture alone supports a filesystem-armed one-shot fault. In its temporary
+directory, fault-once.json names fixtureRunId, action (approve or withdrawal-state),
+id, and optional state. A matching successful command commits normally; the
+fixture then truncates its HTTP body. Private mode-0600 fault-consumed.json and
+command-evidence.jsonl record the status/idempotency key, without Authorization
+headers. This is not an application API, an actual network outage or a production
+fault-injection feature. Delete all fixture files after acceptance.
 
 ## API and scopes
 

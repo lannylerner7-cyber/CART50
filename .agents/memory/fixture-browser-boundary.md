@@ -15,3 +15,14 @@ cannot substitute for asserted browser behavior.
 **How to apply:** Resolve browser transport first, preserve the independent
 runtime boundary, use disposable credentials only, and record partial/blocked
 evidence rather than inferring that unreported scenarios passed.
+
+Verify a non-secret per-run response fingerprint as well as enabled service
+state before credentials. Browser navigation alone is insufficient provenance.
+
+**Why:** Direct loopback browser navigation eventually worked, but browser-side
+request interception either missed its target or hung before proving an
+upstream response. An abort alone did not establish post-commit response loss.
+
+**How to apply:** When interception is unreliable, use an opt-in fixture-only
+post-commit response fault and private request evidence. Prove the original
+commit and same-key retry; never put fault controls into production routes.

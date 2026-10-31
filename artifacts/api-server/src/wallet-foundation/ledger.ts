@@ -11,9 +11,10 @@ function sats(n:unknown,zero=false):number{
   requireThat(Number.isSafeInteger(n)&&Number(n)>=(zero?0:1)&&Number(n)<=SAT_LIMIT,"Invalid integer satoshi amount",400);return Number(n);
 }
 type Data=Record<string,any>;
-export type Principal={tenant:string;role:"developer"|"admin";scopes:string[]};
+export type Principal={tenant:string;role:"developer"|"admin";scopes:string[];credential?:{epoch:number;hash:string}};
 export class Ledger {
   readonly db:DatabaseSync;
+  private credentialFenceRequired=false;
   constructor(file:string){
     this.db=new DatabaseSync(file);
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA busy_timeout=5000;
@@ -24,10 +25,40 @@ export class Ledger {
       CREATE TABLE IF NOT EXISTS foundation_idempotency(tenant TEXT NOT NULL,key TEXT NOT NULL,fingerprint TEXT NOT NULL,result TEXT NOT NULL,PRIMARY KEY(tenant,key));
       CREATE TABLE IF NOT EXISTS foundation_outputs(output TEXT PRIMARY KEY,tenant TEXT NOT NULL,deposit TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS foundation_budget(subject TEXT PRIMARY KEY,window INTEGER NOT NULL,hits INTEGER NOT NULL);
+      CREATE TABLE IF NOT EXISTS foundation_authorization(tenant TEXT PRIMARY KEY,epoch INTEGER NOT NULL,token_hash TEXT,expires INTEGER NOT NULL,scopes TEXT NOT NULL);
       CREATE TRIGGER IF NOT EXISTS foundation_no_posting_update BEFORE UPDATE ON foundation_postings BEGIN SELECT RAISE(ABORT,'Immutable ledger'); END;
       CREATE TRIGGER IF NOT EXISTS foundation_no_posting_delete BEFORE DELETE ON foundation_postings BEGIN SELECT RAISE(ABORT,'Immutable ledger'); END;`);
   }
   close(){this.db.close();}
+  /** Independent runtime only. Legacy deterministic ledger tests have no keys. */
+  requireCredentialFence(){this.credentialFenceRequired=true;}
+  /**
+   * Invalidate first; identity metadata and financial state are NOT a distributed
+   * transaction. An interrupted change leaves credentials disabled, never old
+   * signing/reservation authority active. Epoch tombstones are never deleted.
+   */
+  beginCredentialChange(tenant:string):number{
+    const row=this.db.prepare(`INSERT INTO foundation_authorization VALUES(?,1,NULL,0,'[]')
+      ON CONFLICT(tenant) DO UPDATE SET epoch=epoch+1,token_hash=NULL,expires=0,scopes='[]'
+      RETURNING epoch`).get(tenant);
+    return Number(row!.epoch);
+  }
+  activateCredential(tenant:string,epoch:number,tokenHash:string,expires:number,scopes:string[]){
+    requireThat(/^[a-f0-9]{64}$/.test(tokenHash)&&Number.isSafeInteger(epoch)&&epoch>0&&
+      Number.isSafeInteger(expires)&&expires>Date.now(),"Invalid credential grant",400);
+    const result=this.db.prepare(`UPDATE foundation_authorization SET token_hash=?,expires=?,scopes=?
+      WHERE tenant=? AND epoch=? AND token_hash IS NULL`)
+      .run(tokenHash,expires,JSON.stringify(scopes),tenant,epoch);
+    requireThat(result.changes===1,"Credential change superseded; verify your passkey and retry",409);
+  }
+  private assertCredential(p:Principal){
+    if(!this.credentialFenceRequired||p.role==="admin")return;
+    const grant=this.db.prepare("SELECT epoch,token_hash,expires,scopes FROM foundation_authorization WHERE tenant=?").get(p.tenant);
+    requireThat(p.credential&&grant&&grant.token_hash&&grant.epoch===p.credential.epoch&&
+      grant.token_hash===p.credential.hash&&Number(grant.expires)>Date.now(),"Wallet credential expired, revoked or changing",401);
+    const allowed=JSON.parse(String(grant!.scopes)) as string[];
+    requireThat(p.scopes.every(s=>allowed.includes(s)),"Credential scope exceeds financial grant",403);
+  }
   private row(tenant:string,id:string,kind?:string):Data {
     const r=this.db.prepare("SELECT kind,data FROM foundation_entities WHERE tenant=? AND id=?").get(tenant,id);
     requireThat(r&&(!kind||r.kind===kind),"Record not found",404);
@@ -72,6 +103,7 @@ export class Ledger {
     return r?JSON.parse(String(r.data)):{version:0,fixedSats:0,bps:0};
   }
   page(p:Principal,kind:string,after=0){
+    this.assertCredential(p);
     requireThat(["customer","wallet","assignment","deposit","withdrawal","transfer","event","fee","audit","usage"].includes(kind),"Invalid collection",400);
     requireThat(!["suspended","revoked"].includes(this.status(p.tenant).status)||p.role==="admin","Account suspended or revoked",401);
     const rows=this.db.prepare("SELECT seq,data FROM foundation_entities WHERE tenant=? AND kind=? AND seq>? ORDER BY seq LIMIT 51").all(p.tenant,kind,after);
@@ -97,6 +129,9 @@ export class Ledger {
     // It is not a claim of distributed/hosted database readiness.
     this.db.exec("BEGIN IMMEDIATE");
     try{
+      // Recheck AFTER obtaining the financial write lock, including idempotent
+      // replays. A stale request identity cannot reserve after fence revocation.
+      this.assertCredential(p);
       const fingerprint=digest(JSON.stringify({action,b})),idemTenant=p.tenant+":"+p.role;
       const old=this.db.prepare("SELECT fingerprint,result FROM foundation_idempotency WHERE tenant=? AND key=?").get(idemTenant,key);
       const state=this.status(p.tenant).status;

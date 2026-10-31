@@ -19,6 +19,7 @@ export function independentDeveloperRuntime(options:{
 }){
   if(options.adminAccess.some(a=>a.principal.role!=="admin"))throw Error("Developer credentials must resolve through independent account metadata");
   configureDeveloperStorage(options.storage);
+  options.ledger.requireCredentialFence();
   return foundationApp(options.ledger,options.adminAccess,options.env,{
     setup(app){
       app.use("/api",developerLimits);
@@ -28,15 +29,22 @@ export function independentDeveloperRuntime(options:{
         await sharedBudget("wallet-key-management",a.id,10,res);
         const input=z.object({scopes,revoke:z.boolean().optional()}).strict().parse(req.body);
         const secret=randomBytes(32).toString("base64url");
+        let epoch=0;
+        const expiresAt=Date.now()+30*86400000;
+        const grantedScopes=[...new Set(input.scopes)];
         await updateAccount(a.id,current=>{
           activeSession(current,s);eligible(current,true);
           const session=current.sessions.find(x=>x.hash===s.hash)!;
           if(!session.passkeyAt||Date.now()-session.passkeyAt>300000)throw new HttpError(403,"Verify your passkey again before changing API credentials");
+          // Repeated CAS attempts may advance the epoch again. This is safe:
+          // only the latest epoch can activate, and all earlier keys stay fenced.
+          epoch=options.ledger.beginCredentialChange(a.id);
           if(input.revoke)delete current.walletApiKey;
-          else current.walletApiKey={hash:hash(secret),scopes:[...new Set(input.scopes)],expiresAt:Date.now()+30*86400000,version:(current.walletApiKey?.version??0)+1};
+          else current.walletApiKey={hash:hash(secret),scopes:grantedScopes,expiresAt,version:epoch};
           delete session.passkeyAt;
           audit(current,input.revoke?"wallet-api-key-revoked":"wallet-api-key-rotated");
         });
+        if(!input.revoke)options.ledger.activateCredential(a.id,epoch,hash(secret),expiresAt,grantedScopes);
         res.json({key:input.revoke?null:`wv_test_${a.id}.${secret}`,revoked:!!input.revoke});
       });
     },
@@ -47,7 +55,7 @@ export function independentDeveloperRuntime(options:{
       if(!a||!a.walletApiKey||a.walletApiKey.expiresAt<=Date.now()||!equal(a.walletApiKey.hash,hash(match[2])))throw new HttpError(401,"Wallet API key expired or revoked");
       if(a.merchant?.status==="suspended")throw new HttpError(401,"Developer access suspended");
       eligible(a,req.method!=="GET");
-      return {tenant:a.id,role:"developer",scopes:a.walletApiKey.scopes};
+      return {tenant:a.id,role:"developer",scopes:a.walletApiKey.scopes,credential:{epoch:a.walletApiKey.version,hash:a.walletApiKey.hash}};
     }
   });
 }

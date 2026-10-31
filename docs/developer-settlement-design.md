@@ -103,13 +103,19 @@ constraints, immutable postings and an atomic outbox. Evaluate operational
 ownership, recovery targets and capacity before selecting a hosted provider.
 Do not migrate or create it automatically.
 
-The current local identity and ledger databases are distinct files. Per-request
-credential checks are implemented, but they are not a multi-instance atomic
-revocation protocol across those files. Before hosted use, place the effective
-tenant authorization epoch/freeze fence in the financial transaction boundary,
-or prove an equivalent fenced authorization protocol. A rotation/suspension
-must prevent later reservation or signing authorization even when an older
-identity response races it.
+The current local identity and ledger databases are distinct files. The
+independent runtime now invalidates its financial credential epoch before
+metadata changes, activates only the latest successfully persisted grant, and
+rechecks it inside the financial write transaction. An interrupted change stays
+disabled; fresh passkey-authorized issuance is the recovery path. An
+independent-process local test rejects an already-resolved stale principal after
+revocation, including approval and idempotent replay.
+
+This is not a distributed transaction across the files. Coordinate general
+metadata suspension with financial controls before exposing administrative
+account changes. Future signer authorization must consume the same fence.
+Hosted storage locking/failover and account-control races still need evidence;
+the local protocol does not prove a hosted deployment safe.
 
 D1 remains the chosen shared abuse-budget candidate. Verify its authorized
 binding/configuration read-only before integration; no new database is implied.
@@ -117,6 +123,11 @@ Derive IP identity only through explicit trusted-proxy validation. Apply endpoin
 tenant, API-key and IP budgets independently; fail closed for money-changing
 operations on limiter outage. Emergency suspend/revoke needs its own bounded
 admission path and durable audit, independent of tenant quotas.
+
+The local service now gives a verified, unexpired independent admin credential a
+separate ingress lane as well as its separate tenant-role budget. Forged admin
+headers and untrusted forwarded IPs do not select that lane. Its local HTTP test
+exhausts ordinary shared-IP ingress and still permits emergency revocation.
 
 ## Backup, restoration and reconciliation
 
@@ -148,6 +159,22 @@ perform a reversible cutover and verify reads/receipts/tombstones.
 Rollback must stop new writers and reconcile any post-cutover transactions; do
 not restore an old snapshot over newer payments or run two independent writers.
 
+### Disposable local restoration evidence
+
+recovery.test.ts uses SQLite's online backup API, not a copy of the main file
+that omits WAL content. It fences the old writer before exercising the snapshot.
+The restored copy retains the unknown withdrawal's exact persisted synthetic
+artifact/txid, reservation, idempotency result and outbox lease identity.
+Replaced-lease acknowledgements fail; an attempted pre-broadcast release of an
+unknown payment fails. A subsequent observation/confirmation retains identity,
+releases only the unused fee cap and keeps postings balanced and immutable.
+
+Before any restored service is exposed, invalidate restored credential grants
+and require fresh issuance: restoring an older ledger plus identity snapshot
+could otherwise resurrect old keys. The drill exercises that invalidation.
+This is ledger-only disposable evidence, not a complete identity/secret backup,
+real signer recovery, chain reconciliation or hosted restore-time measurement.
+
 ## Billing decisions kept separate
 
 Decide application price within the proposed $8–$10 range, rejection/refund policy,
@@ -158,7 +185,7 @@ developer fees and miner fees. No fee is collected by this design.
 
 ## Required future evidence
 
-Prove multi-instance authorization fencing, observer reorg recovery, signer
+Prove hosted multi-instance fencing and coordinated suspension, observer reorg recovery, signer
 idempotency across crashes, broadcast uncertainty, fee replacement lineage,
 fair outbox traversal, real HTTPS receiver replay safety, shared-budget outage
 handling, full backup restoration and reconciliation. Local mocked tests and

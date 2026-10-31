@@ -40,10 +40,14 @@ export function foundationApp(ledger:Ledger,access:Access[],env:NodeJS.ProcessEn
   app.get("/api/wallet-foundation/session",(_req,res)=>res.json({enabled:true,environment:"local-simulation",liveEnabled:false}));
   app.use("/api/wallet-foundation",async(req,res,next)=>{
     // Trust no forwarded identity/IP; all budgets live in the profile database.
-    try{ledger.budget("ingress:"+req.socket.remoteAddress,600);}catch(e){next(e);return;}
     const token=req.get("authorization")?.replace(/^Bearer /,"")??"";
     const hash=createHash("sha256").update(token).digest("hex");
     const found=access.find(x=>timingSafeEqual(Buffer.from(hash),Buffer.from(x.tokenHash)));
+    // Only an independently authenticated, unexpired admin receives this lane.
+    // Developer/anonymous traffic on a shared IP cannot consume emergency quota.
+    const emergency=found?.principal.role==="admin"&&found.expires>Date.now();
+    try{ledger.budget(emergency?"admin-ingress:"+found.principal.tenant+":"+req.socket.remoteAddress:
+      "ingress:"+req.socket.remoteAddress,emergency?120:600);}catch(e){next(e);return;}
     let principal:Principal;
     try{
       if(found&&found.expires>Date.now())principal=found.principal;

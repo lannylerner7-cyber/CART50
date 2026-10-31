@@ -65,3 +65,16 @@ isolation before Live commissioning. This direction is not authorization to
 migrate databases, move keys or deploy. The proposed platform revenue model is
 an $8–$10 application fee plus monthly API-usage billing; exact price, refund
 terms, billing units and payment provider remain undecided.
+
+Prefer temporary credential unavailability over retaining stale financial
+authority when identity metadata and the ledger cannot commit atomically.
+Keep the financial invalidation authoritative; an interrupted key change must
+not reactivate its previous grant. Restoring an old snapshot must not resurrect
+old credentials or enable a second spending writer.
+
+**Why:** The owner prioritizes preventing irreversible fund loss. Retry or fresh
+passkey verification is safer than stale authority during a partial failure.
+
+**How to apply:** Fence financial authority before identity changes, activate
+only the current authorized change, and invalidate restored grants before
+exposure. Do not describe local-file evidence as hosted failover certification.
