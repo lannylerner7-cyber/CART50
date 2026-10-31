@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowRight, ShieldCheck, Send, Download, AlertTriangle, Printer } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Send, AlertTriangle } from 'lucide-react';
 import { Link } from 'wouter';
 import { outcomeUnknown } from '@/lib/sandbox';
 import { useGetVaultDashboard, useGetVaultSettings, useReviewPayment, useSendPayment, getGetVaultDashboardQueryKey, getGetVaultSettingsQueryKey, getListTransactionsQueryKey, type PaymentReview, type Transaction } from '@workspace/api-client-react';
@@ -13,7 +13,8 @@ import { POLL_MS, btcToSats, remaining, toBig, useCsrf, satsToBtc, stamp } from 
 import { CopyText } from '@/components/kit';
 import { useToast } from '@/hooks/use-toast';
 import { RecipientCheck } from '@/components/recipient-check';
-import { printText } from '@/lib/print';
+import { ReceiptTerminal } from '@/components/receipt-terminal';
+import { fromLivePayment } from '@/lib/receipt-terminal';
 import { useGetMarket, getGetMarketQueryKey } from '@workspace/api-client-react';
 import { freshUsdPrice, usdEstimate } from '@/lib/usd-estimate';
 
@@ -178,39 +179,17 @@ export default function Spending() {
   );
 }
 
-function receiptText({ tx, rv, at }: { tx: Transaction; rv: PaymentReview; at: string }) {
-  return [
-    'main_vault LIVE PAYMENT RECEIPT', `Network: ${rv.network}`, `Status: ${tx.status === 'confirmed' ? 'confirmed' : `${tx.status} - NOT CONFIRMED; VERIFY IN ACTIVITY`}`,
-    `Transaction ID: ${tx.txid}`, `Review ID: ${rv.id}`, `Source wallet: ${rv.walletId ?? tx.walletId}`, `Destination: ${rv.address}`,
-    `Amount: ${satsToBtc(rv.amountSats)} BTC (${rv.amountSats} sats)`, `Fee: ${satsToBtc(rv.feeSats)} BTC`, `Total debit: ${satsToBtc(rv.totalSats)} BTC`,
-    `Confirmations at submission: ${tx.confirmations}`, `Recorded: ${stamp(at)}`, '', 'Persisted history: Activity page. Verify on your own node.',
-  ].join('\n');
-}
-
 function LiveReceipt({ r, onClose }: { r: { tx: Transaction; rv: PaymentReview; at: string }; onClose: () => void }) {
-  const { tx, rv } = r;
-  const download = () => { const url = URL.createObjectURL(new Blob([receiptText(r)], { type: 'text/plain' })); const a = document.createElement('a'); a.href = url; a.download = `main_vault-receipt-${tx.txid.slice(0, 16)}.txt`; a.click(); URL.revokeObjectURL(url); };
-  const confirmed = tx.status === 'confirmed';
-  const [printErr, setPrintErr] = useState(false);
-  const print = () => setPrintErr(!printText(`main_vault receipt ${tx.txid.slice(0, 16)}`, receiptText(r)));
-  const rows: [string, string][] = [['network', rv.network], ['status', confirmed ? 'confirmed' : `${tx.status} · pending, not paid/confirmed`], ['amount', `${satsToBtc(rv.amountSats)} BTC`], ['fee', `${satsToBtc(rv.feeSats)} BTC`], ['total debit', `${satsToBtc(rv.totalSats)} BTC`], ['confirmations', String(tx.confirmations)], ['review id', rv.id], ['recorded', stamp(r.at)]];
+  const m = useMemo(() => fromLivePayment(r), [r]);
   return (
-    <section className="rise rounded-[20px] border border-ok/30 bg-[hsl(220_16%_3%)] p-5 font-mono text-[13px] md:p-6" data-testid="card-live-receipt" aria-live="polite">
-      <div className="flex items-center justify-between gap-2 text-[11.5px] uppercase tracking-[0.18em] text-ok"><span>&gt; payment receipt</span><span className={confirmed ? 'text-ok' : 'text-warn'}>{tx.status}</span></div>
-      <p className="mt-2 text-muted-foreground">Submission snapshot, not a live confirmation count. Open Activity for the current status.</p>
-      <div className="mt-4 text-muted-foreground">txid</div>
-      <div className="break-all text-foreground" data-testid="text-receipt-txid">{tx.txid}</div>
-      <CopyText value={tx.txid} display="copy txid" className="mt-1 text-[12px] text-muted-foreground" />
-      <dl className="mt-4 grid gap-1.5">{rows.map(([k, v]) => <div key={k} className="flex flex-wrap justify-between gap-x-4"><dt className="text-muted-foreground">{k}</dt><dd className="break-all text-right">{v}</dd></div>)}</dl>
-      <div className="mt-3 text-muted-foreground">destination</div>
-      <div className="break-all">{rv.address}</div>
-      <div className="mt-5 flex flex-wrap gap-2 font-sans">
-        <Button className="rounded-full" onClick={download} data-testid="button-download-live-receipt"><Download className="h-4 w-4" /> Download receipt</Button>
-        <Button variant="outline" className="rounded-full" onClick={print} data-testid="button-print-live-receipt"><Printer className="h-4 w-4" /> Print receipt</Button>
-        <Link href="/transactions" className="pill-btn" data-testid="link-receipt-activity">Open Activity</Link>
-        <Button variant="outline" className="rounded-full" onClick={onClose} data-testid="button-close-receipt">Close</Button>
-      </div>
-      {printErr && <p className="mt-2 font-sans text-xs text-destructive">The print window was blocked by the browser. Use Download instead.</p>}
-    </section>
+    <div aria-live="polite">
+      <ReceiptTerminal m={m} testId="card-live-receipt" testPrefix="live-receipt" downloadTestId="button-download-live-receipt" printTestId="button-print-live-receipt"
+        intro="Submission snapshot, not a live confirmation count. Open Activity for the current status."
+        actions={<>
+          <Link href="/transactions" className="pill-btn" data-testid="link-receipt-activity">Open Activity</Link>
+          <Button variant="outline" className="rounded-full" onClick={onClose} data-testid="button-close-receipt">Close</Button>
+        </>} />
+      <span className="sr-only" data-testid="text-receipt-txid">{r.tx.txid}</span>
+    </div>
   );
 }

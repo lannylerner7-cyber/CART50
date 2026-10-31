@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
 import { BrandedQr } from '@/components/branded-qr';
-import { AlertTriangle, Ban, Download, RefreshCw, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Ban, RefreshCw, ShieldCheck } from 'lucide-react';
 import { useGetSandboxSignet, getGetSandboxSignetQueryKey, useReviewSandboxSignetPayment, useSendSandboxSignetPayment, type PaymentReview, type Transaction, type SandboxSignetStatus } from '@workspace/api-client-react';
 import { CopyText, ErrorPanel, Pill, Skel, Stat, statusTone } from '@/components/kit';
 import { SandboxCard, SandboxHeader, Reconnecting } from '@/components/sandbox-kit';
@@ -12,6 +12,8 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ago, remaining, satsGrouped, satsToBtc, stamp, useCsrf } from '@/lib/vault';
 import { outcomeUnknown } from '@/lib/sandbox';
+import { ReceiptTerminal } from '@/components/receipt-terminal';
+import { fromSignetPayment } from '@/lib/receipt-terminal';
 
 export const SIGNET_KEY = getGetSandboxSignetQueryKey();
 const FRESH_MS = 60000;
@@ -113,10 +115,6 @@ function SignetLive({ s, dataAt, stale }: { s: SandboxSignetStatus; dataAt: numb
   );
 }
 
-function receiptText(tx: Transaction, rv: PaymentReview, at: string) {
-  return ['main_vault Sandbox Signet receipt', 'Signet test network coins. No monetary value.', '', `Network: ${rv.network}`, `Status: ${tx.status}${tx.status === 'confirmed' ? '' : ' (not yet confirmed)'}`, `Transaction ID: ${tx.txid}`, `Review ID: ${rv.id}`, `Destination: ${rv.address}`, `Amount: ${rv.amountSats} sats`, `Fee: ${rv.feeSats} sats`, `Total: ${rv.totalSats} sats`, `Confirmations: ${tx.confirmations}`, `Recorded: ${stamp(at)}`].join('\n');
-}
-
 function SignetSend({ s, fresh }: { s: SandboxSignetStatus; fresh: boolean }) {
   const qc = useQueryClient();
   const csrf = useCsrf();
@@ -146,17 +144,13 @@ function SignetSend({ s, fresh }: { s: SandboxSignetStatus; fresh: boolean }) {
     onSuccess: (tx) => { void refresh(); if (alive.current) { setReceipt({ tx, rv, at: new Date().toISOString() }); setRv(null); setAck(false); setAddress(''); setAmount(''); } },
     onError: (e) => { if (outcomeUnknown(e)) { setUnknownId(rv.id); void refresh(); } },
   });
-  const download = () => { if (!receipt) return; const url = URL.createObjectURL(new Blob([receiptText(receipt.tx, receipt.rv, receipt.at)], { type: 'text/plain' })); const a = document.createElement('a'); a.href = url; a.download = `sandbox-signet-receipt-${receipt.tx.txid.slice(0, 16)}.txt`; a.click(); URL.revokeObjectURL(url); };
 
   return (
     <SandboxCard title="Send" meta="To your assigned Signet address" testId="card-signet-send">
       {receipt && (
-        <div className="mb-5 rounded-[16px] border border-card-border bg-muted p-4 font-mono text-[13px]" data-testid="card-signet-receipt" aria-live="polite">
-          <div className="flex justify-between text-[11.5px] uppercase tracking-[0.14em] text-muted-foreground"><span>Signet receipt · no value</span><span>{receipt.tx.status === 'confirmed' ? 'confirmed' : 'pending'}</span></div>
-          <div className="mt-3 break-all">{receipt.tx.txid}</div>
-          <CopyText value={receipt.tx.txid} display="copy txid" className="mt-1 text-[12px] text-muted-foreground" />
-          <div className="mt-3 grid gap-1 text-muted-foreground"><div>network {receipt.rv.network} · {receipt.tx.confirmations} conf</div><div>amount {satsGrouped(receipt.rv.amountSats)} sats · fee {satsGrouped(receipt.rv.feeSats)} sats</div><div>review {receipt.rv.id}</div></div>
-          <div className="mt-4 flex flex-wrap gap-2 font-sans"><Button className="rounded-full" onClick={download} data-testid="button-download-signet-receipt"><Download className="h-4 w-4" /> Download receipt</Button><Button variant="outline" className="rounded-full" onClick={() => setReceipt(null)} data-testid="button-close-signet-receipt">Close</Button></div>
+        <div className="mb-5" aria-live="polite">
+          <ReceiptTerminal m={fromSignetPayment(receipt)} testId="card-signet-receipt" testPrefix="signet-receipt" downloadTestId="button-download-signet-receipt"
+            actions={<Button variant="outline" className="rounded-full" onClick={() => setReceipt(null)} data-testid="button-close-signet-receipt">Close</Button>} />
         </div>
       )}
       {!fresh && <p className="mb-4 rounded-xl bg-warn/10 px-3 py-2 text-[13px] text-warn">Sending is disabled while Signet data is stale or the node is offline.</p>}

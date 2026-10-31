@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 import { createServer } from "node:http";
 if (process.env.VAULT_UI_FIXTURE !== "1") throw new Error("Local fixture requires explicit VAULT_UI_FIXTURE=1");
 const mockEnabled = process.env.VAULT_UI_MOCK_SIGNER === "1";
+const receiptFixture = process.env.VAULT_UI_RECEIPT_FIXTURE === "1";
 for (const key of Object.keys(process.env)) {
   if (/^(CF_|VAULT_|MAINNET_|SANDBOX_|MARKET_|SMTP_)/.test(key)) delete process.env[key];
 }
@@ -21,7 +22,7 @@ Object.assign(process.env, {
 const credentialPath = join(directory, "disposable-test-credential.txt");
 writeFileSync(credentialPath, credential.toString("base64url"), {mode: 0o600});
 const token = randomBytes(32).toString("hex");
-const mock = mockEnabled ? await (await import("./vault-ui-mock-signer.mts")).startMockSigner(token, { allowMockPayments: true }) : null;
+const mock = mockEnabled ? await (await import("./vault-ui-mock-signer.mts")).startMockSigner(token, { allowMockPayments: true, seedReceiptTransactions: receiptFixture }) : null;
 if (mock) Object.assign(process.env, {
   BITCOIN_NETWORK: "main", ALLOW_MAINNET: "true", VAULT_ENGINE_URL: mock.url,
   VAULT_ENGINE_TOKEN: token, MAINNET_MONITOR_URL: mock.url, MAINNET_MONITOR_TOKEN: token,

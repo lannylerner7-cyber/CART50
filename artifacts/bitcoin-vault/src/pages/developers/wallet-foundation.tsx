@@ -344,7 +344,7 @@ function DepositsBlock({ coll, assignments, pager, run }: { coll: Coll; assignme
             <button type="button" className={ghostCls} disabled={st.busy || r.status !== 'pending'} onClick={() => void st.go('deposit-state', { id: r.id, state: 'confirmed', confirmations: 3 })}>Confirm 3</button>
             <button type="button" className={ghostCls} disabled={st.busy || r.status === 'reversed'} onClick={() => void st.go('deposit-state', { id: r.id, state: 'reversed' })}>Reverse</button>
           </div>
-          <ReceiptActions record={r} kind="deposit" />
+          <ReceiptActions record={r} kind="deposit" assignment={assignments.find((x) => str(x.walletId) === str(r.walletId) && (r.assignmentId === undefined || str(x.id) === str(r.assignmentId))) ?? null} />
         </div>
       )} />
       {pager}
@@ -365,7 +365,7 @@ function TransfersBlock({ coll, wallets, pager, run }: { coll: Coll; wallets: Re
       </form>
       <Alert text={a.error} />
       <CollErr coll={coll} />
-      <Table cols={['id', 'from', 'to', 'amountSats', 'status']} rows={coll.items} extra={(r) => <ReceiptActions record={r} kind="transfer" />} />
+      <Table cols={['id', 'from', 'to', 'amountSats', 'status']} rows={coll.items} extra={(r) => <ReceiptActions record={r} kind="transfer" wallet={wallets.find((w) => str(w.id) === str(r.from)) ?? null} />} />
       {pager}
     </Section>
   );
@@ -433,7 +433,7 @@ function WithdrawalsBlock({ coll, wallets, pager, run }: { coll: Coll; wallets: 
                 <button type="button" className={ghostCls} disabled={st.busy} onClick={() => void st.go('withdrawal-state', { id, state: 'confirmed', confirmations: 3, actualFeeSats: Number(actual[id] ?? r.networkFeeSats) })}>Confirm 3</button>
               </div>
             )}
-            <ReceiptActions record={r} kind="withdrawal" />
+            <ReceiptActions record={r} kind="withdrawal" wallet={wallets.find((w) => str(w.id) === str(r.walletId)) ?? null} />
           </div>
         );
       }} />

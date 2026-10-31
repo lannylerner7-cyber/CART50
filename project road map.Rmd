@@ -11,6 +11,28 @@ output:
 
 # Read this first
 
+### Figma receipt terminal integration — 2026-10-31
+
+- Adapted the supplied POS-terminal Figma export across personal send receipts,
+  personal Activity/wallet-detail receive and send records, owner/developer
+  Sandbox, existing Signet receipt presentation, developer foundation receipt
+  dialogs and hosted checkout paid/expired records. No duplicate routes.
+- Stable backend references and full addresses are shared by paper, screen,
+  details, download and print; no demo-generated IDs or drifting timestamps.
+  Simulation identifiers are not presented as Bitcoin addresses. Actual
+  developer debit is distinguished from its approval reservation maximum.
+- Ten focused model tests passed; frontend typecheck and build passed.
+  Disposable authenticated browser evidence covered confirmed receive data,
+  downloaded TXT, stubbed print invocation, reduced motion, completed one-shot
+  hold and no horizontal overflow at 360/390/768/1280px.
+- Escape initially failed focus restoration; corrected with a real DialogTrigger
+  and browser-reverified. Pending send remains unconfirmed with correct totals;
+  wallet-detail receipt entry passed. Intermediate feed-message timing was not
+  independently browser-verified; pure kinematics checks passed.
+- Exact evidence/limits: `docs/receipt-terminal-integration.md`. Fixtures and
+  disposable credentials/database removed. No real transfer, Signet restart,
+  custody configuration change, hosted migration, GitHub push or deployment.
+
 ### Focused wallet acceptance and financial authority — 2026-10-31
 
 The browser-to-fixture blocker is resolved using direct loopback navigation and

@@ -1,4 +1,7 @@
 import { useState, type ReactNode } from 'react';
+import { ReceiptButton, downloadReceipt } from '@/components/receipt-terminal';
+import { fromFoundationRecord, receiptToText, type FoundationKind } from '@/lib/receipt-terminal';
+import { printText } from '@/lib/print';
 type ApiErr = { name: string; status: number; data: unknown };
 const isApiErr = (e: unknown): e is ApiErr => typeof e === 'object' && e !== null && typeof (e as ApiErr).status === 'number' && (e as ApiErr).name === 'ApiError';
 
@@ -64,37 +67,16 @@ export function Tag({ children, tone = 'n' }: { children: ReactNode; tone?: 'n' 
 
 export const toneFor = (s: string) => (['confirmed', 'complete', 'delivered', 'active'].includes(s) ? 'ok' : ['failed', 'reversed', 'suspended'].includes(s) ? 'bad' : ['pending', 'review', 'reserved', 'unknown', 'broadcast', 'sending', 'frozen'].includes(s) ? 'warn' : 'n') as 'n' | 'ok' | 'warn' | 'bad';
 
-export function ReceiptActions({ record, kind }: { record: Rec; kind: string }) {
-  const [open, setOpen] = useState(false);
-  const text = [
-    'MAINVAULT WALLET FOUNDATION - LOCAL SIMULATION RECEIPT',
-    'Not a blockchain receipt. No real funds moved. Not a legal or tax document.',
-    `Kind: ${kind}`,
-    ...Object.entries(record).map(([k, v]) => `${k}: ${str(v)}`),
-    `Generated: ${new Date().toISOString()}`,
-  ].join('\n');
-  const download = () => {
-    const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
-    const a = document.createElement('a');
-    a.href = url; a.download = `local-receipt-${kind}-${str(record.id).slice(0, 8)}.txt`; a.click();
-    URL.revokeObjectURL(url);
-  };
-  const print = () => {
-    const w = window.open('', '_blank', 'noopener=no,width=640,height=720');
-    if (!w) return;
-    const pre = w.document.createElement('pre');
-    pre.textContent = text; // text only, never HTML
-    pre.style.cssText = 'font:12px/1.5 monospace;white-space:pre-wrap;padding:24px';
-    w.document.title = 'Local simulation receipt';
-    w.document.body.appendChild(pre);
-    w.print();
-  };
+/** Opens the shared receipt terminal dialog for a local simulation record. Optional wallet/assignment enrich labels. */
+export function ReceiptActions({ record, kind, wallet, assignment }: { record: Rec; kind: FoundationKind; wallet?: Rec | null; assignment?: Rec | null }) {
+  const m = fromFoundationRecord(kind, record, { wallet, assignment });
+  const [printErr, setPrintErr] = useState(false);
   return (
     <div className="flex flex-wrap gap-1.5">
-      <button type="button" className={ghostCls} onClick={() => setOpen(!open)} aria-expanded={open}>{open ? 'Hide' : 'Receipt'}</button>
-      <button type="button" className={ghostCls} onClick={download}>Download</button>
-      <button type="button" className={ghostCls} onClick={print}>Print</button>
-      {open && <pre className="mt-1 w-full whitespace-pre-wrap rounded border border-dashed border-border bg-muted/40 p-2 font-mono text-[11px]">{text}</pre>}
+      <ReceiptButton m={m} label="Receipt" className={ghostCls} testPrefix={`${kind}-receipt`} testId={`button-receipt-${kind}-${str(record.id)}`} />
+      <button type="button" className={ghostCls} onClick={() => downloadReceipt(m)} data-testid={`button-download-${kind}-${str(record.id)}`}>Download</button>
+      <button type="button" className={ghostCls} onClick={() => setPrintErr(!printText(m.title, receiptToText(m)))} data-testid={`button-print-${kind}-${str(record.id)}`}>Print</button>
+      {printErr && <span role="alert" className="text-[11px] text-destructive">Print blocked; use Download.</span>}
     </div>
   );
 }

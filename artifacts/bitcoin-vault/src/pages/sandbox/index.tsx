@@ -1,7 +1,7 @@
 import { Link, Route, Switch, useLocation, useParams } from 'wouter';
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Download, FileText, Printer, ShieldCheck, Ban, Loader2, Search } from 'lucide-react';
+import { FileText, ShieldCheck, Ban, Loader2, Search } from 'lucide-react';
 import type { SandboxReview, SandboxSnapshot, SandboxReceipt } from '@workspace/api-client-react';
 import { CopyText, Empty, ErrorPanel, Panel, Pill, Skel, Stat } from '@/components/kit';
 import { SandboxCard, SandboxHeader, Reconnecting } from '@/components/sandbox-kit';
@@ -14,6 +14,8 @@ import type { ReactNode } from 'react';
 import { demoUsd, outcomeUnknown, parseCents } from '@/lib/sandbox';
 import NotFound from '@/pages/not-found';
 import { useSandboxAdapter } from '@/lib/sandbox-adapter';
+import { ReceiptTerminal } from '@/components/receipt-terminal';
+import { fromSandboxReceipt } from '@/lib/receipt-terminal';
 
 function useSnap() {
   return useSandboxAdapter().useSnapshot();
@@ -236,37 +238,17 @@ function ActivityPage() {
   </>)}</Loader>;
 }
 
-function receiptText(t: SandboxReceipt) {
-  return ['main_vault Sandbox receipt', 'Simulation only. Not a Bitcoin transaction. No real value. No transaction ID.', '', `Receipt: ${t.id}`, `Status: ${t.status}`, `Amount: ${demoUsd(t.amountCents)}`, `Destination identifier: ${t.destination}`, `Ledger balance after: ${demoUsd(t.balanceAfterCents)}`, `Created: ${stamp(t.createdAt)}`].join('\n');
-}
-
 function ReceiptPage() {
   const { id } = useParams<{ id: string }>();
   return <Loader>{(d) => {
     const t = d.transactions.find((x) => x.id === id);
     if (!t) return <Empty icon={<FileText className="h-5 w-5" />} title="Receipt not found" body="No simulated entry with this ID is on the demo ledger." action={<Link href="/sandbox/activity" className="font-semibold underline" data-testid="link-back-activity">Back to activity</Link>} />;
-    const download = () => { const url = URL.createObjectURL(new Blob([receiptText(t)], { type: 'text/plain' })); const a = document.createElement('a'); a.href = url; a.download = `sandbox-test-receipt-${t.id}.txt`; a.click(); URL.revokeObjectURL(url); };
     return (<>
-      <SandboxHeader title="Receipt" desc="Payment complete." />
-      <SandboxCard className="print-sheet" testId="card-receipt">
-        <div className="hidden text-[12px] font-bold print:block">main_vault Sandbox receipt. Simulation only, no real value, no transaction ID.</div>
-        <div className="flex items-start justify-between gap-3">
-          <div className="font-display text-[2.2rem] font-bold" data-testid="text-receipt-amount">{demoUsd(t.amountCents)}</div>
-          <Pill tone="cold" className="no-print" testId="status-receipt-simulation">Simulation · no real value</Pill>
-        </div>
-        <dl className="mt-4 grid gap-3 text-[14px] sm:grid-cols-2">
-          <div><dt className="text-muted-foreground">Receipt ID</dt><dd><CopyText value={t.id} className="text-[13px]" /></dd></div>
-          <div><dt className="text-muted-foreground">Status</dt><dd className="font-semibold">Complete</dd></div>
-          <div className="sm:col-span-2"><dt className="text-muted-foreground">Destination identifier</dt><dd className="break-all font-mono">{t.destination}</dd></div>
-          <div><dt className="text-muted-foreground">Balance after</dt><dd className="font-semibold">{demoUsd(t.balanceAfterCents)}</dd></div>
-          <div><dt className="text-muted-foreground">Created</dt><dd>{stamp(t.createdAt)}</dd></div>
-        </dl>
-      </SandboxCard>
-      <div className="no-print flex flex-wrap gap-2">
-        <Button className="rounded-full" onClick={() => window.print()} data-testid="button-print-receipt"><Printer className="h-4 w-4" /> Print</Button>
-        <Button variant="outline" className="rounded-full" onClick={download} data-testid="button-download-receipt"><Download className="h-4 w-4" /> Download</Button>
-        <Link href="/sandbox/activity" className="pill-btn" data-testid="link-receipt-activity">All activity</Link>
-      </div>
+      <SandboxHeader title="Receipt" desc="Simulated ledger entry." />
+      <ReceiptTerminal m={fromSandboxReceipt(t, demoUsd)} testId="card-receipt" testPrefix="receipt" printTestId="button-print-receipt" downloadTestId="button-download-receipt"
+        actions={<Link href="/sandbox/activity" className="pill-btn" data-testid="link-receipt-activity">All activity</Link>} />
+      <span className="sr-only" data-testid="text-receipt-amount">{demoUsd(t.amountCents)}</span>
+      <span className="sr-only" data-testid="status-receipt-simulation">Simulation · no real value</span>
     </>);
   }}</Loader>;
 }

@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import type { AddressInfo } from "node:net";
 
-export async function startMockSigner(token: string, options: { allowMockPayments?: boolean } = {}) {
+export async function startMockSigner(token: string, options: { allowMockPayments?: boolean; seedReceiptTransactions?: boolean } = {}) {
   const state = { online: true, lookupError: false, shortReview: false };
   const address = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
   const now = () => new Date().toISOString();
@@ -15,6 +15,17 @@ export async function startMockSigner(token: string, options: { allowMockPayment
     totalSweptSats: "0", lastSync: now(),
   }));
   const transactions: Record<string, unknown>[] = [];
+  // Explicit receipt-only UI fixtures: no signing, RPC, observer or real transfers.
+  if (options.seedReceiptTransactions) {
+    transactions.push(
+      { txid: '11'.repeat(32), walletId: 'vault-reserve', direction: 'received', amountSats: '7536',
+        feeSats: null, firstSeen: '2026-10-31T09:10:11.000Z', confirmations: 3,
+        status: 'confirmed', address, replacedBy: null },
+      { txid: '22'.repeat(32), walletId: 'vault-spending', direction: 'sent', amountSats: '10000',
+        feeSats: '100', firstSeen: '2026-10-31T09:11:11.000Z', confirmations: 0,
+        status: 'pending', address, replacedBy: null },
+    );
+  }
   const reviews = new Map<string, Record<string, any>>();
   const submitted = new Map<string, Record<string, unknown>>();
   let settings = { sweepsPaused: !options.allowMockPayments, feeRateCeiling: "10", totalFeeCeilingSats: "10000", hotExposureLimitSats: "1000000" };

@@ -5,6 +5,8 @@ import { checkHostedCheckout, getHostedCheckout, type HostedCheckout } from '@wo
 import { BrandedQr } from '@/components/branded-qr';
 import { VaultMark } from '@/components/shell';
 import { Button } from '@/components/ui/button';
+import { ReceiptButton } from '@/components/receipt-terminal';
+import { fromHostedCheckout } from '@/lib/receipt-terminal';
 import { errStatus, satsToBtc } from '@/lib/vault';
 
 const httpsUrl = (v: string | null | undefined) => { try { const u = new URL(v ?? ''); return u.protocol === 'https:' ? u : null; } catch { return null; } };
@@ -62,9 +64,10 @@ function View({ token }: { token: string }) {
           <h1 className="mt-2 font-display text-xl font-bold">Simulated payment confirmed</h1>
           <p className="mt-1 text-[13.5px] text-muted-foreground">No real funds moved.</p>
           {target ? <><p className="mt-3 text-[13px]" data-testid="text-redirect">Returning to the merchant in {Math.max(0, left)}s.</p><a href={target} className="mt-3 inline-flex h-11 items-center rounded-full bg-primary px-5 font-bold text-primary-foreground" data-testid="link-continue">Continue to merchant</a></> : <p className="mt-3 text-[13px] text-muted-foreground">You can close this page.</p>}
+          <div className="mt-3 flex justify-center"><ReceiptButton m={fromHostedCheckout(c)} label="View receipt" testPrefix="checkout-receipt" /></div>
         </div>
       ) : expired ? (
-        <div className="mt-6 rounded-2xl bg-muted p-5 text-center" data-testid="status-expired"><Clock className="mx-auto h-7 w-7 text-muted-foreground" /><h1 className="mt-2 font-display text-xl font-bold">Checkout expired</h1><p className="mt-1 text-[13.5px] text-muted-foreground">Return to the merchant to start a new checkout.</p></div>
+        <div className="mt-6 rounded-2xl bg-muted p-5 text-center" data-testid="status-expired"><Clock className="mx-auto h-7 w-7 text-muted-foreground" /><h1 className="mt-2 font-display text-xl font-bold">Checkout expired</h1><p className="mt-1 text-[13.5px] text-muted-foreground">Return to the merchant to start a new checkout.</p><div className="mt-3 flex justify-center"><ReceiptButton m={fromHostedCheckout(c)} label="View record" testPrefix="checkout-receipt" /></div></div>
       ) : (
         <>
           <div className="mt-6">{qr ? <BrandedQr value={qr} title="Link to this checkout page" testId="img-checkout-qr" /> : <p className="text-center text-[13px] text-muted-foreground">QR unavailable for this link.</p>}</div>

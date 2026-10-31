@@ -10,6 +10,18 @@ The user wants a clean, intuitive wallet dashboard and login, rather than making
 
 The user approved closely matching the supplied black mobile wallet screens: floating navigation/actions, receive/send sheets, orange-and-white receive QR presentation, address options, and grouped transaction history, adapted to the vault's own brand and Bitcoin-only scope.
 
+Use the owner's supplied physical POS-terminal receipt design for send and
+receive receipt experiences, including the personal vault. Bind its order
+reference and full Bitcoin address to the authoritative record before printing;
+the visual demo must not generate replacement order numbers or confirmation.
+
+**Why:** The owner supplied their completed Figma export and explicitly requested
+the terminal across existing receipts, including personal receipts.
+
+**How to apply:** Share presentation, not custody or authorization. Keep unavailable
+addresses and non-Bitcoin identifiers truthful; preserve recorded timestamps,
+payment status and complete print/download data independently of animation.
+
 **Why:** The user approved this interpretation of their five screenshots on 2026-10-17. Their reference is a visual and interaction direction, not permission to copy example addresses, balances, earnings claims, or guaranteed processing times.
 
 **How to apply:** Preserve real wallet data, supported actions, and visible synchronization/readiness safeguards when reproducing the reference presentation.

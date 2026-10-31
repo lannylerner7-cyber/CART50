@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearch } from 'wouter';
 import { ArrowLeft, ChevronDown, ListTree, Pause, Play, RefreshCw, Search, SlidersHorizontal, X } from 'lucide-react';
-import { useListTransactions, getListTransactionsQueryKey, type Transaction } from '@workspace/api-client-react';
+import { useListTransactions, getListTransactionsQueryKey, useGetVaultDashboard, getGetVaultDashboardQueryKey, type Transaction } from '@workspace/api-client-react';
 import { Btc, CopyText, Empty, ErrorPanel, SkelRows } from '@/components/kit';
 import { Sheet } from '@/components/sheet';
-import { TxRow, txStatusLabel } from '@/components/tx-row';
+import { TxRow, txStatusLabel, isIncoming } from '@/components/tx-row';
+import { ReceiptButton } from '@/components/receipt-terminal';
+import { fromWalletTransaction } from '@/lib/receipt-terminal';
 import { POLL_MS, short, stamp, ago } from '@/lib/vault';
 import { keyLedger } from '@/lib/ledger-keys';
 import { transferDelay } from '@/lib/transfer-delay';
@@ -32,9 +34,10 @@ function PillSelect({ label, value, onChange, options, testId }: { label: string
   );
 }
 
-function Detail({ t, now, minutes }: { t: Transaction; now: number; minutes: number }) {
+function Detail({ t, now, minutes, network }: { t: Transaction; now: number; minutes: number; network: string | null }) {
   return (
     <div className="space-y-3">
+      <ReceiptButton m={fromWalletTransaction(t, { network, incoming: isIncoming(t.direction) })} label="View receipt" testPrefix="tx-receipt" testId={`button-receipt-${t.txid}`} />
       <p className="text-xs text-muted-foreground">{transferDelay(t, now, minutes)}</p>
       <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1.5 font-mono text-xs">
         <dt className="text-muted-foreground">Status</dt><dd className="text-right capitalize">{txStatusLabel(t.status)}</dd>
@@ -63,6 +66,8 @@ export default function Transactions() {
   const [live, setLive] = useState(true);
   const [snapshot, setSnapshot] = useState<{ data: Transaction[]; updated: number } | null>(null);
   const q = useListTransactions({ query: { queryKey: getListTransactionsQueryKey(), enabled: live, refetchOnWindowFocus: live, refetchOnReconnect: live, refetchInterval: live ? POLL_MS : false } });
+  const dash = useGetVaultDashboard({ query: { queryKey: getGetVaultDashboardQueryKey() } });
+  const network = dash.data?.node.network ?? null;
   const displayed = !live && snapshot ? snapshot.data : q.data;
   const refresh = async () => {
     const result = await q.refetch();
@@ -147,7 +152,7 @@ export default function Transactions() {
               <section key={g.k} aria-label={monthLabel(g.k)}>
                 <h2 className="text-[15px] font-bold">{monthLabel(g.k)}</h2>
                 <ul className="mt-1">
-                  {g.rows.map(({ row, key }) => <TxRow key={key} testKey={key} t={row} detail={<Detail t={row} now={now} minutes={minutes} />} />)}
+                  {g.rows.map(({ row, key }) => <TxRow key={key} testKey={key} t={row} detail={<Detail t={row} now={now} minutes={minutes} network={network} />} />)}
                 </ul>
               </section>
             ))}

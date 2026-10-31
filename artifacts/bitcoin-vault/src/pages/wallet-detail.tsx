@@ -9,7 +9,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ReceiveDialog, receiveBlock, useOnline, NetworkBadge, BtcGlyph, type Freshness } from '@/components/receive';
 import { Btc, ErrorPanel, Panel, Pill, Skel, SkelRows, statusTone } from '@/components/kit';
 import { Sheet, SheetAction, kindLabel } from '@/components/sheet';
-import { TxRow } from '@/components/tx-row';
+import { TxRow, isIncoming } from '@/components/tx-row';
+import { ReceiptButton } from '@/components/receipt-terminal';
+import { fromWalletTransaction } from '@/lib/receipt-terminal';
 import { keyLedger } from '@/lib/ledger-keys';
 import { POLL_MS, ago, remaining, stamp, toBig, useCsrf, useSession } from '@/lib/vault';
 import { useToast } from '@/hooks/use-toast';
@@ -108,7 +110,7 @@ export default function WalletDetail() {
               {txq.isLoading ? <SkelRows rows={3} /> : txq.isError ? <ErrorPanel error={txq.error} onRetry={() => txq.refetch()} title="History unavailable" /> : txs.length === 0 ? (
                 <p className="mt-3 rounded-[22px] border border-dashed border-border px-5 py-6 text-sm text-muted-foreground" data-testid="status-wallet-tx-empty">Your node has not seen any transactions for this wallet yet.</p>
               ) : (
-                <ul className="mt-2">{txs.slice(0, 6).map(({ row, key }) => <TxRow key={key} testKey={key} t={row} />)}</ul>
+                <ul className="mt-2">{txs.slice(0, 6).map(({ row, key }) => <TxRow key={key} testKey={key} t={row} detail={<ReceiptButton m={fromWalletTransaction(row, { network: dash.data?.node.network ?? null, incoming: isIncoming(row.direction) })} label="View receipt" testPrefix="tx-receipt" testId={`button-receipt-${row.txid}`} />} />)}</ul>
               )}
             </section>
           </div>
