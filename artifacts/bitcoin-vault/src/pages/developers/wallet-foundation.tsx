@@ -220,7 +220,7 @@ function Unavailable({ onRetry }: { onRetry: () => void }) {
   return (
     <Section title="Foundation service unavailable">
       <div role="alert" className="flex flex-col gap-3 text-sm">
-        <p>The local wallet foundation service is not reachable from this deployment. It runs only as an independent local service (port 4401) and is not connected here.</p>
+        <p>The wallet preview service is unavailable here. Please try again later. Your personal vault is separate and is not affected.</p>
         <div className="flex gap-2">
           <button type="button" className={ghostCls} onClick={onRetry}>Check again</button>
           <Link href="/developers" className={ghostCls}>Developer portal</Link>
@@ -232,11 +232,11 @@ function Unavailable({ onRetry }: { onRetry: () => void }) {
 
 function Readiness() {
   return (
-    <Section id="readiness" title="Readiness and proposed terms">
+    <Section id="readiness" title="Wallet preview availability">
       <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-        <li>Proposed application fee of $8 to $10 and monthly usage units are <strong className="text-foreground">not approved</strong>. Nothing is charged; usage records are marked non-billable.</li>
-        <li>Live operation is disabled. Admin live approval is a recorded flag only; live enablement stays off.</li>
-        <li>Events use a local lease/acknowledge outbox simulation. No webhooks are transmitted.</li>
+        <li>This wallet preview has no application or usage charges.</li>
+        <li>Live wallet operations are unavailable. Application approval does not activate them.</li>
+        <li>Events can be inspected in this preview, but are not delivered to external webhook endpoints.</li>
         <li>Receipts are local simulation records, not blockchain or tax documents.</li>
       </ul>
     </Section>

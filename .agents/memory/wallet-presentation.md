@@ -32,6 +32,18 @@ highlighting, not another transaction screen.
 readable foreground content and a reduced-motion still. Do not connect the
 decorative terminal to payment actions.
 
+Public and developer-facing copy should explain the product and the user's
+hosting, not name the owner's hosting tool or expose internal rollout notes and
+unapproved pricing proposals. Avoid repeating Sandbox disclaimers in every
+marketing section.
+
+**Why:** The user flagged the Coolify reference in API-base help and asked for a
+professional copy review across the application.
+
+**How to apply:** Keep API-host versus merchant-host guidance clear. Preserve
+essential simulation, unavailable-service, draft-legal and payment-verification
+disclosures; simplify their wording rather than implying unbuilt features work.
+
 **Why:** The user approved this interpretation of their five screenshots on 2026-10-17. Their reference is a visual and interaction direction, not permission to copy example addresses, balances, earnings claims, or guaranteed processing times.
 
 **How to apply:** Preserve real wallet data, supported actions, and visible synchronization/readiness safeguards when reproducing the reference presentation.

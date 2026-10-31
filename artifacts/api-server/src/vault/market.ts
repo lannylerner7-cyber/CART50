@@ -16,7 +16,7 @@ export function alertCondition(kind: string, threshold: number, windowMinutes: n
 }
 const unavailable = () => ({
   available: false, price: null, currency: "USD", source: marketProviderLabel(),
-  updatedAt: null, stale: true, message: "Waiting for a verified market quote. No market prices are being fabricated.", history: [] as PricePoint[],
+  updatedAt: null, stale: true, message: "Price data is temporarily unavailable. Updated quotes will appear when the connection is restored.", history: [] as PricePoint[],
 });
 let cache = unavailable() as ReturnType<typeof GetMarketResponse.parse>;
 let nextFetch = 0;

@@ -12,7 +12,7 @@ import { LIVE_HERO } from '@/lib/assets';
 import { cn } from '@/lib/utils';
 
 const isMainnet = (n: string) => /^(main|mainnet|bitcoin)$/i.test(n);
-const netLabel = (n: string) => (isMainnet(n) ? 'Bitcoin Mainnet' : 'Live engine not commissioned');
+const netLabel = (n: string) => (isMainnet(n) ? 'Bitcoin Mainnet' : 'Live connection unavailable');
 
 /** USD valuation from a real provider quote; integer cents via BigInt, no invented figure. */
 function usdOf(sats: string, price: number | null | undefined, currency: string): string | null {
@@ -80,7 +80,7 @@ export default function Overview() {
                       <div className="break-words font-mono text-[1.8rem] font-semibold leading-none tracking-tight tabular-nums md:text-[2.4rem]">{mask(`${satsToBtc(available)} BTC`)}</div>
                       <div className="mt-2 font-mono text-[14px] text-muted-foreground">{mask(`${satsGrouped(available)} sats available`)}</div>
                       <div className="mt-1 text-[13px] text-muted-foreground" data-testid="text-usd-value">
-                        {!isMainnet(n.network) ? 'Valuation unavailable until the live mainnet engine is commissioned.' : usd ? <>{mask(`≈ ${usd}`)} · {m.data?.source}</> : `${m.data?.currency?.toUpperCase() ?? 'USD'}: Unavailable · ${m.isError ? 'price feed unreachable' : m.data?.stale ? 'quote is stale' : 'no current quote'}`}
+                        {!isMainnet(n.network) ? 'Valuation is unavailable until the Bitcoin Mainnet connection is ready.' : usd ? <>{mask(`≈ ${usd}`)} · {m.data?.source}</> : `${m.data?.currency?.toUpperCase() ?? 'USD'}: Unavailable · ${m.isError ? 'price feed unreachable' : m.data?.stale ? 'quote is stale' : 'no current quote'}`}
                       </div>
                     </>
                   )}

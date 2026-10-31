@@ -11,6 +11,19 @@ output:
 
 # Read this first
 
+### User-facing copy review — 2026-10-31
+
+API-base and webhook help now use hosting-neutral language and distinguish the API
+host from merchant checkout/return/webhook URLs. Homepage, footer, developer Live,
+wallet-preview and selected personal-vault status copy no longer expose internal
+rollout notes or proposed fees. Essential Sandbox, draft-legal and security
+disclosures remain. Frontend/backend typechecks and frontend build passed.
+Disposable HTTPS browser checks covered public entry/resources, onboarding,
+checkout help, locked Live, and Sandbox home/wallet/send/activity/status at the
+recorded widths. Owner/admin/independent-wallet pages were source-reviewed, not
+browser-accepted. Full scope, limits and cleanup: `docs/public-copy-review.md`.
+No push, deployment, payment or hosted configuration change.
+
 ### Figma receipt terminal integration — 2026-10-31
 
 - Adapted the supplied POS-terminal Figma export across personal send receipts,

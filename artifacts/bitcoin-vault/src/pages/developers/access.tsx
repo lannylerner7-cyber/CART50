@@ -105,7 +105,7 @@ export function Live() {
         <section className="rise rounded-[24px] bg-sidebar p-6 text-sidebar-foreground md:p-8" data-testid="card-live-locked">
           <Lock className="h-6 w-6 opacity-80" />
           <h1 className="mt-4 font-display text-[2rem] font-bold leading-[1.05] md:text-[2.5rem]">Live is locked for this account.</h1>
-          <p className="mt-3 max-w-[50ch] text-[15px] opacity-80" data-testid="text-live-locked">An application approval does not enable real payments. Independent hosting and custody readiness checks must pass separately; no real Bitcoin can move from here. Your Sandbox remains separate.</p>
+          <p className="mt-3 max-w-[50ch] text-[15px] opacity-80" data-testid="text-live-locked">Live payments are not available for this account. Application approval and payment activation are separate steps. You can continue building in Sandbox while Live access is reviewed.</p>
           <div className="mt-6 inline-flex rounded-full bg-sidebar-foreground/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em]" data-testid="status-live-approval">{session.liveApproved ? 'approved' : 'awaiting approval'}</div>
           <div className="mt-6"><Link href="/sandbox" className="inline-flex h-12 items-center gap-2 rounded-full bg-primary px-6 text-[15px] font-bold text-primary-foreground" data-testid="link-open-sandbox">Open Sandbox <ArrowRight className="h-4 w-4" /></Link><Link href="/checkout" className="ml-2 mt-2 inline-flex h-12 items-center gap-2 rounded-full border border-sidebar-foreground/30 px-6 text-[15px] font-bold" data-testid="link-open-checkout">Checkout console <ArrowRight className="h-4 w-4" /></Link></div>
         </section>

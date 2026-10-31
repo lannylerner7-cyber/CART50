@@ -153,7 +153,7 @@ export function PolicyError({ error, onRetry }: { error: unknown; onRetry?: () =
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warn" />
         <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold">Signing engine not connected</div>
-          <div className="mt-0.5 text-[13px] text-muted-foreground">Spending policy and limits are unavailable until the server operator configures the signer. Nothing is assumed; sending stays disabled.</div>
+          <div className="mt-0.5 text-[13px] text-muted-foreground">The signing service is unavailable. Spending limits cannot be verified, so sending is disabled until the connection is restored.</div>
         </div>
         {onRetry && <button onClick={onRetry} className="rounded-full bg-muted px-3 py-1 text-xs font-semibold" data-testid="button-retry-policy">Retry</button>}
       </div>

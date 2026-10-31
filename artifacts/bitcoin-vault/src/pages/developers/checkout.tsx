@@ -215,7 +215,7 @@ export default function CheckoutConsolePage() {
                 </div>
                 <div className="mt-5 border-t border-border pt-4">
                   <div className="text-[13px] font-semibold">Apply for live</div>
-                  <p className="mt-1 text-[12.5px] text-muted-foreground">An application only. Live stays disabled until independent readiness checks pass.</p>
+                  <p className="mt-1 text-[12.5px] text-muted-foreground">Request Live access. Approval does not activate payments; activation is confirmed separately.</p>
                   <Button variant="outline" className="mt-2 rounded-full" disabled={busy !== null} onClick={() => { setReason(''); setConfirm({ action: 'apply-live', data: {}, title: 'Apply for live checkout', body: 'Tell the operator what you plan to sell and expected volume.' }); }} data-testid="button-apply-live">Apply</Button>
                 </div>
               </Card>

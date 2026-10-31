@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export const currentApiBase = () => (typeof window !== 'undefined' ? window.location.origin : '') + '/api';
-export const PRODUCTION_API_BASE = 'https://mainvaultwallet.com/api';
 
 const httpsOk = (v: string) => { try { const u = new URL(v); return u.protocol === 'https:' && !u.username && !u.password && !u.search && !u.hash; } catch { return false; } };
 
@@ -32,8 +31,8 @@ export function Help({ label, children }: { label: string; children: ReactNode }
 export function WebhookHelp() {
   return (
     <Help label="What is a webhook URL">
-      <p>A webhook is a <b>deployed HTTPS endpoint on your own server</b> that accepts POST requests. It needs a real DNS record pointing at a running server, a valid TLS certificate, and server code that verifies the signature with your webhook signing secret and records the order.</p>
-      <p>Typing an invented subdomain does nothing: if nothing answers there, deliveries fail and show up below as retries.</p>
+      <p>A webhook is an <b>HTTPS endpoint on your hosting</b> that receives order updates from MainVaultWallet. For example: <code>https://yourshop.com/webhooks/mainvault</code>. Your server must accept POST requests there and verify each event with your webhook signing secret.</p>
+      <p>Use your existing website domain and add the endpoint in your server code. The path <code>/webhooks/mainvault</code> needs no separate DNS record. If you choose a subdomain instead, point that subdomain to your hosting and configure HTTPS there. A DNS record alone does not create the endpoint.</p>
       <p>The return URL is different: it is the exact page the buyer's browser is sent back to. A redirect to it, or a buyer clicking "I've sent", <b>never proves payment</b>. Only a verified webhook (in this sandbox, a simulated one) may change order state.</p>
     </Help>
   );
@@ -45,10 +44,11 @@ export function ApiBaseRow() {
   return (
     <div className="rounded-2xl border border-border bg-muted/40 p-3.5" data-testid="panel-api-base">
       <div className="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-        API base for this deployment
+        API base URL
         <Help label="Which API base to use">
-          <p>This value is read from the window you are in right now: <span className="font-mono">{base}</span>. API keys and webhook secrets issued here only work against this deployment.</p>
-          <p>A production target such as <span className="font-mono">{PRODUCTION_API_BASE}</span> is an external domain you supply (for example on your own Coolify server). This console does not know or claim that it is deployed or ready. Keys must be issued from that same deployment; keys from here do not migrate.</p>
+          <p>This is the public API address for the MainVaultWallet service you are using: <span className="break-all font-mono">{base}</span>. Set it as <code>VAULT_API_BASE</code> on your hosting so your server knows where to send API requests.</p>
+          <p>Hosting your checkout on another domain does not change this API address. Your return URL and webhook URL point to your website; the API base points to MainVaultWallet.</p>
+          <p>If you use a separately hosted MainVaultWallet service, copy its API base from that service’s console and issue your key there. Keys and webhook signing secrets are specific to the service that issued them.</p>
         </Help>
       </div>
       <div className="mt-2 flex items-center gap-2">
@@ -107,13 +107,13 @@ export function StarterExport({ saved, dirty, busy, onSave }: { saved: Saved; di
     <Card testId="card-starter-export">
       <div className="flex items-center gap-2 text-[13px] font-semibold"><PackageOpen className="h-4 w-4" /> Starter project download
         <Help label="What the starter contains">
-          <p>A small server plus checkout page as Docker-ready source code, in Node or Python. Nothing is deployed for you.</p>
+          <p>A checkout page and server in Node or Python, with Docker files ready for your hosting. Download the project, add your secrets on the server, then deploy it with your preferred hosting provider.</p>
           <p>It runs on HTTP localhost for development, but real webhook callbacks require it to be hosted on HTTPS with a real domain.</p>
           <p>It contains <span className="font-mono">.env.mainvaultwallet.example</span> with placeholders only. Your API key and webhook secret are never written into the archive; set them as server-side environment variables yourself.</p>
-          <p>Simulation only: no Bitcoin address, no payment QR, no real payment.</p>
+          <p>The starter connects to Sandbox checkout. Its QR opens a checkout page; it is not a Bitcoin deposit address.</p>
         </Help>
       </div>
-      <p className="mt-1 max-w-[70ch] text-[12.5px] text-muted-foreground">Server and UI source with your saved settings filled in. Secrets stay as placeholders. Simulated sats only.</p>
+      <p className="mt-1 max-w-[70ch] text-[12.5px] text-muted-foreground">Download a checkout page and server with your saved URLs included. Add your API key and webhook secret securely on your hosting.</p>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div className="grid gap-1.5">
@@ -141,12 +141,12 @@ export function StarterExport({ saved, dirty, busy, onSave }: { saved: Saved; di
 
       <fieldset className="mt-4 grid gap-2">
         <legend className="mb-1.5 text-[13px] font-medium">API base written into the starter</legend>
-        <label className="flex items-start gap-2 text-[13px]"><input type="radio" name="apibase" className="mt-1" checked={mode === 'current'} onChange={() => setMode('current')} data-testid="radio-base-current" /> <span>This deployment: <span className="break-all font-mono">{current}</span></span></label>
-        <label className="flex items-start gap-2 text-[13px]"><input type="radio" name="apibase" className="mt-1" checked={mode === 'custom'} onChange={() => setMode('custom')} data-testid="radio-base-custom" /> <span>Custom production base you host</span></label>
+        <label className="flex items-start gap-2 text-[13px]"><input type="radio" name="apibase" className="mt-1" checked={mode === 'current'} onChange={() => setMode('current')} data-testid="radio-base-current" /> <span>Current MainVaultWallet API: <span className="break-all font-mono">{current}</span></span></label>
+        <label className="flex items-start gap-2 text-[13px]"><input type="radio" name="apibase" className="mt-1" checked={mode === 'custom'} onChange={() => setMode('custom')} data-testid="radio-base-custom" /> <span>Another MainVaultWallet API host</span></label>
         {mode === 'custom' && (
           <div className="ml-6 grid gap-2">
             <Input aria-label="Custom API base" value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="https://mainvaultwallet.com/api" data-testid="input-starter-custom-base" />
-            <Notice tone="warn">Only use a domain you deployed yourself. Keys and webhook secrets do not migrate between deployments: issue them from the console of that deployment.</Notice>
+            <Notice tone="warn">Enter the API URL of a running MainVaultWallet service, not your shop’s URL. Use a key and webhook signing secret issued by that service.</Notice>
           </div>
         )}
       </fieldset>

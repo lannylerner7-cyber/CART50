@@ -55,7 +55,7 @@ export default function Spending() {
     return formatted ? `≈ ${formatted} USD` : 'USD estimate unavailable';
   };
   const stale = !dash.dataUpdatedAt || Date.now() - dash.dataUpdatedAt > POLL_MS * 3 || !settings.dataUpdatedAt;
-  const blocked = settings.isError ? 'Spending policy unavailable. Sending is disabled.' : dash.isError ? 'Node status unavailable. Sending is disabled.' : !d || !s ? 'Loading node status and policy' : stale ? 'Node status is stale. Sending is paused until a fresh sync.' : !d.node.connected ? 'Node disconnected. Spending is disabled.' : !mainnet ? 'The live mainnet engine is not commissioned. Review and sending are disabled.' : !d.mainnetEnabled ? 'Mainnet spending is disabled.' : s.sweepsPaused ? 'Sending is paused in Settings.' : null;
+  const blocked = settings.isError ? 'Spending policy unavailable. Sending is disabled.' : dash.isError ? 'Node status unavailable. Sending is disabled.' : !d || !s ? 'Loading node status and policy' : stale ? 'Node status is stale. Sending is paused until a fresh sync.' : !d.node.connected ? 'Node disconnected. Spending is disabled.' : !mainnet ? 'Bitcoin Mainnet is not connected. Review and sending are unavailable.' : !d.mainnetEnabled ? 'Mainnet spending is disabled.' : s.sweepsPaused ? 'Sending is paused in Settings.' : null;
   const inputKey = `${walletId}|${address.trim()}|${sats ?? ''}|${feeRate}|${replacesTxid.trim()}`;
   const reviewKey = useRef<string | null>(null);
   const reviewReq = useRef(0);

@@ -24,11 +24,11 @@ function Example() { return <span className="dl-tag">Example</span>; }
 
 const CAPS = [
   { i: Code2, t: 'One server call', b: 'Create a session with integer satoshis, your reference and an approved HTTPS return URL. The response carries the hosted URL.' },
-  { i: Repeat, t: 'Idempotent by design', b: 'Send an Idempotency-Key. The same key and body return the original session; a different body returns 409.' },
-  { i: QrCode, t: 'Hosted, status-only page', b: 'Shoppers land on a hosted checkout. Its QR encodes the checkout URL, never a Bitcoin payment request.' },
-  { i: Webhook, t: 'Signed webhooks', b: 'HMAC-SHA256 over timestamp and raw body. Delivery is at least once, retried with bounded backoff.' },
-  { i: Fingerprint, t: 'Passkey-gated keys', b: 'Test keys are checkout-only, hashed at rest, expire after 90 days and require a recent passkey to issue.' },
-  { i: ShieldCheck, t: 'Explicit simulation', b: 'Only your authenticated simulate action marks a session paid, once. The shopper button only re-checks status.' },
+  { i: Repeat, t: 'Retry with confidence', b: 'Keep the same order reference and idempotency key when retrying a request. Receive the original checkout rather than creating another.' },
+  { i: QrCode, t: 'A connected checkout', b: 'Give shoppers a hosted checkout page and a QR link to open it on another device. Bring them back to your website when the flow is complete.' },
+  { i: Webhook, t: 'Signed order updates', b: 'Receive signed events on your server, verify their origin and keep your order records up to date. Interrupted deliveries are retried.' },
+  { i: Fingerprint, t: 'Passkey-protected access', b: 'Manage your integration with passkey sign-in and scoped API keys. Keep credentials on your server, away from browser code.' },
+  { i: ShieldCheck, t: 'Test the full journey', b: 'Use Sandbox to try checkout, order updates and receipts before requesting Live access. Control when a test order completes from your console.' },
 ];
 
 const FLOW = [
@@ -71,7 +71,7 @@ export function Landing({ prefix = '' }: { prefix?: string }) {
               <Link href={res('documentation')} className="dl-ghost" data-testid="link-hero-docs"><BookOpen className="h-4 w-4" aria-hidden /> Read the docs</Link>
             </div>
             <p className="rise rise-4 mt-8 max-w-[52ch] border-l-2 border-[hsl(var(--volt)/.5)] pl-4 text-[13.5px] leading-relaxed dl-ash" data-testid="text-environment">
-              Current environment: simulation only. Live access is not enabled and will be requested separately, subject to approval.
+              Start in Sandbox with simulated balances. Live payments are currently unavailable and require separate approval and activation.
             </p>
           </div>
           <Reveal from="right" className="min-w-0"><HeroBillboard /></Reveal>
@@ -83,7 +83,7 @@ export function Landing({ prefix = '' }: { prefix?: string }) {
               <div className="dl-eyebrow">Capabilities</div>
               <h2 id="dl-caps" className="dl-display mt-3 text-[2.1rem] font-bold leading-[1] md:text-[3rem]">Fewer moving parts between order and confirmation.</h2>
             </div>
-            <p className="max-w-[44ch] text-[15.5px] leading-relaxed dl-ash md:justify-self-end">A small, explicit surface: one creation endpoint, one hosted page, one signed event. Each behaviour is documented and testable.</p>
+            <p className="max-w-[44ch] text-[15.5px] leading-relaxed dl-ash md:justify-self-end">Connect your backend to a hosted checkout, follow order status and receive signed updates—all with a documented integration you can test in Sandbox.</p>
           </Reveal>
           <div className="dl-rule mt-8" />
           <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -140,7 +140,7 @@ export function Landing({ prefix = '' }: { prefix?: string }) {
           <div className="absolute inset-0 bg-[radial-gradient(60%_90%_at_50%_120%,hsl(var(--volt)/.16),transparent)]" aria-hidden />
           <div className="relative">
             <div className="dl-eyebrow">Get started</div>
-            <h2 id="dl-cta" className="dl-display mx-auto mt-3 max-w-[18ch] text-[2.2rem] font-extrabold leading-[1] md:text-[3.4rem]">Build your checkout flow against the simulation workspace.</h2>
+            <h2 id="dl-cta" className="dl-display mx-auto mt-3 max-w-[18ch] text-[2.2rem] font-extrabold leading-[1] md:text-[3.4rem]">Your next checkout starts here.</h2>
             <p className="mx-auto mt-4 max-w-[46ch] text-[15px] dl-ash">Apply with a name and email, verify, enroll a passkey and issue a test key.</p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">{primary}<Link href={prefix + '/login'} className="dl-ghost" data-testid="link-cta-login">Sign in</Link></div>
           </div>
@@ -150,7 +150,7 @@ export function Landing({ prefix = '' }: { prefix?: string }) {
           <div className="grid gap-10 md:grid-cols-[1.2fr_1fr_1fr]">
             <div>
               <div className="flex items-center gap-3"><img src={BRAND_MARK} alt="" className="h-9 w-9" /><div><div className="dl-display text-[18px] font-bold">main_vault</div><div className="text-[12px] dl-ash">Bitcoin checkout for developers</div></div></div>
-              <p className="mt-4 max-w-[36ch] text-[13px] leading-relaxed dl-ash">Simulation environment. Balances and events have no monetary value.</p>
+              <p className="mt-4 max-w-[36ch] text-[13px] leading-relaxed dl-ash">Connect checkout, order updates and receipts with tools built for your backend.</p>
             </div>
             <nav aria-label="Legal">
               <div className="dl-eyebrow !text-[hsl(200_8%_60%)]">Legal</div>
@@ -173,7 +173,7 @@ export function Landing({ prefix = '' }: { prefix?: string }) {
           </div>
           <div className="mt-8 flex flex-col gap-2 border-t border-[hsl(var(--line))] pt-5 text-[12px] dl-ash sm:flex-row sm:justify-between">
             <span className="dl-mono">mainvaultwallet.com</span>
-            <span className="inline-flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" aria-hidden /> Live access not enabled</span>
+            <span className="inline-flex items-center gap-1.5"><KeyRound className="h-3.5 w-3.5" aria-hidden /> Passkey-protected developer access</span>
           </div>
         </footer>
       </main>

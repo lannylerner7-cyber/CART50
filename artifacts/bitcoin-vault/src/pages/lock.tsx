@@ -71,7 +71,7 @@ function SetupCard() {
       </div>
       <div className="mt-5 grid gap-2 text-[12.5px] text-muted-foreground">
         <div className="flex gap-2"><ShieldOff className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> Setup sends only the verifier to the server. Unlocking later sends the credential over HTTPS; protect your device and check the site address.</div>
-        <div className="flex gap-2"><ShieldOff className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> No protected data is requested while unconfigured. Nothing you see here is fabricated.</div>
+        <div className="flex gap-2"><ShieldOff className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" /> Complete secure setup before opening the vault. Protected wallet data remains locked.</div>
       </div>
     </div>
   );

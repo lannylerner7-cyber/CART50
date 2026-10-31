@@ -40,7 +40,7 @@ export default function Resources() {
           </section>
           <section id="privacy" className="dl-card p-6 md:p-8">
             <h2>Privacy</h2>
-            <p><b>Preview summary, not approved legal text.</b> A factual description of what the simulation workspace handles today.</p>
+            <p><b>Draft privacy summary.</b> This summary describes the current Sandbox. Final legal notices are pending approval.</p>
             <ul>
               <li>Applications collect a name and an email address for verification and access.</li>
               <li>Sign-in uses passkeys. API keys are stored as hash verifiers; webhook signing secrets are encrypted at rest.</li>
@@ -49,7 +49,7 @@ export default function Resources() {
           </section>
           <section id="policy" className="dl-card p-6 md:p-8">
             <h2>Sandbox policy</h2>
-            <p><b>Preview summary, not approved legal text.</b></p>
+            <p><b>Draft Sandbox policy.</b> Final policy terms are pending approval.</p>
             <ul>
               <li>This environment is simulation only. No real Bitcoin moves, and simulated balances have no monetary value.</li>
               <li>A simulated receipt event must never be used to fulfil a real order.</li>
@@ -84,8 +84,8 @@ export default function Resources() {
           </section>
           <section id="contact" className="dl-card p-6 md:p-8">
             <h2>Contact</h2>
-            <p data-testid="text-contact-status">A public contact channel has not been configured yet.</p>
-            <p>To request access, use the application page.</p>
+            <p data-testid="text-contact-status">Looking to build with MainVaultWallet? Start with the developer access application.</p>
+            <p>For integration guidance, explore the documentation and setup steps above.</p>
             <Link href="/apply" className="dl-btn mt-4" data-testid="link-contact-apply">Go to application</Link>
           </section>
         </main>

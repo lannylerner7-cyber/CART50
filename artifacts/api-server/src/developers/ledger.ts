@@ -8,7 +8,7 @@ export function snapshot(a: Account, s: DevSession) {
   return {
     environment: "sandbox", simulatedCreditCents: centsFor(a), simulatedBalanceSats: a.balanceSats,
     assignedAddress: destinationFor(a), signetAvailable: false, quote: a.quote,
-    message: "Private developer simulation. No real Bitcoin, cash or Signet coins. Valuation uses your recorded provisioning quote.",
+    message: "Sandbox balances use the exchange rate recorded when your workspace was created. Activity here stays within your Sandbox account.",
     transactions: a.transactions, reviews: a.reviews.filter(r => r.sessionHash === s.hash).map(({sessionHash,...r})=>({...r,receiptId:r.receiptId??null})),
   };
 }
