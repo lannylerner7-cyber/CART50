@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, Code2, FileText, Fingerprint, KeyRound, Link2, Ma
 import { DevTopBar } from '@/components/developer-frame';
 import { BRAND_MARK } from '@/lib/assets';
 import { nextStep, useDev } from '@/lib/developer';
+import { HeroBillboard } from './hero-billboard';
 import './landing.css';
 
 function Reveal({ children, className = '', delay = 0, from = 'up' }: { children: ReactNode; className?: string; delay?: number; from?: 'up' | 'left' | 'right' }) {
@@ -20,40 +21,6 @@ function Reveal({ children, className = '', delay = 0, from = 'up' }: { children
 }
 
 function Example() { return <span className="dl-tag">Example</span>; }
-
-/** Illustrative hero composition: request, hosted session, webhook. All values are placeholders. */
-function HeroCards() {
-  return (
-    <div className="relative mx-auto h-[460px] w-full max-w-[480px] sm:h-[500px]" role="img" aria-label="Illustrative example: a server request creates a checkout session, the shopper sees a hosted checkout, and a signed simulation webhook is delivered.">
-      <div className="dl-float-card dl-bob absolute left-0 top-0 w-[86%] p-4" aria-hidden>
-        <div className="flex items-center justify-between"><span className="dl-mono text-[11px] text-[hsl(200_8%_60%)]">POST /api/v1/checkout/sessions</span><Example /></div>
-        <pre className="dl-mono mt-3 text-[11.5px] leading-[1.7] text-[hsl(140_14%_88%)]">{`{
-  "amount_sats": 25000,
-  "reference": "order-123",
-  "return_url": "https://merchant.example/result"
-}`}</pre>
-      </div>
-      <div className="dl-float-card dl-bob-2 absolute right-0 top-[38%] w-[70%] p-4" aria-hidden>
-        <div className="flex items-center justify-between"><span className="text-[13px] font-semibold">Hosted checkout</span><Example /></div>
-        <div className="mt-3 flex items-center gap-3">
-          <div className="grid h-16 w-16 place-items-center rounded-xl border border-[hsl(var(--line))] bg-[hsl(200_16%_4%)]"><QrCode className="h-9 w-9 text-[hsl(140_14%_80%)]" /></div>
-          <div className="min-w-0">
-            <div className="dl-display text-[1.5rem] font-bold leading-none">25,000 <span className="text-[13px] dl-ash">sats</span></div>
-            <div className="mt-1 text-[11px] dl-ash">QR opens this checkout page</div>
-          </div>
-        </div>
-        <div className="mt-3 flex items-center justify-between rounded-lg bg-[hsl(140_20%_90%/.05)] px-3 py-2 text-[11.5px]"><span className="dl-ash">status</span><span className="dl-mono">open</span></div>
-      </div>
-      <div className="dl-float-card dl-bob-3 absolute bottom-0 left-[6%] w-[78%] p-4" aria-hidden>
-        <div className="flex items-center justify-between"><span className="flex items-center gap-2 text-[13px] font-semibold"><Webhook className="h-4 w-4 dl-volt" /> Webhook delivered</span><Example /></div>
-        <div className="dl-mono mt-2 text-[11.5px] leading-[1.8]">
-          <div><span className="dl-ash">type</span> checkout.simulation_paid</div>
-          <div className="truncate"><span className="dl-ash">X-Vault-Signature</span> t=…,v1=…</div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const CAPS = [
   { i: Code2, t: 'One server call', b: 'Create a session with integer satoshis, your reference and an approved HTTPS return URL. The response carries the hosted URL.' },
@@ -90,8 +57,8 @@ export function Landing({ prefix = '' }: { prefix?: string }) {
       </div>
 
       <main id="dl-main" className="relative mx-auto w-full max-w-[1180px] px-5 md:px-8">
-        <section className="grid items-center gap-12 pt-10 md:grid-cols-[1.05fr_0.95fr] md:gap-10 md:pt-16 lg:pt-20" aria-labelledby="dl-hero">
-          <div>
+        <section className="dl-terminal-hero grid items-center gap-8 md:grid-cols-[1.05fr_0.95fr] md:gap-6" aria-labelledby="dl-hero">
+          <div className="relative z-10 min-w-0">
             <div className="rise dl-eyebrow">Bitcoin checkout API</div>
             <h1 id="dl-hero" className="rise rise-1 dl-display mt-5 text-[2.7rem] font-extrabold leading-[0.95] sm:text-[3.6rem] lg:text-[4.6rem]">
               Bitcoin checkout,<br />built around <span className="dl-volt">your server.</span>
@@ -107,7 +74,7 @@ export function Landing({ prefix = '' }: { prefix?: string }) {
               Current environment: simulation only. Live access is not enabled and will be requested separately, subject to approval.
             </p>
           </div>
-          <Reveal from="right"><HeroCards /></Reveal>
+          <Reveal from="right" className="min-w-0"><HeroBillboard /></Reveal>
         </section>
 
         <section className="mt-28 md:mt-36" aria-labelledby="dl-caps">

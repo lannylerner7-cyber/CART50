@@ -22,6 +22,16 @@ the terminal across existing receipts, including personal receipts.
 addresses and non-Bitcoin identifiers truthful; preserve recorded timestamps,
 payment status and complete print/download data independently of animation.
 
+The homepage should use this terminal as a restrained top billboard, turning and
+printing behind clear marketing content rather than overpowering the copy.
+
+**Why:** The user requested the terminal as a homepage advertisement with subtle
+highlighting, not another transaction screen.
+
+**How to apply:** Use clearly illustrative records for marketing, silent motion,
+readable foreground content and a reduced-motion still. Do not connect the
+decorative terminal to payment actions.
+
 **Why:** The user approved this interpretation of their five screenshots on 2026-10-17. Their reference is a visual and interaction direction, not permission to copy example addresses, balances, earnings claims, or guaranteed processing times.
 
 **How to apply:** Preserve real wallet data, supported actions, and visible synchronization/readiness safeguards when reproducing the reference presentation.
