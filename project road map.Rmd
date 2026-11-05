@@ -11,6 +11,19 @@ output:
 
 # Read this first
 
+### API documentation and security hardening — 2026-11-05
+
+- Expanded public Resources API guide with ordered setup, server examples, webhook
+  DNS/verification/deduplication, retries, errors and integration acceptance.
+- Added pre-parser developer/checkout admission and uncompressed bounded JSON.
+- Local security regressions, frontend/backend typechecks and frontend build pass;
+  public mobile documentation screenshot checked. See `docs/api-security-review.md`.
+- Dependency findings reduced to one high Zod major-upgrade advisory; not closed.
+  Static and privacy scanners reported no findings, not proof of total security.
+- Hosted edge/firewall/DDoS resilience remains unverified. No deployment, migration,
+  real transfer, Signet restart or GitHub push.
+
+
 ### User-facing copy review — 2026-10-31
 
 API-base and webhook help now use hosting-neutral language and distinguish the API

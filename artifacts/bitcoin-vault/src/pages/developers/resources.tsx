@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import { ArrowLeft, BookOpen, FileText, Link2, Mail, Scale, Shield } from 'lucide-react';
 import { DevTopBar } from '@/components/developer-frame';
 import { useDev } from '@/lib/developer';
+import { ApiGuide } from './api-guide';
 import './landing.css';
 
 const NAV = [
@@ -57,21 +58,7 @@ export default function Resources() {
               <li>The operator may pause, freeze, suspend or revoke developer access and keys.</li>
             </ul>
           </section>
-          <section id="documentation" className="dl-card p-6 md:p-8">
-            <h2>Documentation</h2>
-            <h3>Create a session</h3>
-            <p>From your server only, never browser code. Amounts are integer satoshis, up to 10,000,000 per checkout. The return URL must exactly match one you configured.</p>
-            <pre className="dl-code mt-3 p-4">{`curl -X POST https://<host>/api/v1/checkout/sessions \\
-  -H "Authorization: Bearer sk_test_YOUR_KEY" \\
-  -H "Idempotency-Key: order-123-v1" \\
-  -H "Content-Type: application/json" \\
-  -d '{"amount_sats":25000,"reference":"order-123","return_url":"https://merchant.example/result"}'`}</pre>
-            <p>The response includes <code>id</code>, <code>url</code>, <code>status</code>, <code>environment: "simulation"</code>, <code>amount_sats</code>, <code>reference</code>, <code>expiresAt</code>, <code>qrPayload</code> and <code>return_url</code>. Sessions expire after 30 minutes. Reusing a key with a different body returns 409.</p>
-            <h3>Read status</h3>
-            <p><code>GET /api/v1/checkout/sessions/:id</code> with the same bearer key returns your session's status.</p>
-            <h3>Webhooks</h3>
-            <p>Header <code>X-Vault-Signature: t=&lt;unix_seconds&gt;,v1=&lt;hex_hmac_sha256&gt;</code>. Compute HMAC-SHA256 over <code>&lt;t&gt;.&lt;raw_body&gt;</code>, compare in constant time, reject timestamps older than about five minutes, deduplicate by <code>X-Vault-Event-Id</code>. Event type: <code>checkout.simulation_paid</code>. Delivery is at least once.</p>
-          </section>
+          <ApiGuide />
           <section id="integration" className="dl-card p-6 md:p-8">
             <h2>Integration</h2>
             <ul>

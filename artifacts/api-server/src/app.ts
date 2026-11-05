@@ -12,6 +12,7 @@ import { configuredNetwork } from "./vault/network";
 import { developerRouter } from "./developers/routes";
 import { checkoutRouter } from "./developers/checkout-routes";
 import {developerLimits} from "./developers/limits";
+import {requestBody, requestBodyErrors} from "./middlewares/request-body";
 
 const app: Express = express();
 configuredNetwork();
@@ -42,8 +43,10 @@ app.use((_req, res, next) => {
   next();
 });
 app.use("/api/vault", admission());
-app.use("/api/developers", admission());
-app.use(express.json({ limit: "64kb" }));
+// Separate from owner admission so public traffic cannot consume owner slots.
+app.use(["/api/developers", "/api/developer-console", "/api/checkout", "/api/v1", "/api/developer-wallet"], admission());
+app.use(requestBody);
+app.use(requestBodyErrors);
 
 app.use("/api/vault", vault);
 app.use("/api", developerLimits);
