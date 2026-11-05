@@ -6,5 +6,5 @@
  */
 
 export type GetDeveloperAdminParams = {
-after?: string;
+  after?: string;
 };

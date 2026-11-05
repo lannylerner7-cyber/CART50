@@ -6,9 +6,9 @@
  */
 
 export type GetRecipientParams = {
-/**
- * @minLength 14
- * @maxLength 90
- */
-address: string;
+  /**
+   * @minLength 14
+   * @maxLength 90
+   */
+  address: string;
 };

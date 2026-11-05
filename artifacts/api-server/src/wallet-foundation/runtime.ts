@@ -1,5 +1,5 @@
 import {randomBytes} from "node:crypto";
-import {z} from "zod";
+import {walletKeyInput} from "../developers/input-schemas";
 import {foundationApp,type Access} from "./service";
 import {Ledger} from "./ledger";
 import {configureDeveloperStorage,type DeveloperStorage} from "../developers/storage";
@@ -11,7 +11,6 @@ import {identify,activeSession} from "../developers/auth";
 import {eligible} from "../developers/merchant";
 import {hash,equal,HttpError,verifyOrigin} from "../lib/security";
 
-const scopes=z.array(z.enum(["wallet:read","wallet:write","wallet:fees","wallet:simulate"])).min(1).max(4);
 /** No owner router or combined application is imported or mounted. */
 export function independentDeveloperRuntime(options:{
   ledger:Ledger;storage:DeveloperStorage;adminAccess:Access[];
@@ -27,7 +26,7 @@ export function independentDeveloperRuntime(options:{
       app.post("/api/developer-wallet/key",verifyOrigin,async(req,res)=>{
         const {a,s}=await identify(req,true);
         await sharedBudget("wallet-key-management",a.id,10,res);
-        const input=z.object({scopes,revoke:z.boolean().optional()}).strict().parse(req.body);
+        const input=walletKeyInput.parse(req.body);
         const secret=randomBytes(32).toString("base64url");
         let epoch=0;
         const expiresAt=Date.now()+30*86400000;

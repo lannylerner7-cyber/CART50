@@ -6,9 +6,9 @@
  */
 
 export type GetSandboxAddressParams = {
-/**
- * @minLength 1
- * @maxLength 128
- */
-destination: string;
+  /**
+   * @minLength 1
+   * @maxLength 128
+   */
+  destination: string;
 };

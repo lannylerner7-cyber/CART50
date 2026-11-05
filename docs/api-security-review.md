@@ -23,11 +23,36 @@ Examples describe the implemented checkout service, not future live wallet APIs.
 
 Initial dependency scanner: 0 critical, 5 high, 11 moderate, 4 low.
 Final dependency scanner after updates: 0 critical, 1 high, 0 moderate, 0 low.
-The remaining finding is GHSA-mrhx-c7xc-m3w5, Zod 3.25.76 oversized collection
-validation. Scanner recommends 4.6.6, a major migration across generated schemas.
-The 64 KB parser cap and admission limit bound public API input; they mitigate
-but do not establish closure of this advisory. Plan and test the migration before
-claiming the dependency scan is clean.
+The remaining finding at that point was GHSA-mrhx-c7xc-m3w5, Zod 3.25.76
+oversized collection validation. It has now been resolved by the Zod 4 migration
+below. The 64 KB parser cap and admission limit remain defense in depth.
+
+### Zod 4 migration verification — 2026-11-05
+
+- Pinned the workspace catalog to Zod 4.6.7 and Orval's Zod target to version 4;
+  regenerated only the Zod project. OpenAPI and React client contracts are unchanged.
+  All workspace consumers now resolve the patched version, with no Zod 3 lock entry.
+- Generated integers use Zod 4 safe-integer validation. Valid amounts, counters,
+  query coercion, nullable fields and arbitrary-key records retain their contracts.
+  Orval now correctly emits `looseObject` for `DeveloperActionResult`, whose
+  OpenAPI contract explicitly allows additional properties (the prior generator
+  stripped them). Server action responses are sent directly, not parsed by that
+  generated response schema, so this does not change route behavior.
+- Kept strict server request validation, amount limits and normalization. Shared
+  key-scope validation now derives from the generated schema and adds `.strict()`;
+  checkout input schemas are isolated for direct regression tests.
+- Deterministic oversized-array regressions use a throwing entry getter to prove
+  no element is read for generated scopes, server scopes or return URLs. Additional
+  array/set/map tests prove oversized input never invokes element refinements in
+  synchronous or asynchronous parsing. Boundary and normal requests still succeed.
+- `pnpm run typecheck` passed across libraries and all leaf packages.
+  All 73 API-server tests passed in a subprocess without inherited service
+  credentials, including request-size rejection, checkout, credential rotation,
+  tenant isolation and recovery checks.
+- Fresh dependency scan: **0 critical, 0 high, 0 moderate, 0 low, 0 info**.
+  This closes the dependency finding, not the separate hosted release gates below.
+
+No hosted storage migration, deployment or real-money operation was performed.
 
 SAST completed with zero reported results; privacy/dataflow scan completed with
 zero vulnerabilities. Scans do not prove absence of backdoors or vulnerabilities.

@@ -8,10 +8,7 @@ import {accountPage,bearer,controls,create,eligible,findPublic,issueApi,merchant
 import {attemptDelivery,httpsUrl,seal} from "./webhooks";
 import {sharedBudget} from "./limits";
 import {archivedCheckout} from "./archive";
-const command=z.object({requestId:z.string().uuid().optional(),accountId:z.string().uuid().optional(),checkoutId:z.string().uuid().optional(),reason:z.string().trim().min(3).max(300).optional(),
-  paused:z.boolean().optional(),amountSats:z.number().int().min(-1000000000).max(1000000000).optional(),
-  returnUrls:z.array(z.string().max(1000)).max(5).optional(),webhookUrl:z.string().max(1000).optional()}).strict();
-const checkoutInput=z.object({amount_sats:z.number().int().positive().max(10000000),reference:z.string().trim().min(1).max(100),return_url:z.string().max(1000)}).strict();
+import { checkoutCommand as command, checkoutInput } from "./input-schemas";
 function fresh(at:number|undefined){if(!at||Date.now()-at>300000)throw new HttpError(403,"Confirm your passkey within five minutes before this action");}
 function reason(value:string|undefined){if(!value)throw new HttpError(400,"A reason is required");return value;}
 function revoke(a:Account){const m=merchant(a);delete m.apiKeyHash;delete m.apiKeyPrefix;delete m.apiKeyExpires;}

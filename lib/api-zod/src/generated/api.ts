@@ -40,7 +40,7 @@ export const GetWalletFoundationViewQueryParams = zod.object({
 
 export const GetWalletFoundationViewResponse = zod.object({
   "items": zod.array(zod.record(zod.string(), zod.unknown())),
-  "nextCursor": zod.number().int().nullable(),
+  "nextCursor": zod.int().nullable(),
   "environment": zod.string(),
   "liveEnabled": zod.boolean(),
   "control": zod.record(zod.string(), zod.unknown()),
@@ -73,7 +73,7 @@ export const GetDeveloperConsoleResponse = zod.object({
   "id": zod.string(),
   "url": zod.string(),
   "status": zod.enum(['pending', 'simulation_paid', 'expired']),
-  "amount_sats": zod.number().int(),
+  "amount_sats": zod.int(),
   "reference": zod.string(),
   "expiresAt": zod.string(),
   "environment": zod.enum(['simulation']),
@@ -84,7 +84,7 @@ export const GetDeveloperConsoleResponse = zod.object({
   "checkoutId": zod.string(),
   "eventId": zod.string(),
   "status": zod.string(),
-  "attempts": zod.number().int(),
+  "attempts": zod.int(),
   "lastError": zod.string().nullable()
 })),
   "liveApplication": zod.string(),
@@ -102,7 +102,7 @@ export const CheckoutConsoleActionBody = zod.object({
   "checkoutId": zod.string().optional(),
   "reason": zod.string().optional(),
   "paused": zod.boolean().optional(),
-  "amountSats": zod.number().int().optional(),
+  "amountSats": zod.int().optional(),
   "returnUrls": zod.array(zod.string()).optional(),
   "webhookUrl": zod.string().optional()
 })
@@ -128,7 +128,7 @@ export const GetDeveloperAdminResponse = zod.object({
   "email": zod.string(),
   "verified": zod.boolean(),
   "status": zod.string(),
-  "balanceSats": zod.number().int(),
+  "balanceSats": zod.int(),
   "apiKeyPrefix": zod.string().nullable(),
   "liveApplication": zod.string(),
   "audit": zod.array(zod.object({
@@ -160,7 +160,7 @@ export const DeveloperAdminActionBody = zod.object({
   "checkoutId": zod.string().optional(),
   "reason": zod.string().optional(),
   "paused": zod.boolean().optional(),
-  "amountSats": zod.number().int().optional(),
+  "amountSats": zod.int().optional(),
   "returnUrls": zod.array(zod.string()).optional(),
   "webhookUrl": zod.string().optional()
 })
@@ -181,7 +181,7 @@ export const GetHostedCheckoutResponse = zod.object({
   "id": zod.string(),
   "url": zod.string(),
   "status": zod.enum(['pending', 'simulation_paid', 'expired']),
-  "amount_sats": zod.number().int(),
+  "amount_sats": zod.int(),
   "reference": zod.string(),
   "expiresAt": zod.string(),
   "environment": zod.enum(['simulation']),
@@ -198,7 +198,7 @@ export const CheckHostedCheckoutResponse = zod.object({
   "id": zod.string(),
   "url": zod.string(),
   "status": zod.enum(['pending', 'simulation_paid', 'expired']),
-  "amount_sats": zod.number().int(),
+  "amount_sats": zod.int(),
   "reference": zod.string(),
   "expiresAt": zod.string(),
   "environment": zod.enum(['simulation']),
@@ -212,7 +212,7 @@ export const CreateMerchantCheckoutHeader = zod.object({
 })
 
 export const CreateMerchantCheckoutBody = zod.object({
-  "amount_sats": zod.number().int(),
+  "amount_sats": zod.int(),
   "reference": zod.string(),
   "return_url": zod.string()
 })
@@ -221,7 +221,7 @@ export const CreateMerchantCheckoutResponse = zod.object({
   "id": zod.string(),
   "url": zod.string(),
   "status": zod.enum(['pending', 'simulation_paid', 'expired']),
-  "amount_sats": zod.number().int(),
+  "amount_sats": zod.int(),
   "reference": zod.string(),
   "expiresAt": zod.string(),
   "environment": zod.enum(['simulation']),
@@ -238,7 +238,7 @@ export const GetMerchantCheckoutResponse = zod.object({
   "id": zod.string(),
   "url": zod.string(),
   "status": zod.enum(['pending', 'simulation_paid', 'expired']),
-  "amount_sats": zod.number().int(),
+  "amount_sats": zod.int(),
   "reference": zod.string(),
   "expiresAt": zod.string(),
   "environment": zod.enum(['simulation']),
@@ -281,12 +281,12 @@ export const DeveloperActionBody = zod.object({
   "accepted": zod.boolean().optional(),
   "response": zod.record(zod.string(), zod.unknown()).optional(),
   "destination": zod.string().optional(),
-  "amountCents": zod.number().int().optional(),
+  "amountCents": zod.int().optional(),
   "reviewId": zod.string().optional(),
   "confirmed": zod.boolean().optional()
 })
 
-export const DeveloperActionResponse = zod.object({
+export const DeveloperActionResponse = zod.looseObject({
   "ok": zod.boolean().optional(),
   "message": zod.string().optional(),
   "key": zod.string().optional()
@@ -295,21 +295,21 @@ export const DeveloperActionResponse = zod.object({
 
 export const GetDeveloperSandboxResponse = zod.object({
   "environment": zod.enum(['sandbox']),
-  "simulatedCreditCents": zod.number().int(),
+  "simulatedCreditCents": zod.int(),
   "assignedAddress": zod.string().nullable(),
   "signetAvailable": zod.literal(false),
   "message": zod.string(),
   "transactions": zod.array(zod.object({
   "id": zod.string(),
-  "amountCents": zod.number().int(),
+  "amountCents": zod.int(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "status": zod.enum(['simulation_complete']),
-  "balanceAfterCents": zod.number().int()
+  "balanceAfterCents": zod.int()
 })),
   "reviews": zod.array(zod.object({
   "id": zod.string(),
-  "amountCents": zod.number().int(),
+  "amountCents": zod.int(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "expiresAt": zod.string(),
@@ -317,14 +317,14 @@ export const GetDeveloperSandboxResponse = zod.object({
   "receiptId": zod.string().nullable()
 }))
 }).and(zod.object({
-  "simulatedBalanceSats": zod.number().int(),
+  "simulatedBalanceSats": zod.int(),
   "currentValuation": zod.object({
-  "amountCents": zod.number().int(),
+  "amountCents": zod.int(),
   "at": zod.string(),
   "source": zod.string()
 }).nullable(),
   "quote": zod.object({
-  "priceCents": zod.number().int(),
+  "priceCents": zod.int(),
   "at": zod.string(),
   "source": zod.string()
 })
@@ -338,15 +338,15 @@ export const GetDeveloperSandboxAddressQueryParams = zod.object({
 export const GetDeveloperSandboxAddressResponse = zod.object({
   "destination": zod.string(),
   "environment": zod.enum(['simulation']),
-  "simulatedCreditCents": zod.number().int(),
-  "transactionCount": zod.number().int(),
+  "simulatedCreditCents": zod.int(),
+  "transactionCount": zod.int(),
   "transactions": zod.array(zod.object({
   "id": zod.string(),
-  "amountCents": zod.number().int(),
+  "amountCents": zod.int(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "status": zod.enum(['simulation_complete']),
-  "balanceAfterCents": zod.number().int()
+  "balanceAfterCents": zod.int()
 })),
   "checkedAt": zod.string()
 })
@@ -368,13 +368,13 @@ export const GetRecipientResponse = zod.object({
   "observedAt": zod.coerce.date(),
   "confirmedSats": zod.string(),
   "unconfirmedSats": zod.string(),
-  "transactionCount": zod.number().int(),
+  "transactionCount": zod.int(),
   "historyLimited": zod.boolean(),
   "transactions": zod.array(zod.object({
   "txid": zod.string(),
   "confirmed": zod.boolean(),
   "netSats": zod.string(),
-  "blockTime": zod.number().int().nullable()
+  "blockTime": zod.int().nullable()
 }))
 })
 
@@ -402,10 +402,10 @@ export const GetSandboxSignetResponse = zod.object({
   "node": zod.union([zod.object({
   "connected": zod.boolean(),
   "network": zod.string(),
-  "blocks": zod.number().int().nullable(),
-  "headers": zod.number().int().nullable(),
+  "blocks": zod.int().nullable(),
+  "headers": zod.int().nullable(),
   "syncProgress": zod.number().nullable(),
-  "peers": zod.number().int().nullable(),
+  "peers": zod.int().nullable(),
   "lastSync": zod.string().nullable(),
   "message": zod.string(),
   "recoveryStatus": zod.string()
@@ -417,7 +417,7 @@ export const GetSandboxSignetResponse = zod.object({
   "amountSats": zod.string(),
   "feeSats": zod.string().nullable(),
   "firstSeen": zod.string(),
-  "confirmations": zod.number().int(),
+  "confirmations": zod.int(),
   "status": zod.string(),
   "address": zod.string().nullable(),
   "replacedBy": zod.string().nullable()
@@ -462,7 +462,7 @@ export const SendSandboxSignetPaymentResponse = zod.object({
   "amountSats": zod.string(),
   "feeSats": zod.string().nullable(),
   "firstSeen": zod.string(),
-  "confirmations": zod.number().int(),
+  "confirmations": zod.int(),
   "status": zod.string(),
   "address": zod.string().nullable(),
   "replacedBy": zod.string().nullable()
@@ -480,15 +480,15 @@ export const GetSandboxAddressQueryParams = zod.object({
 export const GetSandboxAddressResponse = zod.object({
   "destination": zod.string(),
   "environment": zod.enum(['simulation']),
-  "simulatedCreditCents": zod.number().int(),
-  "transactionCount": zod.number().int(),
+  "simulatedCreditCents": zod.int(),
+  "transactionCount": zod.int(),
   "transactions": zod.array(zod.object({
   "id": zod.string(),
-  "amountCents": zod.number().int(),
+  "amountCents": zod.int(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "status": zod.enum(['simulation_complete']),
-  "balanceAfterCents": zod.number().int()
+  "balanceAfterCents": zod.int()
 })),
   "checkedAt": zod.string()
 })
@@ -496,21 +496,21 @@ export const GetSandboxAddressResponse = zod.object({
 
 export const GetSandboxResponse = zod.object({
   "environment": zod.enum(['sandbox']),
-  "simulatedCreditCents": zod.number().int(),
+  "simulatedCreditCents": zod.int(),
   "assignedAddress": zod.string().nullable(),
   "signetAvailable": zod.literal(false),
   "message": zod.string(),
   "transactions": zod.array(zod.object({
   "id": zod.string(),
-  "amountCents": zod.number().int(),
+  "amountCents": zod.int(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "status": zod.enum(['simulation_complete']),
-  "balanceAfterCents": zod.number().int()
+  "balanceAfterCents": zod.int()
 })),
   "reviews": zod.array(zod.object({
   "id": zod.string(),
-  "amountCents": zod.number().int(),
+  "amountCents": zod.int(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "expiresAt": zod.string(),
@@ -527,13 +527,13 @@ export const reviewSandboxPaymentBodyDestinationMax = 128;
 
 
 export const ReviewSandboxPaymentBody = zod.object({
-  "amountCents": zod.number().int().min(1).max(reviewSandboxPaymentBodyAmountCentsMax),
+  "amountCents": zod.int().min(1).max(reviewSandboxPaymentBodyAmountCentsMax),
   "destination": zod.string().max(reviewSandboxPaymentBodyDestinationMax)
 })
 
 export const ReviewSandboxPaymentResponse = zod.object({
   "id": zod.string(),
-  "amountCents": zod.number().int(),
+  "amountCents": zod.int(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "expiresAt": zod.string(),
@@ -553,11 +553,11 @@ export const ExecuteSandboxPaymentBody = zod.object({
 
 export const ExecuteSandboxPaymentResponse = zod.object({
   "id": zod.string(),
-  "amountCents": zod.number().int(),
+  "amountCents": zod.int(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "status": zod.enum(['simulation_complete']),
-  "balanceAfterCents": zod.number().int()
+  "balanceAfterCents": zod.int()
 })
 
 
@@ -571,7 +571,7 @@ export const getVaultSessionResponseLoginRetryAfterSecondsMin = 0;
 
 
 export const GetVaultSessionResponse = zod.object({
-  "loginRetryAfterSeconds": zod.number().int().min(getVaultSessionResponseLoginRetryAfterSecondsMin).optional().describe('Server-authoritative login cooldown remaining; absent on successful login.'),
+  "loginRetryAfterSeconds": zod.int().min(getVaultSessionResponseLoginRetryAfterSecondsMin).optional().describe('Server-authoritative login cooldown remaining; absent on successful login.'),
   "authenticated": zod.boolean(),
   "configured": zod.boolean(),
   "csrfToken": zod.string().nullable(),
@@ -594,7 +594,7 @@ export const unlockVaultResponseLoginRetryAfterSecondsMin = 0;
 
 
 export const UnlockVaultResponse = zod.object({
-  "loginRetryAfterSeconds": zod.number().int().min(unlockVaultResponseLoginRetryAfterSecondsMin).optional().describe('Server-authoritative login cooldown remaining; absent on successful login.'),
+  "loginRetryAfterSeconds": zod.int().min(unlockVaultResponseLoginRetryAfterSecondsMin).optional().describe('Server-authoritative login cooldown remaining; absent on successful login.'),
   "authenticated": zod.boolean(),
   "configured": zod.boolean(),
   "csrfToken": zod.string().nullable(),
@@ -630,10 +630,10 @@ export const GetVaultDashboardResponse = zod.object({
   "node": zod.object({
   "connected": zod.boolean(),
   "network": zod.string(),
-  "blocks": zod.number().int().nullable(),
-  "headers": zod.number().int().nullable(),
+  "blocks": zod.int().nullable(),
+  "headers": zod.int().nullable(),
   "syncProgress": zod.number().nullable(),
-  "peers": zod.number().int().nullable(),
+  "peers": zod.int().nullable(),
   "lastSync": zod.string().nullable(),
   "message": zod.string(),
   "recoveryStatus": zod.string()
@@ -661,7 +661,7 @@ export const GetVaultDashboardResponse = zod.object({
   "amountSats": zod.string(),
   "feeSats": zod.string().nullable(),
   "firstSeen": zod.string(),
-  "confirmations": zod.number().int(),
+  "confirmations": zod.int(),
   "status": zod.string(),
   "address": zod.string().nullable(),
   "replacedBy": zod.string().nullable()
@@ -712,7 +712,7 @@ export const createWalletsBodyCountMax = 200;
 
 export const CreateWalletsBody = zod.object({
   "label": zod.string().min(1).max(createWalletsBodyLabelMax),
-  "count": zod.number().int().min(1).max(createWalletsBodyCountMax)
+  "count": zod.int().min(1).max(createWalletsBodyCountMax)
 })
 
 export const CreateWalletsResponseItem = zod.object({
@@ -825,7 +825,7 @@ export const ListTransactionsResponseItem = zod.object({
   "amountSats": zod.string(),
   "feeSats": zod.string().nullable(),
   "firstSeen": zod.string(),
-  "confirmations": zod.number().int(),
+  "confirmations": zod.int(),
   "status": zod.string(),
   "address": zod.string().nullable(),
   "replacedBy": zod.string().nullable()
@@ -836,7 +836,7 @@ export const ListTransactionsResponse = zod.array(ListTransactionsResponseItem)
 export const GetVaultSettingsResponse = zod.object({
   "network": zod.string(),
   "destructionPolicy": zod.string(),
-  "expiryHours": zod.number().int(),
+  "expiryHours": zod.int(),
   "sweepsPaused": zod.boolean(),
   "feeRateCeiling": zod.string(),
   "totalFeeCeilingSats": zod.string(),
@@ -862,7 +862,7 @@ export const UpdateVaultSettingsBody = zod.object({
 export const UpdateVaultSettingsResponse = zod.object({
   "network": zod.string(),
   "destructionPolicy": zod.string(),
-  "expiryHours": zod.number().int(),
+  "expiryHours": zod.int(),
   "sweepsPaused": zod.boolean(),
   "feeRateCeiling": zod.string(),
   "totalFeeCeilingSats": zod.string(),
@@ -878,8 +878,8 @@ export const GetNodeSyncResponse = zod.object({
   "message": zod.string(),
   "network": zod.string(),
   "observedAt": zod.string().nullable(),
-  "blocks": zod.number().int().nullable(),
-  "headers": zod.number().int().nullable(),
+  "blocks": zod.int().nullable(),
+  "headers": zod.int().nullable(),
   "verificationProgress": zod.number().nullable(),
   "initialBlockDownload": zod.boolean().nullable()
 })
@@ -888,10 +888,10 @@ export const GetNodeSyncResponse = zod.object({
 export const ReconnectNodeResponse = zod.object({
   "connected": zod.boolean(),
   "network": zod.string(),
-  "blocks": zod.number().int().nullable(),
-  "headers": zod.number().int().nullable(),
+  "blocks": zod.int().nullable(),
+  "headers": zod.int().nullable(),
   "syncProgress": zod.number().nullable(),
-  "peers": zod.number().int().nullable(),
+  "peers": zod.int().nullable(),
   "lastSync": zod.string().nullable(),
   "message": zod.string(),
   "recoveryStatus": zod.string()
@@ -918,8 +918,8 @@ export const ListAlertsResponseItem = zod.object({
   "name": zod.string(),
   "kind": zod.enum(['below', 'percent_drop']),
   "threshold": zod.number(),
-  "windowMinutes": zod.number().int(),
-  "cooldownMinutes": zod.number().int(),
+  "windowMinutes": zod.int(),
+  "cooldownMinutes": zod.int(),
   "enabled": zod.boolean(),
   "lastTriggeredAt": zod.string().nullable()
 })
@@ -940,8 +940,8 @@ export const CreateAlertBody = zod.object({
   "name": zod.string().min(1).max(createAlertBodyNameMax),
   "kind": zod.enum(['below', 'percent_drop']),
   "threshold": zod.number().gt(createAlertBodyThresholdExclusiveMin),
-  "windowMinutes": zod.number().int().min(1).max(createAlertBodyWindowMinutesMax),
-  "cooldownMinutes": zod.number().int().min(1).max(createAlertBodyCooldownMinutesMax),
+  "windowMinutes": zod.int().min(1).max(createAlertBodyWindowMinutesMax),
+  "cooldownMinutes": zod.int().min(1).max(createAlertBodyCooldownMinutesMax),
   "enabled": zod.boolean()
 })
 
@@ -950,8 +950,8 @@ export const CreateAlertResponse = zod.object({
   "name": zod.string(),
   "kind": zod.enum(['below', 'percent_drop']),
   "threshold": zod.number(),
-  "windowMinutes": zod.number().int(),
-  "cooldownMinutes": zod.number().int(),
+  "windowMinutes": zod.int(),
+  "cooldownMinutes": zod.int(),
   "enabled": zod.boolean(),
   "lastTriggeredAt": zod.string().nullable()
 })
@@ -975,8 +975,8 @@ export const UpdateAlertBody = zod.object({
   "name": zod.string().min(1).max(updateAlertBodyNameMax),
   "kind": zod.enum(['below', 'percent_drop']),
   "threshold": zod.number().gt(updateAlertBodyThresholdExclusiveMin),
-  "windowMinutes": zod.number().int().min(1).max(updateAlertBodyWindowMinutesMax),
-  "cooldownMinutes": zod.number().int().min(1).max(updateAlertBodyCooldownMinutesMax),
+  "windowMinutes": zod.int().min(1).max(updateAlertBodyWindowMinutesMax),
+  "cooldownMinutes": zod.int().min(1).max(updateAlertBodyCooldownMinutesMax),
   "enabled": zod.boolean()
 })
 
@@ -985,8 +985,8 @@ export const UpdateAlertResponse = zod.object({
   "name": zod.string(),
   "kind": zod.enum(['below', 'percent_drop']),
   "threshold": zod.number(),
-  "windowMinutes": zod.number().int(),
-  "cooldownMinutes": zod.number().int(),
+  "windowMinutes": zod.int(),
+  "cooldownMinutes": zod.int(),
   "enabled": zod.boolean(),
   "lastTriggeredAt": zod.string().nullable()
 })
@@ -1037,7 +1037,7 @@ export const ExploreVaultResponse = zod.object({
   "amountSats": zod.string(),
   "feeSats": zod.string().nullable(),
   "firstSeen": zod.string(),
-  "confirmations": zod.number().int(),
+  "confirmations": zod.int(),
   "status": zod.string(),
   "address": zod.string().nullable(),
   "replacedBy": zod.string().nullable()
@@ -1102,7 +1102,7 @@ export const SendPaymentResponse = zod.object({
   "amountSats": zod.string(),
   "feeSats": zod.string().nullable(),
   "firstSeen": zod.string(),
-  "confirmations": zod.number().int(),
+  "confirmations": zod.int(),
   "status": zod.string(),
   "address": zod.string().nullable(),
   "replacedBy": zod.string().nullable()
@@ -1153,7 +1153,7 @@ export const passkeyLoginVerifyResponseLoginRetryAfterSecondsMin = 0;
 
 
 export const PasskeyLoginVerifyResponse = zod.object({
-  "loginRetryAfterSeconds": zod.number().int().min(passkeyLoginVerifyResponseLoginRetryAfterSecondsMin).optional().describe('Server-authoritative login cooldown remaining; absent on successful login.'),
+  "loginRetryAfterSeconds": zod.int().min(passkeyLoginVerifyResponseLoginRetryAfterSecondsMin).optional().describe('Server-authoritative login cooldown remaining; absent on successful login.'),
   "authenticated": zod.boolean(),
   "configured": zod.boolean(),
   "csrfToken": zod.string().nullable(),

@@ -6,5 +6,5 @@
  */
 
 export type ExploreVaultParams = {
-query: string;
+  query: string;
 };

@@ -7,9 +7,7 @@
 import type { GetWalletFoundationViewKind } from './getWalletFoundationViewKind';
 
 export type GetWalletFoundationViewParams = {
-kind: GetWalletFoundationViewKind;
-/**
- * @minimum 0
- */
-after?: number;
+  kind: GetWalletFoundationViewKind;
+  /** @minimum 0 */
+  after?: number;
 };

@@ -6,5 +6,5 @@
  */
 
 export type GetDeveloperSandboxAddressParams = {
-destination: string;
+  destination: string;
 };
