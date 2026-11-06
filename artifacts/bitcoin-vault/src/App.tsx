@@ -26,7 +26,7 @@ const WalletFoundationPage = lazy(() => import('@/pages/developers/wallet-founda
 import { SandboxShell } from '@/components/sandbox-shell';
 import { lockClient, LOCK_EVENT } from '@/lib/session-lock';
 import { retryRead, readRetryDelay, transientReadError } from '@/lib/request-recovery';
-import { DEVELOPER_HOMEPAGE, isOwnerLocation, OWNER_BASE } from '@/lib/owner-location';
+import { DEVELOPER_HOMEPAGE, isOwnerLocation, legacyOwnerRedirect, OWNER_BASE } from '@/lib/owner-location';
 
 const SESSION_KEY = getGetVaultSessionQueryKey();
 const on401 = (e: unknown) => {
@@ -139,6 +139,8 @@ function Gate() {
 /** /developers is a separate principal with its own QueryClient; it renders before (and instead of) the owner Gate. */
 function Entry() {
   const [location] = useLocation();
+  const legacyOwner = legacyOwnerRedirect(location);
+  if (legacyOwner) return <Redirect to={legacyOwner} replace />;
   if (location.startsWith('/checkout/')) {
     return <Suspense fallback={<div className="grid min-h-[100dvh] place-items-center bg-sidebar"><VaultMark className="h-12 w-12" /></div>}><Route path="/checkout/:token">{(p) => <HostedCheckoutPage token={p.token} />}</Route></Suspense>;
   }

@@ -16,10 +16,10 @@ data. Live approval is distinct from hosted custody readiness; Signet stays paus
 
 The owner subsequently explicitly authorized the developer homepage at root,
 while unresolved acceptance items remain documented rather than treated as passed. The personal
-vault moves to the exact owner-supplied concatenated-1-through-256 URL prefix
-ending in `/mainvaultwallet`, without moving Core/signer storage or changing domains.
+vault uses `/mainvaultwallet/personal/admin`, replacing the numeric prefix,
+without moving Core/signer storage or changing domains.
 
-**Why:** The owner explicitly requested the path-only switch so they can visit the personal vault manually; this is not a new vault or permission to open Live custody.
+**Why:** The owner explicitly requested this shorter path after reporting the numeric link failed; this is not a new vault or permission to open Live custody.
 
 **How to apply:** Preserve owner login and nested navigation. A long path is not
 an authentication boundary. Keep the supplied video intro separate from the

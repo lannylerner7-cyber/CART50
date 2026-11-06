@@ -87,7 +87,9 @@ than silently deleting payment evidence. Receipts remain simulation disclosures.
 | Simulated checkout | `/checkout/:token` | Opaque public status; explicit authenticated simulation only |
 | Admin decisions | `/admin` | Existing owner authentication, recent passkey and audit; no custody enablement |
 
-The long personal-vault path is only a routing prefix, not a secret. The root
+The personal-vault prefix is `/mainvaultwallet/personal/admin`, not a secret.
+The former concatenated 1–256 link and the shared 1–250 variant redirect to it,
+including nested routes. The root
 homepage cutover must be tested with nested navigation, direct reloads, owner
 passkeys and existing APIs. Do not move Core files, signers or change domains.
 Changing the frontend path does not change the WebAuthn RP ID.

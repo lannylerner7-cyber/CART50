@@ -22,10 +22,17 @@ export function Apply() {
 
   const measure = useCallback(() => {
     const el = box.current;
-    if (el && el.scrollTop + el.clientHeight >= el.scrollHeight - 8) setAtEnd(true);
+    if (el) setAtEnd(el.clientHeight > 0 && el.scrollTop + el.clientHeight >= el.scrollHeight - 8);
   }, []);
   const setBox = useCallback((el: HTMLDivElement | null) => { box.current = el; if (el) requestAnimationFrame(measure); }, [measure]);
   useEffect(() => { if (!open) { setAtEnd(false); setAgree(false); } }, [open]);
+  useEffect(() => {
+    if (!open || !box.current) return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(box.current);
+    measure();
+    return () => observer.disconnect();
+  }, [open, measure, terms.text]);
 
   const blocked = !terms.signupEnabled;
   const proceed = () => { if (!atEnd || !agree || blocked) return; setAcceptedTerms(terms.version); setOpen(false); nav('/register'); };
@@ -44,18 +51,19 @@ export function Apply() {
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl gap-0 rounded-[24px] p-0" data-testid="dialog-terms">
-          <DialogHeader className="border-b border-border p-5">
+        <DialogContent className="flex max-h-[85dvh] w-[calc(100%-2rem)] max-w-2xl flex-col gap-0 overflow-hidden rounded-[24px] p-0" data-testid="dialog-terms">
+          <DialogHeader className="shrink-0 border-b border-border p-5">
             <DialogTitle className="font-display text-xl">Developer terms {!terms.approved && <span className="ml-2 align-middle text-[12px] font-bold text-warn">DRAFT</span>}</DialogTitle>
             <DialogDescription>Version {terms.version}. Scroll to the end to enable acceptance.</DialogDescription>
           </DialogHeader>
-          <div ref={setBox} onScroll={measure} tabIndex={0} role="region" aria-label="Terms text" className="max-h-[50dvh] overflow-y-auto whitespace-pre-wrap p-5 text-[14px] leading-relaxed focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid="region-terms">
+          <div ref={setBox} onScroll={measure} tabIndex={0} role="region" aria-label="Terms text" className="min-h-0 max-h-[50dvh] overflow-y-auto overscroll-contain whitespace-pre-wrap p-5 text-[14px] leading-relaxed focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" data-testid="region-terms">
             {terms.text || 'No terms text was returned by the server.'}
             <div className="mt-6 border-t border-dashed border-border pt-3 text-[12px] text-muted-foreground">End of terms.</div>
           </div>
-          <DialogFooter className="flex-col gap-3 border-t border-border p-5 sm:flex-col">
-            <label className={`flex items-start gap-3 text-[14px] ${atEnd ? 'cursor-pointer' : 'opacity-60'}`}>
-              <Checkbox checked={agree} disabled={!atEnd || blocked} onCheckedChange={(v) => setAgree(!!v)} className="mt-0.5" data-testid="checkbox-accept-terms" />
+          <DialogFooter className="shrink-0 flex-col gap-3 border-t border-border p-5 sm:flex-col">
+            {blocked && <p role="status" className="text-sm text-warn">Signup is closed. Acceptance will be available when these terms are approved.</p>}
+            <label htmlFor="accept-developer-terms" className={`flex min-h-11 items-start gap-3 text-[14px] ${atEnd && !blocked ? 'cursor-pointer' : 'opacity-60'}`}>
+              <Checkbox id="accept-developer-terms" checked={agree} disabled={!atEnd || blocked} onCheckedChange={(v) => setAgree(v === true)} className="mt-0.5" data-testid="checkbox-accept-terms" />
               <span>I have read and accept these terms.{!atEnd && <span className="block text-[12px] text-muted-foreground">Scroll to the end first.</span>}</span>
             </label>
             <Button className="h-12 rounded-full font-bold" disabled={!atEnd || !agree || blocked} onClick={proceed} data-testid="button-terms-continue">{blocked ? 'Signup closed' : 'Continue'}</Button>
