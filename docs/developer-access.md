@@ -98,8 +98,14 @@ Changing the frontend path does not change the WebAuthn RP ID.
 
 Names only; never put real secrets in these documents:
 
-- `DEVELOPER_TERMS_VERSION` and `DEVELOPER_TERMS_TEXT`: owner-approved legal terms
-  and privacy disclosure. Both are required to open production registration.
+- Public agreement content and version are bundled from
+  `artifacts/api-server/src/developers/terms.ts`. The old
+  `DEVELOPER_TERMS_VERSION` and `DEVELOPER_TERMS_TEXT` environment variables are
+  no longer read. Update the version with any text change.
+- Sandbox registration is open by default, independently of the draft legal
+  status. Optional `DEVELOPER_REGISTRATION_ENABLED=false` closes new registrations
+  and resends; `true` reopens them. No variable is required for normal operation.
+  This does not approve legal text, enable Live custody or bypass verification.
 - `DEVELOPER_MAIL_FROM` (or existing `SECURITY_ALERT_FROM`), existing SMTP
   configuration: independently verify authorized sender and actual delivery.
 - Existing `PUBLIC_ORIGIN`: exact same-origin HTTPS and passkey RP boundary.

@@ -11,6 +11,24 @@ output:
 
 # Read this first
 
+### Bundled Sandbox agreement — 2026-11-06
+
+- Owner-authorized separation: public agreement/version ship in source, not
+  terms environment variables. Draft legal status remains truthful; Sandbox
+  registration defaults open with an independent optional pause switch.
+- Backend still requires explicit acceptance and the current version, and
+  records the version on account creation. Live/owner authorization unchanged.
+- 22 disposable developer/Sandbox automated tests passed, including rejected
+  acceptance, outdated versions, registration pause and production defaults.
+  Full workspace typecheck passed; backend rebuilt and workflows started.
+- Preview browser checks passed at 390×844, 820×1180 and 1366×768: scroll gate,
+  label/checkbox toggling, Continue to empty registration. Actual session
+  returned sandbox-draft-2, signupEnabled true, approved false without overrides.
+  Tablet registration controls were confirmed in the browser layout snapshot;
+  the captured tablet image did not visibly render them. No account submitted.
+- No hosted signup/email/webhook acceptance claimed. No real credentials,
+  custody changes, Core/Signet restarts or hosted deployment performed.
+
 ### API documentation and security hardening — 2026-11-05
 
 - Expanded public Resources API guide with ordered setup, server examples, webhook

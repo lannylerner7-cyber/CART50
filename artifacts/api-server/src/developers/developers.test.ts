@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import express from "express";
 import { randomBytes } from "node:crypto";
+import { DEVELOPER_TERMS_VERSION } from "./terms";
 
 test("isolated developer lifecycle, email safety, provisioning and payment idempotency", async () => {
   for(const k of Object.keys(process.env)) if(/^(CF_|VAULT_|SMTP_|DEVELOPER_)/.test(k)) delete process.env[k];
@@ -39,12 +40,19 @@ test("isolated developer lifecycle, email safety, provisioning and payment idemp
   }
   async function enroll(email:string) {
     const c=client();
-    assert.equal((await call(c,"/register",{name:"Disposable developer",email,accepted:true,termsVersion:"preview-draft-1"})).status,200);
+    assert.equal((await call(c,"/register",{name:"Disposable developer",email,accepted:true,termsVersion:DEVELOPER_TERMS_VERSION})).status,200);
     assert.equal(mail.get(email)?.length,24);
     assert.equal((await call(c,"/verify-email",{email,key:mail.get(email)})).status,200);
     return c;
   }
   try {
+    const registration = {name:"Disposable", email:"blocked@example.invalid", accepted:true, termsVersion:DEVELOPER_TERMS_VERSION};
+    assert.equal((await call(client(),"/register",{...registration,accepted:false})).status,400);
+    assert.equal((await call(client(),"/register",{...registration,termsVersion:"preview-draft-1"})).status,400);
+    process.env.DEVELOPER_REGISTRATION_ENABLED="false";
+    assert.equal((await call(client(),"/session")).b.terms.signupEnabled,false);
+    assert.equal((await call(client(),"/register",registration)).status,503);
+    delete process.env.DEVELOPER_REGISTRATION_ENABLED;
     const ownerBefore=JSON.stringify(await readState());
     const c=await enroll("a@example.invalid");
     assert.equal((await call(client(),"/verify-email",{email:"a@example.invalid",key:mail.get("a@example.invalid")})).status,400);
@@ -94,7 +102,7 @@ test("isolated developer lifecycle, email safety, provisioning and payment idemp
     assert.equal((await call(c,"/sandbox")).status,401);
     // Expired/resend keys and duplicate registration cannot create extra identities.
     const e=client(),email="expired@example.invalid";
-    await call(e,"/register",{name:"Expired",email,accepted:true,termsVersion:"preview-draft-1"});
+    await call(e,"/register",{name:"Expired",email,accepted:true,termsVersion:DEVELOPER_TERMS_VERSION});
     const old=mail.get(email)!;const ea=(await accountBy("email",email))!;
     await updateAccount(ea.id,a=>{a.verification!.expires=0;a.verification!.sentAt=0;});
     assert.equal((await call(e,"/verify-email",{email,key:old})).status,400);
@@ -109,7 +117,7 @@ test("isolated developer lifecycle, email safety, provisioning and payment idemp
     const duplicate=await query("SELECT count(*) AS n FROM developer_accounts WHERE email=?",[email]);assert.equal(duplicate[0].n,1);
     assert.equal(hash(randomBytes(18).toString("base64url")).length,64);
     failMail=true;
-    assert.equal((await call(client(),"/register",{name:"Mail failure",email:"mailfail@example.invalid",accepted:true,termsVersion:"preview-draft-1"})).status,503);
+    assert.equal((await call(client(),"/register",{name:"Mail failure",email:"mailfail@example.invalid",accepted:true,termsVersion:DEVELOPER_TERMS_VERSION})).status,503);
     assert.equal((await accountBy("email","mailfail@example.invalid"))?.verification?.delivery,"failed");
     assert.equal((await accountBy("id",a.id))?.keyHash?.length,64);
   } finally {server.close();rmSync(dir,{recursive:true,force:true});}

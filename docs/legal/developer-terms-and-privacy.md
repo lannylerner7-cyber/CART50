@@ -292,17 +292,18 @@ notice and technical disclosures are additions requiring operator verification.
 
 ## Configuration handoff — not part of the customer agreement
 
-1. Complete the publication checklist and obtain explicit approval of the
-   final text. Do not use this draft version to open registration.
-2. Set `DEVELOPER_TERMS_VERSION` to the approved final version and
-   `DEVELOPER_TERMS_TEXT` to the complete approved terms and privacy notice in
-   the Coolify **website backend runtime** configuration.
-3. These variables expect actual text, not a file path. A Git push alone does
-   not set them. The current server does not read this Markdown file at runtime.
-4. Redeploy the website backend only after authorization; do not restart Core
-   or Signet or change owner credentials/storage.
-5. Confirm `GET /api/developers/session` returns the exact approved version/text,
-   `approved: true` and `signupEnabled: true`. Check acceptance and registration
-   in the hosted environment with an authorized disposable account.
-6. Keep the existing legal approval gate. Disabling registration later requires
-   an explicit operational decision; don't change versioned text silently.
+The public Sandbox usage agreement is now bundled in
+`artifacts/api-server/src/developers/terms.ts`. It is a shorter agreement,
+not this full legal-review document. The old terms environment variables are
+ignored. The owner authorized registration to be independent of draft status;
+no final legal approval is implied.
+
+1. Update bundled text and version together when a replacement is approved.
+2. No terms variables are needed. Sandbox registration is open by default.
+   Optional `DEVELOPER_REGISTRATION_ENABLED=false` pauses new registration/resends.
+3. Deploy the website frontend/backend after authorization, not Core or Signet.
+4. Confirm `/api/developers/session` serves the bundled version and text.
+   Draft status remains `approved: false`; it no longer closes registration.
+5. Verify agreement acceptance and registration in the hosted environment with
+   an authorized disposable account. Finish the publication checklist before
+   presenting the longer legal document as final.

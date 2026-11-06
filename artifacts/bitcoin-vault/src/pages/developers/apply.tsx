@@ -46,7 +46,7 @@ export function Apply() {
           {!terms.approved && <span className="rounded-full bg-warn/15 px-2.5 py-1 text-[11.5px] font-bold text-warn" data-testid="status-terms-draft">Draft, not final legal text</span>}
         </div>
         <p className="mt-2 text-[14px] text-muted-foreground">Scroll to the end of the terms, tick the box, then continue. The box stays disabled until you reach the end.</p>
-        {blocked && <div className="mt-4"><Notice tone="warn" testId="status-signup-disabled">Signup is closed right now. Terms are awaiting final approval, so no accounts can be created with this version. You can still read them.</Notice></div>}
+        {blocked && <div className="mt-4"><Notice tone="warn" testId="status-signup-disabled">Registration is temporarily closed. You can still read the agreement, but cannot create an account right now.</Notice></div>}
         <Button className="mt-5 h-12 rounded-full px-6 font-bold" onClick={() => setOpen(true)} data-testid="button-open-terms"><FileText className="h-4 w-4" /> Read terms</Button>
       </Card>
 
@@ -61,9 +61,9 @@ export function Apply() {
             <div className="mt-6 border-t border-dashed border-border pt-3 text-[12px] text-muted-foreground">End of terms.</div>
           </div>
           <DialogFooter className="shrink-0 flex-col gap-3 border-t border-border p-5 sm:flex-col">
-            {blocked && <p role="status" className="text-sm text-warn">Signup is closed. Acceptance will be available when these terms are approved.</p>}
-            <label htmlFor="accept-developer-terms" className={`flex min-h-11 items-start gap-3 text-[14px] ${atEnd && !blocked ? 'cursor-pointer' : 'opacity-60'}`}>
-              <Checkbox id="accept-developer-terms" checked={agree} disabled={!atEnd || blocked} onCheckedChange={(v) => setAgree(v === true)} className="mt-0.5" data-testid="checkbox-accept-terms" />
+            {blocked && <p role="status" className="text-sm text-warn">Registration is temporarily closed. Accepting the agreement does not reopen it.</p>}
+            <label htmlFor="accept-developer-terms" className={`flex min-h-11 items-start gap-3 text-[14px] ${atEnd ? 'cursor-pointer' : 'opacity-60'}`}>
+              <Checkbox id="accept-developer-terms" checked={agree} disabled={!atEnd} onCheckedChange={(v) => setAgree(v === true)} className="mt-0.5" data-testid="checkbox-accept-terms" />
               <span>I have read and accept these terms.{!atEnd && <span className="block text-[12px] text-muted-foreground">Scroll to the end first.</span>}</span>
             </label>
             <Button className="h-12 rounded-full font-bold" disabled={!atEnd || !agree || blocked} onClick={proceed} data-testid="button-terms-continue">{blocked ? 'Signup closed' : 'Continue'}</Button>

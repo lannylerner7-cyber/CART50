@@ -10,21 +10,16 @@ import { destinationFor, execute, review, snapshot } from "./ledger";
 import { eligible, writable } from "./merchant";
 import {sharedBudget} from "./limits";
 import type { AuthenticationResponseJSON, RegistrationResponseJSON } from "@simplewebauthn/server";
+import { developerTerms } from "./terms";
 
 const emailSchema=z.string().trim().email().max(254).transform(s=>s.toLowerCase());
-const DRAFT = "Developer Sandbox preview terms\n\nThis workspace is a simulation for learning the interface. It does not hold Bitcoin, money or cash-valued Signet coins.\n\nKeep your login key and passkeys safe. Do not share credentials or use the service to harm others. Live access requires separate approval and readiness checks.\n\nWe use your name and email to create and verify your account. Necessary secure cookies keep you signed in. Optional tracking is off.\n\nThese are draft preview terms, not approved production terms. Production registration remains closed until approved terms and privacy disclosures are configured.";
 export type DeveloperDependencies = { send?: SecuritySender; quote?: () => { available: boolean; stale: boolean; price: number | null; updatedAt: string | null; source: string } };
 export function developerRouter(deps: DeveloperDependencies = {}) {
   if(process.env.FOUNDATION_LOCAL==="1"&&(!deps.quote||!deps.send))throw Error("Independent developer runtime requires explicit mail and quote providers");
   const quote=async()=>deps.quote?deps.quote():(await import("../vault/market")).getMarket();
   const router=Router();
   const limits=new Map<string,{count:number,until:number}>();
-  const terms=()=> {
-    const approved=!!process.env.DEVELOPER_TERMS_VERSION && !!process.env.DEVELOPER_TERMS_TEXT;
-    return {version: approved ? process.env.DEVELOPER_TERMS_VERSION! : "preview-draft-1",
-      text: approved ? process.env.DEVELOPER_TERMS_TEXT! : DRAFT, approved,
-      signupEnabled: process.env.NODE_ENV!=="production" || approved};
-  };
+  const terms=developerTerms;
   router.use((_req,res,next)=>{res.set("Cache-Control","no-store");next();});
   router.use(verifyOrigin);
   router.use((req,_res,next)=>{
@@ -84,7 +79,7 @@ export function developerRouter(deps: DeveloperDependencies = {}) {
   router.post("/:action",async(req,res)=>{
     const action=req.params.action;
     if(action==="register" || action==="resend") {
-      const t=terms(); if(!t.signupEnabled) throw new HttpError(503,"Developer registration awaits approved terms and privacy disclosures");
+      const t=terms(); if(!t.signupEnabled) throw new HttpError(503,"Developer registration is temporarily closed");
       const input=action==="register" ? z.object({name:z.string().trim().min(1).max(80),email:emailSchema,termsVersion:z.literal(t.version),accepted:z.literal(true)}).strict().parse(req.body)
         : z.object({email:emailSchema}).strict().parse(req.body);
       let a=await accountBy("email",input.email);

@@ -2,6 +2,16 @@
 name: Developer access boundary
 description: Separate multi-user developer onboarding and staged homepage relocation without owner-custody changes.
 ---
+The owner wants public agreement content shipped with the project, not supplied
+through Secrets or Coolify terms variables. Agreement acceptance and registration
+availability must be independent; draft legal status is not approval for Live.
+
+**Why:** The configuration gate repeatedly appeared to users as a broken checkbox
+across devices. The owner explicitly authorized separating these concerns.
+
+**How to apply:** Preserve server-side version/acceptance enforcement and truthful
+draft labels. Keep signup pause controls distinct from the act of checking a box.
+
 Developer accounts are separate from the personal owner: signup with name/email,
 verify a one-use 24-character email key, require passkey enrollment, then issue
 an 86-character login credential. Passkey authentication can replace a lost
