@@ -340,7 +340,7 @@ export async function customFetch<T = unknown>(
   }
 
   const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
-  if (_csrfToken && !["GET", "HEAD", "OPTIONS"].includes(method)) {
+  if (_csrfToken && !headers.has("x-csrf-token") && !["GET", "HEAD", "OPTIONS"].includes(method)) {
     headers.set("X-CSRF-Token", _csrfToken);
   }
 

@@ -20,6 +20,7 @@ const Market = lazy(() => import('@/pages/market'));
 const SettingsPage = lazy(() => import('@/pages/settings'));
 const SandboxRouter = lazy(() => import('@/pages/sandbox'));
 const PlatformAdmin = lazy(() => import('@/pages/platform-admin'));
+const OwnerAdmin = lazy(() => import('@/pages/admin'));
 const HostedCheckoutPage = lazy(() => import('@/pages/hosted-checkout'));
 const DevelopersApp = lazy(() => import('@/pages/developers'));
 const WalletFoundationPage = lazy(() => import('@/pages/developers/wallet-foundation'));
@@ -124,7 +125,9 @@ function Gate() {
 
   return (
     <SessionProvider session={session}>
-      {location === '/sandbox' || location.startsWith('/sandbox/') ? (
+      {location === '/admin' ? (
+        <Suspense fallback={<p className="p-6">Loading owner administration…</p>}><OwnerAdmin /></Suspense>
+      ) : location === '/sandbox' || location.startsWith('/sandbox/') ? (
         <SandboxShell>
           <RoutedErrorBoundary>
             <Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading sandbox…</p>}><SandboxRouter /></Suspense>
@@ -141,7 +144,7 @@ function Entry() {
   const legacyOwner = legacyOwnerRedirect(location);
   if (legacyOwner) return <Redirect to={legacyOwner} replace />;
   if (location === PLATFORM_ADMIN_PATH || location === `${PLATFORM_ADMIN_PATH}/`) return <Suspense fallback={<p className="p-6">Loading administrator sign-in…</p>}><PlatformAdmin /></Suspense>;
-  if (location === '/admin' || location === `${OWNER_BASE}/admin`) return <Redirect to={PLATFORM_ADMIN_PATH} replace />;
+  if (location === '/admin') return <Redirect to={PLATFORM_ADMIN_PATH} replace />;
   if (location.startsWith('/checkout/')) {
     return <Suspense fallback={<div className="grid min-h-[100dvh] place-items-center bg-sidebar"><VaultMark className="h-12 w-12" /></div>}><Route path="/checkout/:token">{(p) => <HostedCheckoutPage token={p.token} />}</Route></Suspense>;
   }

@@ -26,3 +26,11 @@ upstream response. An abort alone did not establish post-commit response loss.
 **How to apply:** When interception is unreliable, use an opt-in fixture-only
 post-commit response fault and private request evidence. Prove the original
 commit and same-key retry; never put fault controls into production routes.
+
+Verify temporary credential-directory removal after stopping a fixture.
+
+**Why:** Stopping a package-manager-wrapped background process closed the
+listener without completing the child process's temporary-directory cleanup.
+
+**How to apply:** Check both listener shutdown and directory absence. Remove
+only the known disposable run directory if shutdown left it behind.
