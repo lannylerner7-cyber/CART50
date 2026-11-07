@@ -79,6 +79,17 @@ or grant an alternative way to unlock personal custody.
 **How to apply:** Keep independent sessions and permissions. Do not interpret
 this single-administrator login as authorization for Live custody or staff RBAC.
 
+Verify a live admin link against both the deployed frontend and its session API
+before offering it as a working login link.
+
+**Why:** The source route worked in preview, but the live Coolify image lacked
+both the admin UI route and API. A successful HTML response and healthy process
+still rendered "Page not found"; sharing the source-only link misled the owner.
+
+**How to apply:** Check the actual rendered sign-in page and unauthenticated API
+response. Keep workspace secret configuration distinct from Coolify runtime
+configuration; never change the agreed path just to work around an old release.
+
 **Why:** The owner explicitly prioritizes protecting personal and customer funds.
 
 Stage developer ledger work in a disposable independent local process before

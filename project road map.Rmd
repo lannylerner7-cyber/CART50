@@ -11,6 +11,21 @@ output:
 
 # Read this first
 
+## Platform-admin live route diagnosis — 2026-11-07
+
+- Confirmed the requested admin path is present in the current frontend and
+  wired to the separate platform-admin API. The isolated authentication suite
+  passes; the workspace API reports sign-in unconfigured.
+- Read-only live checks found HTTP 200 SPA HTML rendering "Page not found",
+  a deployed entry bundle without the platform-admin route, and HTTP 404 from
+  `/api/platform-admin/session` while `/api/healthz` returns 200. This is a
+  deployed-release mismatch, not a missing DNS record or a wrong agreed path.
+- Updated the Coolify example with the current public origin and runtime-only
+  admin settings, and added a website-only deployment/verification checklist.
+  Live correction still requires updating the hosted website source/image and
+  confirming its runtime credentials. No password was read or changed, and no
+  push, deployment, DNS or Core/signer/Signet change was made.
+
 ## Public documentation, crawl readiness and favicon compatibility — 2026-11-07
 
 - Updated the homepage-linked guide to match implemented wallet settlement,
@@ -1446,16 +1461,16 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-612 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+613 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
-| `.agents/agent_assets_metadata.toml` | 5315 | `fd850ae61e0519307dc1d3f37b35a89f9e863893f7329e0235d5c53916dde4c8` | Workspace asset metadata; not application logic. |
+| `.agents/agent_assets_metadata.toml` | 6009 | `e46a30ce25a42db4f05021db74e7f4d357987a3db914666ab1bd93a73d2d9500` | Workspace asset metadata; not application logic. |
 | `.agents/memory/MEMORY.md` | 3297 | `d3a757932557649363c26b7d4abe3a5cb540c103eca1c620d02dabff33ecc6eb` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/checkout-settlement.md` | 1595 | `d46fda5b371157ae114b69435c2e0de0812391e3553c0e67c90e4229010e46b9` | Durable project decision/lesson: checkout-settlement. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
-| `.agents/memory/developer-boundary.md` | 5979 | `ad5761d9b49c305194514b67cbb41c4bc3035d61d5e92fa19a9ebb37bc0919df` | Durable project decision/lesson: developer-boundary. |
+| `.agents/memory/developer-boundary.md` | 6582 | `d5f89cf7f294028c20824675013a6ba98debc6369afd0cc2dafc3aa379477a38` | Durable project decision/lesson: developer-boundary. |
 | `.agents/memory/developer-intro-experience.md` | 2058 | `13b7d2762434ffc31d7a76b75c9fd35fe72a6d01a222e0e2daea906fafe85285` | Durable project decision/lesson: developer-intro-experience. |
 | `.agents/memory/emergency-audit-capacity.md` | 735 | `6a4b0430853bd8632a3f0ad31e8386e709b03c4418c1323a4574d68a6eaa8fa4` | Durable project decision/lesson: emergency-audit-capacity. |
 | `.agents/memory/fixture-browser-boundary.md` | 2880 | `5239dd12edc6311e7d42dac2cbb70bf8148eabf94b760a971e05386f80e4294d` | Durable project decision/lesson: fixture-browser-boundary. |
@@ -1829,7 +1844,7 @@ to publish: review repository assets before release.
 | `deploy/coolify-bitcoin.test.mjs` | 3434 | `684aeec347e045db6c8770eb336f36e17f4a9077d99de070847fe8c179090f13` | Regression tests for coolify-bitcoin; local checks, not hosted evidence. |
 | `deploy/coolify-mainnet.compose.yaml` | 2398 | `9b55474ad9617b61c4690c9fa6c08e438893ea65f9602c264d4eabc61c706651` | Deployment configuration/tool: coolify-mainnet.compose.yaml; see deployment chapter and runbooks. |
 | `deploy/coolify-signer.env.example` | 1076 | `791c6f78f950f4f1d929bb9a0af2153bf990254479e8b64e84e748094da592a8` | Configuration variable template; placeholders only, not installed secrets. |
-| `deploy/coolify.env.example` | 1767 | `0e845779565197feabb5613f996c6500f24463f08fa8df2268552de59b701c2e` | Configuration variable template; placeholders only, not installed secrets. |
+| `deploy/coolify.env.example` | 2142 | `df02b1c6eff2a385b7926009efa37b816ec67a87bff4f9384c9f4ea297eb0522` | Configuration variable template; placeholders only, not installed secrets. |
 | `deploy/mainnet.test.mjs` | 2418 | `575f582ee66fa1920368bcd63cf63a3fbcfd9ad0c0f9f3cebbd4a586daa323f6` | Regression tests for mainnet; local checks, not hosted evidence. |
 | `deploy/vault-engine.Dockerfile` | 928 | `4ae9c083ac18886196b9a90f56bf1f7bb859bca581e2cfcc8d88a985d3479acb` | Deployment configuration/tool: vault-engine.Dockerfile; see deployment chapter and runbooks. |
 | `deploy/vault-engine.service` | 606 | `c05c133b8fe8fd2a1f2391f24bbdc825470a9290e8e7399ab34e06308a6487dd` | Deployment configuration/tool: vault-engine.service; see deployment chapter and runbooks. |
@@ -1853,7 +1868,7 @@ to publish: review repository assets before release.
 | `docs/mainnet-and-capacity.md` | 9136 | `57430c0a1d0d3b13cf5b403aa8fad650c80aff1883d574c5837ca7541f5f38d2` | Detailed mainnet and capacity runbook/status reference; respect dated evidence. |
 | `docs/mainnet-sync-monitor.md` | 1687 | `1aec872da31af91d241d5575f1034813b9179f4498d63a2c81ecb8c505d4bce2` | Detailed mainnet sync monitor runbook/status reference; respect dated evidence. |
 | `docs/owner-route-terms-acceptance.md` | 1228 | `d3eadc9179c7f099c533746735ae61add200d13b14a2d08503a4a0c9bda99d64` | Detailed owner route terms acceptance runbook/status reference; respect dated evidence. |
-| `docs/platform-admin.md` | 3014 | `2c6312996c7c599b851135cce39328f5e693a899a28cd481fd98b5028f2e505b` | Detailed platform admin runbook/status reference; respect dated evidence. |
+| `docs/platform-admin.md` | 5652 | `08112cce07ad1988e008439b58dce2a93fcc2a15c4f8084581a5d0bcd9949c93` | Detailed platform admin runbook/status reference; respect dated evidence. |
 | `docs/protected-admin-acceptance.md` | 7061 | `69aea168b7ed9aad2fd2b723414118d955d54b6ef084b57a45b5a520a58d8979` | Detailed protected admin acceptance runbook/status reference; respect dated evidence. |
 | `docs/protected-admin-multitab-acceptance.md` | 4644 | `baa93f66130208538ec8cdf5202d153ee27c033938712bd7f8ee3f7557094ac3` | Detailed protected admin multitab acceptance runbook/status reference; respect dated evidence. |
 | `docs/public-copy-review.md` | 3055 | `61d102697f378fc38fb31d0327b079760ad7a18562d52521d169aa391a8c1bdc` | Detailed public copy review runbook/status reference; respect dated evidence. |
@@ -2007,8 +2022,9 @@ to publish: review repository assets before release.
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
 | `pnpm-lock.yaml` | 220571 | `620a5814f5669e564e6fcae124cb6aced74255e5348724ece96933a9cd78a4c5` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4727 | `c2648e54a1cba7fd233f0cbf74f37514c2dc7dd4ee8a48384a954806b502afbf` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 88684 | `c1c1938e05d1cb38745578f568c7fc0bfcdd56e6405e1ca57c14cbf107fd34c3` | Living architecture, readiness, roadmap and complete source inventory. |
+| `project road map.Rmd` | 89635 | `936bb2c8dba09fa75ec4248041d449e61e7329ceebbdb1e61f569b2ac557a4c7` | Living architecture, readiness, roadmap and complete source inventory. |
 | `replit.md` | 4744 | `1c9479469773dc45905cf9a2beeef2bffc70977f66bafb08c4196f9dbf5a852b` | Collaborator instructions, operating constraints and documentation maintenance contract. |
+| `screenshots/admin-page.jpg` | 30374 | `24cc59db95225ed1f22025c6b4da451dc54b17bbcd3f5731ebf97e73443d16ec` | admin-page.jpg module in screenshots; see the owning subsystem above. |
 | `scripts/build-favicons.mjs` | 2371 | `72ca9ff538a8d6b0328059288fbb643e7d533c5041957dc13d5e832b0e4f839f` | Operator/build utility: build-favicons.mjs; inspect flags before invoking. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/developer-capacity-check.mts` | 2050 | `ea82c34dfd141ec3f6b675df74e518473f356529d2c996e0c288ac9ca6de8527` | Operator/build utility: developer-capacity-check.mts; inspect flags before invoking. |
