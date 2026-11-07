@@ -31,6 +31,14 @@ test("checkout/admin boundaries, idempotent simulation and leased webhook outbox
     const a=await developer("a@example.invalid"),b=await developer("b@example.invalid");
     let ownerCookie="";const owner=await newSession({cookie:(n:string,v:string)=>ownerCookie=n+"="+v} as any,true);
     const admin={cookie:ownerCookie,csrf:owner.csrf};
+    await updateAccount(b.id,a=>{a.verification={hash:"PRIVATE_VERIFIER",expires:Date.now()+60000,sentAt:Date.now(),attempts:0,delivery:"failed",
+      diagnostic:{correlationId:randomUUID(),attemptedAt:new Date().toISOString(),completedAt:new Date().toISOString(),status:"failed",error:"authentication"}};});
+    const diagnostics=await req("/admin/developers","GET",undefined,admin);
+    assert.equal(diagnostics.status,200);
+    assert.equal(diagnostics.data.accounts.find((x:any)=>x.id===b.id).verificationEmail.error,"authentication");
+    assert.equal(diagnostics.data.accounts.find((x:any)=>x.id===a.id).verificationEmail,null);
+    assert.ok(!JSON.stringify(diagnostics.data).includes("PRIVATE_VERIFIER"));
+    assert.equal((await req("/admin/developers")).status,401);
     const beforeOwner=JSON.stringify(await readState());
     assert.equal((await req("/admin/developers","GET",undefined,a.client)).status,401);
     assert.equal((await req("/vault/wallets","GET",undefined,a.client)).status,401);

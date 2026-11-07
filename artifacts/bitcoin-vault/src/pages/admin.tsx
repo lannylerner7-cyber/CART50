@@ -182,6 +182,27 @@ export default function AdminPage({adminSession, onAuthenticate, onLogout}: {adm
           <Pill testId={`status-application-${a.id}`}>live: {a.liveApplication}</Pill>
         </div>
       </div>
+      {mode === 'accounts' && <details className="mt-3 rounded-lg bg-muted/40 px-3" data-testid={`email-diagnostic-${a.id}`}>
+        <summary className="cursor-pointer py-2 text-[12.5px] font-semibold text-muted-foreground">Verification email · {a.verificationEmail ? ({pending:'In progress',sent:'Accepted by mail server',failed:'Failed'}[a.verificationEmail.status]) : 'No retained diagnostic'}</summary>
+        <div className="space-y-1 pb-3 text-xs text-muted-foreground">
+          {a.verificationEmail ? <>
+            <p>Attempted: {new Date(a.verificationEmail.attemptedAt).toLocaleString()}</p>
+            <p>{a.verificationEmail.status === 'sent' ? 'Mail server accepted at' : 'Attempt completed at'}: {a.verificationEmail.completedAt ? new Date(a.verificationEmail.completedAt).toLocaleString() : 'Not recorded; outcome unconfirmed'}</p>
+            <p className="break-all">Correlation ID: <span className="font-mono">{a.verificationEmail.correlationId}</span></p>
+            {a.verificationEmail.error && <p>Error: {({
+              configuration:'Mail configuration missing or invalid',
+              authentication:'Mail provider authentication failed',
+              connection:'Could not connect to the mail provider',
+              timeout:'Mail provider timed out; delivery is unconfirmed',
+              tls:'Secure connection validation failed',
+              rejected:'Mail provider rejected the message or recipient',
+              provider:'Mail provider could not process the message',
+              unknown:'Unclassified failure; no provider details retained',
+            })[a.verificationEmail.error]}</p>}
+          </> : <p>No diagnostic is available for older attempts or after successful verification.</p>}
+          <p>Latest attempt only; replaced on resend and removed after verification. Mail server acceptance does not confirm inbox delivery. This panel never resends emails.</p>
+        </div>
+      </details>}
       <div className="mt-3 flex flex-wrap gap-1.5">
         {(mode === 'applications' ? [{ a: 'approve' as AdminAction, label: 'Approve application' }, { a: 'reject' as AdminAction, label: 'Reject application' }] : actions).map(({ a: act, label }) => (
           <Button key={act} size="sm" variant={STRONG.includes(act) ? 'destructive' : 'outline'} className="h-8 rounded-full px-3 text-[12.5px]" onClick={() => open({ action: act, account: a })} data-testid={`button-${act}-${a.id}`}>{label}</Button>

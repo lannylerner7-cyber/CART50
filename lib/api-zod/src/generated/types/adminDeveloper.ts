@@ -5,8 +5,10 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CheckoutAudit } from './checkoutAudit';
+import type { VerificationEmailDiagnostic } from './verificationEmailDiagnostic';
 
 export interface AdminDeveloper {
+  verificationEmail: VerificationEmailDiagnostic | null;
   id: string;
   name: string;
   email: string;

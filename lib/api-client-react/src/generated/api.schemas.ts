@@ -178,7 +178,47 @@ export interface CheckoutConsole {
   liveEnabled: boolean;
 }
 
+export type VerificationEmailDiagnosticStatus = typeof VerificationEmailDiagnosticStatus[keyof typeof VerificationEmailDiagnosticStatus];
+
+
+export const VerificationEmailDiagnosticStatus = {
+  pending: 'pending',
+  sent: 'sent',
+  failed: 'failed',
+} as const;
+
+/**
+ * @nullable
+ */
+export type VerificationEmailDiagnosticError = typeof VerificationEmailDiagnosticError[keyof typeof VerificationEmailDiagnosticError] | null;
+
+
+export const VerificationEmailDiagnosticError = {
+  configuration: 'configuration',
+  authentication: 'authentication',
+  connection: 'connection',
+  timeout: 'timeout',
+  tls: 'tls',
+  rejected: 'rejected',
+  provider: 'provider',
+  unknown: 'unknown',
+} as const;
+
+/**
+ * @nullable
+ */
+export type VerificationEmailDiagnostic = {
+  correlationId: string;
+  attemptedAt: string;
+  /** @nullable */
+  completedAt: string | null;
+  status: VerificationEmailDiagnosticStatus;
+  /** @nullable */
+  error: VerificationEmailDiagnosticError;
+} | null;
+
 export interface AdminDeveloper {
+  verificationEmail: VerificationEmailDiagnostic | null;
   id: string;
   name: string;
   email: string;

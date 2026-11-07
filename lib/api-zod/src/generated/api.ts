@@ -158,6 +158,13 @@ export const GetDeveloperAdminResponse = zod.object({
   "nextCursor": zod.string().nullable(),
   "paused": zod.boolean(),
   "accounts": zod.array(zod.object({
+  "verificationEmail": zod.object({
+  "correlationId": zod.string(),
+  "attemptedAt": zod.string(),
+  "completedAt": zod.string().nullable(),
+  "status": zod.enum(['pending', 'sent', 'failed']),
+  "error": zod.union([zod.literal('configuration'),zod.literal('authentication'),zod.literal('connection'),zod.literal('timeout'),zod.literal('tls'),zod.literal('rejected'),zod.literal('provider'),zod.literal('unknown'),zod.literal(null)]).nullable()
+}).nullable(),
   "id": zod.string(),
   "name": zod.string(),
   "email": zod.string(),

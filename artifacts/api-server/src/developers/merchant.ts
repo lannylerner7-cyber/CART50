@@ -46,6 +46,7 @@ export async function accountPage(after=""){
   const rows=await query(`SELECT id,email,
     json_extract(data,'$.name') AS name,json_extract(data,'$.verified') AS verified,
     json_extract(data,'$.balanceSats') AS balanceSats,
+    json_extract(data,'$.verification.diagnostic') AS verificationEmail,
     COALESCE(json_extract(data,'$.merchant.status'),'active') AS status,
     json_extract(data,'$.merchant.apiKeyPrefix') AS apiKeyPrefix,
     COALESCE(json_extract(data,'$.merchant.liveApplication'),'none') AS liveApplication,
@@ -54,7 +55,7 @@ export async function accountPage(after=""){
     FROM developer_accounts a WHERE id>? ORDER BY id LIMIT 51`,[after]);
   const page=rows.slice(0,50);
   return {nextCursor:rows.length>50?String(page[49].id):null,
-    accounts:page.map(r=>({...r,id:String(r.id),verified:!!r.verified,balanceSats:Number(r.balanceSats),audit:JSON.parse(String(r.audit??"[]"))}))};
+    accounts:page.map(r=>({...r,id:String(r.id),verified:!!r.verified,balanceSats:Number(r.balanceSats),verificationEmail:r.verificationEmail?JSON.parse(String(r.verificationEmail)):null,audit:JSON.parse(String(r.audit??"[]"))}))};
 }
 export type Controls={paused:boolean;audit:AdminAudit[]};
 export async function controls():Promise<Controls>{

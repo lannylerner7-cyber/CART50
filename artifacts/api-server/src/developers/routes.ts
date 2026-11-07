@@ -5,7 +5,8 @@ import { activeSession, cookieOptions, DEV_COOKIE, identify, issueSession, paylo
 import { accountBy, audit, createAccount, updateAccount } from "./store";
 import { credentialHash, equal, hash, HttpError, verifyOrigin } from "../lib/security";
 import { registrationOptions, registrationVerify, loginOptions, loginVerify } from "./passkeys";
-import { sendSecurityMail, type SecuritySender } from "../vault/smtp";
+import { sendSecurityMail, smtpOptions, type SecuritySender } from "../vault/smtp";
+import { classifyMailError, type MailError } from "./mail-diagnostics";
 import { destinationFor, execute, review, snapshot } from "./ledger";
 import { eligible, writable } from "./merchant";
 import {sharedBudget} from "./limits";
@@ -56,23 +57,35 @@ export function developerRouter(deps: DeveloperDependencies = {}) {
   });
   async function sendVerification(id:string) {
     const key=randomBytes(18).toString("base64url");
+    const correlationId=randomUUID();
     const a=await updateAccount(id,a=>{
       if(a.verified && a.passkeys.length) return null;
       if(a.verification && Date.now()-a.verification.sentAt<60000) throw new HttpError(429,"Wait one minute before requesting another email");
-      a.verification={hash:hash(key),expires:Date.now()+15*60000,sentAt:Date.now(),attempts:0,delivery:"pending"};
+      a.verification={hash:hash(key),expires:Date.now()+15*60000,sentAt:Date.now(),attempts:0,delivery:"pending",
+        diagnostic:{correlationId,attemptedAt:new Date().toISOString(),completedAt:null,status:"pending",error:null}};
       return a;
     });
     if(!a) return;
+    let failure: MailError | undefined;
     try {
       const from=process.env.DEVELOPER_MAIL_FROM || process.env.SECURITY_ALERT_FROM;
-      if(!from && !deps.send) throw new Error("Mail sender unavailable");
+      if(!deps.send) {
+        try {
+          if(!from || from.length>254 || !/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(from)) throw new Error("Invalid sender");
+          smtpOptions();
+        } catch { failure="configuration"; throw new Error("Mail configuration unavailable"); }
+      }
       const result=await (deps.send??sendSecurityMail)({from:from??"fixture@example.invalid",to:a.email,
         subject:"Verify your main_vault developer email",text:`Your one-time verification key:\n\n${key}\n\nPaste all 24 characters into the verification field. It expires in 15 minutes. Check Inbox, Spam and Junk if you request a replacement. Never share this key.`,
-        messageId:`<${randomUUID()}@mainvaultwallet.com>`,date:new Date()});
-      if(result.rejected.length || !result.accepted.length) throw new Error("Mail rejected");
-      await updateAccount(id,a=>{if(a.verification?.hash===hash(key))a.verification.delivery="sent";});
-    }catch {
-      await updateAccount(id,a=>{if(a.verification?.hash===hash(key))a.verification.delivery="failed";});
+        messageId:`<${correlationId}@mainvaultwallet.com>`,date:new Date()});
+      if(result.rejected.length || !result.accepted.length) {failure="rejected";throw new Error("Mail rejected");}
+      await updateAccount(id,a=>{if(a.verification?.diagnostic?.correlationId===correlationId){
+        a.verification.delivery="sent";Object.assign(a.verification.diagnostic,{status:"sent",completedAt:new Date().toISOString()});
+      }});
+    }catch(error) {
+      await updateAccount(id,a=>{if(a.verification?.diagnostic?.correlationId===correlationId){
+        a.verification.delivery="failed";Object.assign(a.verification.diagnostic,{status:"failed",completedAt:new Date().toISOString(),error:failure??classifyMailError(error)});
+      }});
       throw new HttpError(503,"Verification email could not be delivered. Retry after one minute; your account has not been activated.");
     }
   }

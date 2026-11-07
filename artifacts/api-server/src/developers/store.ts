@@ -3,6 +3,7 @@ import { initializeMetadata, query } from "./storage";
 import type {StoredPasskey} from "../vault/store";
 import { HttpError } from "../lib/security";
 import type { MerchantState } from "./merchant";
+import type { MailDiagnostic } from "./mail-diagnostics";
 
 export type DevSession = { hash: string; csrf: string; expires: number; level: "onboarding" | "full"; passkeyAt?: number };
 export type DevReview = { id: string; destination: string; amountCents: number; amountSats: number; sessionHash: string; createdAt: string; expiresAt: string; status: "pending" | "complete"; receiptId?: string };
@@ -12,7 +13,7 @@ export type Account = {
   merchant?: MerchantState;
   id: string; email: string; name: string; createdAt: string; termsVersion: string; acceptedAt: string;
   verified: boolean; passkeys: StoredPasskey[]; keyHash?: string; sessions: DevSession[];
-  verification?: { hash: string; expires: number; sentAt: number; attempts: number; delivery: "pending" | "sent" | "failed" };
+  verification?: { hash: string; expires: number; sentAt: number; attempts: number; delivery: "pending" | "sent" | "failed"; diagnostic?: MailDiagnostic };
   provisioning: "not_started" | "ready"; balanceSats: number; quote?: { priceCents: number; at: string; source: string };
   reviews: DevReview[]; transactions: DevReceipt[]; audit: { event: string; at: string }[];
 };

@@ -22,7 +22,7 @@ test("isolated developer lifecycle, email safety, provisioning and payment idemp
     : {price:100000,updatedAt:new Date().toISOString(),source:"fixture quote — not market evidence"};
   const expectedBalance=Number(300000n*100000000n/BigInt(Math.round(quote.price*100)));
   const app=express();app.use(express.json());app.use("/api/developers",developerRouter({
-    send:async m=>{if(failMail)throw new Error("delivery failed");mail.set(m.to,m.text.match(/\n\n([A-Za-z0-9_-]{24})\n\n/)![1]);return {accepted:[m.to],rejected:[],response:"fixture"};},
+    send:async m=>{if(failMail)throw Object.assign(new Error("SENSITIVE_PROVIDER_TEXT "+m.text),{code:"EAUTH"});mail.set(m.to,m.text.match(/\n\n([A-Za-z0-9_-]{24})\n\n/)![1]);return {accepted:[m.to],rejected:[],response:"fixture"};},
     quote:()=>({...quote,available,stale:!available}),
   }));
   app.use((e:any,_req:any,res:any,_next:any)=>res.status(e.status??400).json({error:e.message}));
@@ -104,12 +104,17 @@ test("isolated developer lifecycle, email safety, provisioning and payment idemp
     const e=client(),email="expired@example.invalid";
     await call(e,"/register",{name:"Expired",email,accepted:true,termsVersion:DEVELOPER_TERMS_VERSION});
     const old=mail.get(email)!;const ea=(await accountBy("email",email))!;
+    assert.equal(ea.verification?.diagnostic?.status,"sent");
+    assert.ok(ea.verification?.diagnostic?.completedAt);
+    const correlation=ea.verification!.diagnostic!.correlationId;
     await updateAccount(ea.id,a=>{a.verification!.expires=0;a.verification!.sentAt=0;});
     assert.equal((await call(e,"/verify-email",{email,key:old})).status,400);
     await call(e,"/resend",{email});
+    assert.notEqual((await accountBy("id",ea.id))?.verification?.diagnostic?.correlationId,correlation);
     assert.notEqual(old,mail.get(email));
     assert.equal((await call(e,"/verify-email",{email,key:old})).status,400);
     assert.equal((await call(e,"/verify-email",{email,key:mail.get(email)})).status,200);
+    assert.equal((await accountBy("id",ea.id))?.verification,undefined);
     // Expired onboarding can recover by email only until passkey enrollment.
     await updateAccount(ea.id,a=>{a.sessions=[];});
     assert.equal((await call(e,"/resend",{email})).status,200);
@@ -119,6 +124,10 @@ test("isolated developer lifecycle, email safety, provisioning and payment idemp
     failMail=true;
     assert.equal((await call(client(),"/register",{name:"Mail failure",email:"mailfail@example.invalid",accepted:true,termsVersion:DEVELOPER_TERMS_VERSION})).status,503);
     assert.equal((await accountBy("email","mailfail@example.invalid"))?.verification?.delivery,"failed");
+    const failed=(await accountBy("email","mailfail@example.invalid"))!;
+    assert.equal(failed.verification?.diagnostic?.error,"authentication");
+    assert.ok(failed.verification?.diagnostic?.completedAt);
+    assert.ok(!JSON.stringify(failed).includes("SENSITIVE_PROVIDER_TEXT"));
     assert.equal((await accountBy("id",a.id))?.keyHash?.length,64);
   } finally {server.close();rmSync(dir,{recursive:true,force:true});}
 });
