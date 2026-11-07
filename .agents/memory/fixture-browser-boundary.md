@@ -34,3 +34,15 @@ listener without completing the child process's temporary-directory cleanup.
 
 **How to apply:** Check both listener shutdown and directory absence. Remove
 only the known disposable run directory if shutdown left it behind.
+
+For multi-tab WebAuthn testing, CDP virtual authenticators may be target-scoped
+even when cookies are shared. Enroll a disposable passkey through the UI in each
+target rather than fabricating authentication responses.
+
+**Why:** A shared browser context did not make the first target's virtual
+authenticator available to the second target.
+
+**How to apply:** Keep the shared cookie context for session-rotation tests,
+but use genuine UI enrollment per target. Avoid accessibility snapshots while
+a disposable credential input is populated; masking screenshots does not
+necessarily mask the accessibility tree.
