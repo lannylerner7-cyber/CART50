@@ -4,15 +4,18 @@
  * Api
  * OpenAPI spec version: 0.1.0
  */
+import type { SandboxCheckoutRef } from './sandboxCheckoutRef';
 import type { SandboxReviewStatus } from './sandboxReviewStatus';
 
 export interface SandboxReview {
   id: string;
   amountCents: number;
+  amountSats?: number;
   destination: string;
   createdAt: string;
   expiresAt: string;
   status: SandboxReviewStatus;
   /** @nullable */
   receiptId: string | null;
+  checkout?: SandboxCheckoutRef;
 }

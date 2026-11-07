@@ -54,8 +54,9 @@ secret; the sample accepts one configured signing secret at a time.
 The starter's QR encodes the hosted checkout URL. It is not a Bitcoin payment
 address. USD conversion uses fresh public Coinbase prices, cached for at most
 60 seconds and rejected after 180 seconds. Simulation is explicitly labelled.
-The status button is read-only, as is polling. Merchants simulate receipt from
-their MainVault console; neither a pasted wallet address nor a buyer's assertion
+The status button is read-only, as is polling. A session settles when it is
+paid from a MainVault Sandbox wallet (the merchant console can also mark it paid
+for automated tests); neither a pasted wallet address nor a buyer's assertion
 changes payment status.
 
 Both implementations preserve an order UUID, amount and checkout in SQLite;

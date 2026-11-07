@@ -8,7 +8,8 @@ import { registrationOptions, registrationVerify, loginOptions, loginVerify } fr
 import { sendSecurityMail, smtpOptions, type SecuritySender } from "../vault/smtp";
 import { classifyMailError, type MailError } from "./mail-diagnostics";
 import { destinationFor, execute, review, snapshot } from "./ledger";
-import { eligible, writable } from "./merchant";
+import { eligible, parseCheckoutDestination, writable } from "./merchant";
+import { checkoutInfo, lookupCheckoutTarget, resumeSettlements, reviewCheckout, settle } from "./settlement";
 import {sharedBudget} from "./limits";
 import type { AuthenticationResponseJSON, RegistrationResponseJSON } from "@simplewebauthn/server";
 import { developerTerms } from "./terms";
@@ -39,7 +40,9 @@ export function developerRouter(deps: DeveloperDependencies = {}) {
     catch(e){if(e instanceof HttpError && e.status===401) res.json({authenticated:false,terms:terms()});else throw e;}
   });
   router.get("/sandbox",async(req,res)=>{
-    const {a,s}=await identify(req,true);
+    let {a,s}=await identify(req,true);
+    // Complete any transfer interrupted after its debit before showing balances.
+    if(a.settlements?.some(x=>x.state==="debited")){await resumeSettlements(a.id);a=(await accountBy("id",a.id))??a;}
     const q=await quote(), at=Date.parse(q.updatedAt??"");
     const fresh=q.available && !q.stale && q.price && Number.isFinite(at) && Date.now()-at<=180000 && at<=Date.now()+30000;
     const priceCents=fresh?Math.round(q.price!*100):0;
@@ -51,9 +54,16 @@ export function developerRouter(deps: DeveloperDependencies = {}) {
   });
   router.get("/sandbox/address",async(req,res)=>{
     const {a,s}=await identify(req,true); snapshot(a,s);
-    if(req.query.destination!==destinationFor(a)) throw new HttpError(400,"Only your assigned Sandbox identifier can be checked");
+    const destination=typeof req.query.destination==="string"?req.query.destination:"";
+    if(destination.length<=100&&parseCheckoutDestination(destination)){
+      // A hosted checkout destination: show what will be paid, never the merchant's balance or identity.
+      const target=await lookupCheckoutTarget(destination);
+      res.json({destination,environment:"simulation",simulatedCreditCents:0,transactionCount:0,transactions:[],checkedAt:new Date().toISOString(),
+        kind:"checkout",checkout:checkoutInfo(a,target)});return;
+    }
+    if(destination!==destinationFor(a)) throw new HttpError(400,"Enter your assigned Sandbox identifier or a hosted checkout destination (checkout:…)");
     res.json({destination:destinationFor(a),environment:"simulation",simulatedCreditCents:snapshot(a,s).simulatedCreditCents,
-      transactionCount:a.transactions.length,transactions:a.transactions.slice(0,10),checkedAt:new Date().toISOString()});
+      transactionCount:a.transactions.length,transactions:a.transactions.slice(0,10),checkedAt:new Date().toISOString(),kind:"wallet"});
   });
   async function sendVerification(id:string) {
     const key=randomBytes(18).toString("base64url");
@@ -175,11 +185,18 @@ export function developerRouter(deps: DeveloperDependencies = {}) {
     if(action==="review"){
       await writable();
       const b=z.object({destination:z.string().max(100),amountCents:z.number().int().positive().max(300000)}).strict().parse(req.body);
+      if(parseCheckoutDestination(b.destination)){
+        const target=await lookupCheckoutTarget(b.destination);
+        res.json(await updateAccount(a.id,a=>{activeSession(a,s);eligible(a,true);return reviewCheckout(a,s,b.amountCents,target);}));return;
+      }
       res.json(await updateAccount(a.id,a=>{activeSession(a,s);eligible(a,true);return review(a,s,b.amountCents,b.destination);}));return;
     }
     if(action==="pay"){
       await writable();
       const b=z.object({reviewId:z.string().uuid(),confirmed:z.literal(true)}).strict().parse(req.body);
+      if(a.reviews.some(r=>r.id===b.reviewId&&r.sessionHash===s.hash&&r.checkout)){
+        res.json(await settle(a.id,s,b.reviewId,b.confirmed,a=>activeSession(a,s)));return;
+      }
       res.json(await updateAccount(a.id,a=>{activeSession(a,s);eligible(a,true);return execute(a,s,b.reviewId,b.confirmed);}));return;
     }
     throw new HttpError(404,"Developer action not found");

@@ -118,6 +118,25 @@ test('hosted checkout uses merchant order and does not mislabel its page QR as a
   assert.match(model.walletAddress, /page link/);
   assert.equal(model.recordedAt, 'Unavailable');
   assert.match(receiptFileName(model), /\.txt$/);
+  const settled = fromHostedCheckout({
+    id: 'checkout-1', reference: 'ORDER-999', amount_sats: 12345, expiresAt: at, environment: 'simulation',
+    status: 'simulation_paid', paid_at: '2026-10-31T09:10:11.000Z', paid_via: 'sandbox_transfer', sandbox_destination: 'checkout:tok',
+  });
+  assert.equal(settled.recordedAt, '2026-10-31 09:10:11 UTC');
+  assert.ok(settled.extra.some((l) => l.label === 'Settled via' && /Sandbox wallet/.test(l.value)));
+  assert.equal(settled.nonBitcoinIdentifier?.value, 'checkout:tok');
+});
+
+test('sandbox settlement receipts name the order and direction from the ledger record only', () => {
+  const fmt = (c: number) => `${(c / 100).toFixed(2)} demoUSD`;
+  const credit = fromSandboxReceipt({ id: 'rec-1', amountCents: 250, amountSats: 25000, destination: 'checkout:tok', createdAt: at, status: 'simulation_complete', balanceAfterCents: 10250, direction: 'in', checkout: { id: 'co-1', reference: 'ORDER-1' } }, fmt);
+  assert.equal(credit.direction, 'incoming');
+  assert.equal(credit.orderReference, 'ORDER-1');
+  assert.equal(credit.totalLabel, 'Total received');
+  assert.ok(credit.extra.some((l) => l.label === 'Checkout ID' && l.value === 'co-1'));
+  const plain = fromSandboxReceipt({ id: 'rec-2', amountCents: 250, destination: 'sandbox-x', createdAt: at, status: 'simulation_complete', balanceAfterCents: 10 }, fmt);
+  assert.equal(plain.direction, 'outgoing');
+  assert.equal(plain.orderReferenceLabel, 'Record ID');
 });
 
 test('animation finishes once and cannot promote payment state', () => {

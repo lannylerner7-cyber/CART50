@@ -5,6 +5,7 @@ import {HttpError} from "../lib/security";
 import {updateAccount} from "./store";
 import {merchant,type Delivery} from "./merchant";
 import {initializeMetadata,query} from "./storage";
+import {sweepSettlements} from "./settlement";
 function encryptionKey(){
   if(!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length<32)throw new HttpError(503,"Webhook encryption is not configured");
   return createHash("sha256").update("developer-webhooks:"+process.env.SESSION_SECRET).digest();
@@ -81,6 +82,8 @@ export async function dueDeliveries(now=Date.now()){
 export async function drainWebhooks(){
   if(running)return;running=true;
   try{
+    // Interrupted Sandbox transfers are completed first so their events join this sweep.
+    await sweepSettlements().catch(()=>{});
     for(const d of await dueDeliveries())await attemptDelivery(String(d.account_id),String(d.event_id));
   }finally{running=false;}
 }

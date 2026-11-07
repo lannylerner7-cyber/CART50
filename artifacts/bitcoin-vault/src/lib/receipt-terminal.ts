@@ -174,7 +174,8 @@ export function fromSignetPayment(r: LivePaymentInput): ReceiptModel {
   return { ...m, source: 'signet', simulation: true, networkLabel: networkLabel(r.rv.network || 'signet'), title: 'main_vault Sandbox Signet receipt', fileStem: `sandbox-signet-receipt-${safeStem(r.tx.txid.slice(0, 16))}` };
 }
 
-export interface SandboxLedgerInput { id: string; amountCents: number; destination: string; createdAt: string; status: string; balanceAfterCents: number; /** Developer sandbox may carry authoritative simulated sats. */ amountSats?: string | number | null }
+export interface SandboxLedgerInput { id: string; amountCents: number; destination: string; createdAt: string; status: string; balanceAfterCents: number; /** Developer sandbox may carry authoritative simulated sats. */ amountSats?: string | number | null;
+  /** Present on hosted-checkout settlements: "in" is the merchant credit, "out" the payer debit. */ direction?: 'out' | 'in' | null; checkout?: { id: string; reference: string } | null }
 
 /** Sandbox ledger entry: demoUSD, destination is a ledger identifier and NOT a Bitcoin address. */
 export function fromSandboxReceipt(t: SandboxLedgerInput, fmtDemoUsd: (cents: number) => string): ReceiptModel {
@@ -182,20 +183,25 @@ export function fromSandboxReceipt(t: SandboxLedgerInput, fmtDemoUsd: (cents: nu
   const demo = Number.isSafeInteger(t.amountCents) ? fmtDemoUsd(t.amountCents) : UNAVAILABLE;
   const hasSats = t.amountSats !== undefined && t.amountSats !== null;
   const amt = hasSats ? btcFromSats(t.amountSats, 'sim BTC') : demo;
+  const incoming = t.direction === 'in';
+  const checkout = t.checkout ?? null;
   return simText(base({
     source: 'sandbox', backendStatus: t.status, variant, simulation: true,
-    networkLabel: 'Simulation · no real value', orderReference: val(t.id),
-    recordedAt: formatRecorded(t.createdAt), recordedAtLabel: 'Created',
-    amount: amt, fee: 'None (simulation ledger)', total: amt,
+    direction: incoming ? 'incoming' : 'outgoing',
+    networkLabel: 'Simulation · no real value',
+    orderReference: checkout ? val(checkout.reference) : val(t.id), orderReferenceLabel: checkout ? 'Order' : 'Record ID',
+    recordedAt: formatRecorded(t.createdAt), recordedAtLabel: checkout ? 'Settled at' : 'Created',
+    amount: amt, fee: 'None (simulation ledger)', total: amt, totalLabel: incoming ? 'Total received' : 'Total',
     transactionId: 'None · simulation, no Bitcoin transaction',
     walletAddress: `${UNAVAILABLE} · simulation identifier is not a Bitcoin address`,
-    nonBitcoinIdentifier: { label: 'Destination identifier (ledger)', value: val(t.destination) },
+    nonBitcoinIdentifier: { label: checkout ? 'Checkout destination (ledger)' : 'Destination identifier (ledger)', value: val(t.destination) },
     confirmations: 'Not applicable (simulation)',
     extra: [
+      ...(checkout ? [{ label: 'Checkout ID', value: val(checkout.id), mono: true }, { label: 'Ledger record ID', value: val(t.id), mono: true }, { label: 'Direction', value: incoming ? 'Received from a Sandbox wallet' : 'Paid to a hosted checkout' }] : []),
       ...(hasSats ? [{ label: 'Demo credit amount (demoUSD, not a USD quote)', value: demo }] : []),
       { label: 'Ledger balance after (demoUSD)', value: Number.isSafeInteger(t.balanceAfterCents) ? fmtDemoUsd(t.balanceAfterCents) : UNAVAILABLE },
     ],
-    title: 'main_vault Sandbox receipt', fileStem: `sandbox-test-receipt-${safeStem(t.id)}`,
+    title: 'main_vault Sandbox receipt', fileStem: `sandbox-test-receipt-${safeStem(checkout?.reference || t.id)}`,
   }));
 }
 
@@ -280,7 +286,10 @@ export function fromFoundationRecord(kind: FoundationKind, r: FoundationRecord, 
   }));
 }
 
-export interface CheckoutInput { id: string; status: string; amount_sats: number; reference: string; expiresAt: string; environment: string }
+export interface CheckoutInput { id: string; status: string; amount_sats: number; reference: string; expiresAt: string; environment: string;
+  /** Settlement facts reported by the backend once paid. Absent on older records. */ paid_at?: string | null; paid_via?: string | null; sandbox_destination?: string | null }
+
+const PAID_VIA: Record<string, string> = { sandbox_transfer: 'Sandbox wallet transfer', manual_simulation: 'Marked paid by the merchant (manual)' };
 
 /** Hosted checkout (simulation). Merchant reference is used as order. QR is a URL, never an address. */
 export function fromHostedCheckout(c: CheckoutInput): ReceiptModel {
@@ -290,12 +299,17 @@ export function fromHostedCheckout(c: CheckoutInput): ReceiptModel {
     source: 'checkout', backendStatus: c.status, variant, simulation: true, direction: 'checkout',
     networkLabel: `Simulation · ${val(c.environment)} · no real Bitcoin`,
     orderReference: c.reference ? c.reference : val(c.id), orderReferenceLabel: c.reference ? 'Order' : 'Record ID',
-    recordedAt: UNAVAILABLE, recordedAtLabel: 'Settled at',
+    recordedAt: c.paid_at ? formatRecorded(c.paid_at) : UNAVAILABLE, recordedAtLabel: 'Settled at',
     amount: amt, fee: UNAVAILABLE, total: amt, totalLabel: 'Total',
     transactionId: 'None · simulated checkout',
     walletAddress: `${UNAVAILABLE} · checkout QR is a page link, not a Bitcoin address`,
+    nonBitcoinIdentifier: c.sandbox_destination ? { label: 'Sandbox payment destination', value: c.sandbox_destination } : null,
     confirmations: 'Not applicable (simulation)',
-    extra: [{ label: 'Checkout ID', value: val(c.id), mono: true }, { label: 'Expires', value: formatRecorded(c.expiresAt) }],
+    extra: [
+      { label: 'Checkout ID', value: val(c.id), mono: true },
+      ...(c.paid_at ? [{ label: 'Settled via', value: c.paid_via ? (PAID_VIA[c.paid_via] ?? val(c.paid_via)) : UNAVAILABLE }] : []),
+      { label: 'Expires', value: formatRecorded(c.expiresAt) },
+    ],
     title: 'main_vault checkout receipt', fileStem: `checkout-receipt-${safeStem(c.reference || c.id)}`,
   });
   if (c.status === 'expired') return { ...m, statusText: 'EXPIRED - NOT PAID', headline: 'Checkout expired', subline: 'No payment was recorded.' };

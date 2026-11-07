@@ -5,6 +5,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { HostedCheckoutEnvironment } from './hostedCheckoutEnvironment';
+import type { HostedCheckoutPaidVia } from './hostedCheckoutPaidVia';
 import type { HostedCheckoutStatus } from './hostedCheckoutStatus';
 
 export interface HostedCheckout {
@@ -18,4 +19,10 @@ export interface HostedCheckout {
   /** @nullable */
   return_url: string | null;
   qrPayload: string;
+  /** Paste into a MainVault Sandbox wallet to pay this session with simulated balance. Format checkout:<token>. */
+  sandbox_destination: string;
+  /** @nullable */
+  paid_at: string | null;
+  /** @nullable */
+  paid_via: HostedCheckoutPaidVia;
 }

@@ -1,2 +1,18 @@
+# Development copy. Production serves /robots.txt and /sitemap.xml from the API server (static.ts)
+# with the same allowlist plus an absolute Sitemap URL.
 User-agent: *
+Allow: /$
+Allow: /developers$
+Allow: /developers/about$
+Allow: /developers/apply$
+Allow: /developers/resources$
+Allow: /developers/resources/terms$
+Allow: /developers/resources/privacy$
+Allow: /developers/resources/policy$
+Allow: /developers/resources/documentation$
+Allow: /developers/resources/integration$
+Allow: /developers/resources/contact$
+Allow: /assets/
+Allow: /favicon.svg
+Allow: /developer-intro.jpg
 Disallow: /

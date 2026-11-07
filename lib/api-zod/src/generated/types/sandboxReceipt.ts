@@ -4,13 +4,18 @@
  * Api
  * OpenAPI spec version: 0.1.0
  */
+import type { SandboxCheckoutRef } from './sandboxCheckoutRef';
+import type { SandboxReceiptDirection } from './sandboxReceiptDirection';
 import type { SandboxReceiptStatus } from './sandboxReceiptStatus';
 
 export interface SandboxReceipt {
   id: string;
   amountCents: number;
+  amountSats?: number;
   destination: string;
   createdAt: string;
   status: SandboxReceiptStatus;
   balanceAfterCents: number;
+  direction?: SandboxReceiptDirection;
+  checkout?: SandboxCheckoutRef;
 }

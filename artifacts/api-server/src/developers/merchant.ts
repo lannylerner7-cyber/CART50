@@ -1,11 +1,23 @@
 import {randomUUID,randomBytes} from "node:crypto";
 import {HttpError,equal,hash} from "../lib/security";
 import {initializeMetadata,query} from "./storage";
-import {accountBy,updateAccount,type Account} from "./store";
+import {accountBy,centsFor,updateAccount,type Account} from "./store";
 import {archivedCheckout} from "./archive";
 export type AdminAudit={at:string;action:string;reason:string;actor:string;requestId?:string;fingerprint?:string};
 export type Delivery={checkoutId:string;eventId:string;status:"pending"|"sending"|"delivered"|"failed";attempts:number;lastError:string|null;url:string;secret:string;body:string;nextAt:number;lease?:string};
-export type Checkout={id:string;token:string;amount_sats:number;reference:string;returnUrl:string;origin:string;expiresAt:string;paidAt?:string;idem:string;fingerprint:string};
+export type PaidVia="sandbox_transfer"|"manual_simulation";
+export type Checkout={id:string;token:string;amount_sats:number;reference:string;returnUrl:string;origin:string;expiresAt:string;paidAt?:string;idem:string;fingerprint:string;
+  /** How the session was settled. A sandbox transfer names the payer's settlement so retries cannot credit twice. */
+  paidBy?:{via:PaidVia;accountId?:string;settlementId?:string}};
+const TOKEN_RE=/^[a-f0-9-]{36}\.[A-Za-z0-9_-]{43}$/;
+export const CHECKOUT_DESTINATION_PREFIX="checkout:";
+/** Sandbox payment destination printed on the hosted checkout page. Pasting it into a Sandbox wallet pays this session. */
+export const checkoutDestination=(c:Pick<Checkout,"token">)=>CHECKOUT_DESTINATION_PREFIX+c.token;
+export function parseCheckoutDestination(destination:string){
+  if(!destination.startsWith(CHECKOUT_DESTINATION_PREFIX))return null;
+  const token=destination.slice(CHECKOUT_DESTINATION_PREFIX.length);
+  return TOKEN_RE.test(token)?token:null;
+}
 export type MerchantState={
   status:"active"|"frozen"|"suspended";returnUrls:string[];webhookUrl?:string;webhookSecret?:string;
   apiKeyHash?:string;apiKeyPrefix?:string;apiKeyExpires?:number;liveApplication:"none"|"pending"|"approved"|"rejected";
@@ -97,10 +109,11 @@ export function publicCheckout(c:Checkout){
   const url=`${c.origin}/checkout/${c.token}`;
   let return_url:null|string=null;
   if(c.paidAt){const u=new URL(c.returnUrl);u.searchParams.set("checkout_id",c.id);u.searchParams.set("status","simulation_paid");return_url=u.href;}
-  return {id:c.id,url,amount_sats:c.amount_sats,reference:c.reference,expiresAt:c.expiresAt,status,environment:"simulation",return_url,qrPayload:url};
+  return {id:c.id,url,amount_sats:c.amount_sats,reference:c.reference,expiresAt:c.expiresAt,status,environment:"simulation",return_url,qrPayload:url,
+    sandbox_destination:checkoutDestination(c),paid_at:c.paidAt??null,paid_via:c.paidBy?.via??(c.paidAt?"manual_simulation":null)};
 }
 export async function findPublic(token:string){
-  if(!/^[a-f0-9-]{36}\.[A-Za-z0-9_-]{43}$/.test(token))throw new HttpError(404,"Checkout not found");
+  if(!TOKEN_RE.test(token))throw new HttpError(404,"Checkout not found");
   const a=await accountBy("id",token.split(".")[0]);
   const c=a?.merchant?.checkouts.find(x=>equal(x.token,token))??(a?await archivedCheckout(a.id,"token",token):undefined);
   if(!c||!a)throw new HttpError(404,"Checkout not found");
@@ -117,6 +130,29 @@ export async function create(a:Account,b:{amount_sats:number;reference:string;re
     returnUrl:b.return_url,origin,expiresAt:new Date(Date.now()+30*60000).toISOString(),idem,fingerprint};
   m.checkouts.push(c);return publicCheckout(c);
 }
+/**
+ * Marks a checkout paid, credits the merchant's simulated balance and queues the
+ * signed webhook event in the same account write. Shared by the manual console
+ * action and by funded Sandbox transfers; it never runs from a public route.
+ */
+export function creditCheckout(a:Account,c:Checkout,paidBy:NonNullable<Checkout["paidBy"]>){
+  const m=merchant(a);
+  if(a.balanceSats+c.amount_sats>100000000000)throw new HttpError(409,"Simulation balance limit reached");
+  if(paidBy.via==="sandbox_transfer"&&a.transactions.length>=1000)throw new HttpError(409,"Merchant simulation history limit reached");
+  record(m.audit,paidBy.via==="sandbox_transfer"?"checkout_paid":"checkout_simulated",c.reference,paidBy.via==="sandbox_transfer"?"sandbox-payer":"developer");
+  a.balanceSats+=c.amount_sats;c.paidAt=new Date().toISOString();c.paidBy=paidBy;
+  if(paidBy.via==="sandbox_transfer"){
+    // Merchant-side credit entry so the Sandbox activity shows the incoming transfer.
+    a.transactions.unshift({id:randomUUID(),destination:checkoutDestination(c),amountCents:centsFor(a,c.amount_sats),amountSats:c.amount_sats,
+      balanceAfterCents:centsFor(a),balanceAfterSats:a.balanceSats,createdAt:c.paidAt,status:"simulation_complete",test:true,direction:"in",checkout:{id:c.id,reference:c.reference}});
+  }
+  if(m.webhookUrl&&m.webhookSecret){
+    const eventId=randomUUID();
+    m.deliveries.push({checkoutId:c.id,eventId,status:"pending",attempts:0,lastError:null,url:m.webhookUrl,secret:m.webhookSecret,nextAt:0,
+      body:JSON.stringify({id:eventId,type:"checkout.simulation_paid",created_at:c.paidAt,data:{id:c.id,reference:c.reference,amount_sats:c.amount_sats,environment:"simulation",status:"simulation_paid",paid_via:paidBy.via}})});
+  }
+}
+/** Manual fallback: the authenticated merchant marks its own pending session paid without a payer wallet. */
 export function simulate(a:Account,id:string){
   eligible(a);const m=merchant(a),c=m.checkouts.find(c=>c.id===id);
   if(!c)throw new HttpError(404,"Checkout not found");
@@ -124,14 +160,8 @@ export function simulate(a:Account,id:string){
   if(Date.parse(c.expiresAt)<=Date.now())throw new HttpError(409,"Checkout expired");
   const day=new Date().toISOString().slice(0,10);if(m.daily?.day!==day)m.daily={day,sats:0};
   if(m.daily.sats+c.amount_sats>10000000)throw new HttpError(429,"Daily simulated receipt limit reached");
-  if(a.balanceSats+c.amount_sats>100000000000)throw new HttpError(409,"Simulation balance limit reached");
-  record(m.audit,"checkout_simulated",c.reference,"developer");
-  m.daily.sats+=c.amount_sats;a.balanceSats+=c.amount_sats;c.paidAt=new Date().toISOString();
-  if(m.webhookUrl&&m.webhookSecret){
-    const eventId=randomUUID();
-    m.deliveries.push({checkoutId:id,eventId,status:"pending",attempts:0,lastError:null,url:m.webhookUrl,secret:m.webhookSecret,nextAt:0,
-      body:JSON.stringify({id:eventId,type:"checkout.simulation_paid",created_at:c.paidAt,data:{id:c.id,reference:c.reference,amount_sats:c.amount_sats,environment:"simulation",status:"simulation_paid"}})});
-  }
+  creditCheckout(a,c,{via:"manual_simulation"});
+  m.daily.sats+=c.amount_sats;
 }
 export async function merchantUpdate<T>(id:string,keyHash:string,fn:(a:Account)=>T){
   return updateAccount(id,a=>{if(merchant(a).apiKeyHash!==keyHash)throw new HttpError(401,"API key revoked");return fn(a);});

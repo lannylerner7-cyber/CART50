@@ -134,6 +134,17 @@ export const HostedCheckoutEnvironment = {
   simulation: 'simulation',
 } as const;
 
+/**
+ * @nullable
+ */
+export type HostedCheckoutPaidVia = typeof HostedCheckoutPaidVia[keyof typeof HostedCheckoutPaidVia] | null;
+
+
+export const HostedCheckoutPaidVia = {
+  sandbox_transfer: 'sandbox_transfer',
+  manual_simulation: 'manual_simulation',
+} as const;
+
 export interface HostedCheckout {
   id: string;
   url: string;
@@ -145,6 +156,12 @@ export interface HostedCheckout {
   /** @nullable */
   return_url: string | null;
   qrPayload: string;
+  /** Paste into a MainVault Sandbox wallet to pay this session with simulated balance. Format checkout:<token>. */
+  sandbox_destination: string;
+  /** @nullable */
+  paid_at: string | null;
+  /** @nullable */
+  paid_via: HostedCheckoutPaidVia;
 }
 
 export interface CheckoutDelivery {
@@ -324,13 +341,30 @@ export const SandboxReceiptStatus = {
   simulation_complete: 'simulation_complete',
 } as const;
 
+export type SandboxReceiptDirection = typeof SandboxReceiptDirection[keyof typeof SandboxReceiptDirection];
+
+
+export const SandboxReceiptDirection = {
+  out: 'out',
+  in: 'in',
+} as const;
+
+export interface SandboxCheckoutRef {
+  id: string;
+  reference: string;
+  amountSats?: number;
+}
+
 export interface SandboxReceipt {
   id: string;
   amountCents: number;
+  amountSats?: number;
   destination: string;
   createdAt: string;
   status: SandboxReceiptStatus;
   balanceAfterCents: number;
+  direction?: SandboxReceiptDirection;
+  checkout?: SandboxCheckoutRef;
 }
 
 export type SandboxReviewStatus = typeof SandboxReviewStatus[keyof typeof SandboxReviewStatus];
@@ -344,12 +378,14 @@ export const SandboxReviewStatus = {
 export interface SandboxReview {
   id: string;
   amountCents: number;
+  amountSats?: number;
   destination: string;
   createdAt: string;
   expiresAt: string;
   status: SandboxReviewStatus;
   /** @nullable */
   receiptId: string | null;
+  checkout?: SandboxCheckoutRef;
 }
 
 export interface SandboxSnapshot {
@@ -771,11 +807,39 @@ export interface PasskeyInput {
 
 export interface WebAuthnOptions { [key: string]: unknown }
 
+export type SandboxCheckoutTargetStatus = typeof SandboxCheckoutTargetStatus[keyof typeof SandboxCheckoutTargetStatus];
+
+
+export const SandboxCheckoutTargetStatus = {
+  pending: 'pending',
+  simulation_paid: 'simulation_paid',
+  expired: 'expired',
+} as const;
+
+export interface SandboxCheckoutTarget {
+  id: string;
+  reference: string;
+  amount_sats: number;
+  /** Demo-credit view of amount_sats using the payer's own pinned quote. */
+  amountCents: number;
+  status: SandboxCheckoutTargetStatus;
+  expiresAt: string;
+  selfPay: boolean;
+}
+
 export type SandboxAddressInfoEnvironment = typeof SandboxAddressInfoEnvironment[keyof typeof SandboxAddressInfoEnvironment];
 
 
 export const SandboxAddressInfoEnvironment = {
   simulation: 'simulation',
+} as const;
+
+export type SandboxAddressInfoKind = typeof SandboxAddressInfoKind[keyof typeof SandboxAddressInfoKind];
+
+
+export const SandboxAddressInfoKind = {
+  wallet: 'wallet',
+  checkout: 'checkout',
 } as const;
 
 export interface SandboxAddressInfo {
@@ -785,6 +849,8 @@ export interface SandboxAddressInfo {
   transactionCount: number;
   transactions: SandboxReceipt[];
   checkedAt: string;
+  kind?: SandboxAddressInfoKind;
+  checkout?: SandboxCheckoutTarget;
 }
 
 export interface SandboxReviewInput {

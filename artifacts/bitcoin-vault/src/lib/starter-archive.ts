@@ -49,7 +49,7 @@ A self-hosted **simulation-only** checkout UI and server. It calls ${config.apiB
 ## Buyer flow
 Enter a USD reference amount. The server obtains a fresh Coinbase quote, rounds up to the nearest satoshi and locks the simulated BTC amount for the order (max 0.1 simulated BTC). A QR opens the MainVault hosted simulation page; it is **not a Bitcoin payment address**. No wallet address is generated or tracked by this starter.
 
-The “I've sent payment” button and polling only READ the existing checkout status. They cannot mark it paid. In MainVault, the merchant explicitly simulates receipt. When status becomes simulation_paid, this page returns to the configured merchant page. Returning never proves a real payment. Do not fulfil real products for simulation events.
+The “I've made the payment” button and polling only READ the existing checkout status. They cannot mark it paid. A session settles when it is paid from a MainVault Sandbox wallet (the merchant console can also mark it paid for automated tests). When status becomes simulation_paid, this page returns to the configured merchant page. Returning never proves a real payment. Do not fulfil real products for simulation events.
 
 The order UUID is generated once and persisted in browser storage plus SQLite. Retries reuse it and the same locked amount, including lost responses. Do not create a fresh UUID on a timeout. The browser's order reference is an unguessable status capability: do not publish it.
 

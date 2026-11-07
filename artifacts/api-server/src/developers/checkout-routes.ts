@@ -131,5 +131,17 @@ checkoutRouter.get("/v1/checkout/sessions/:id",async(req,res)=>{
   const c=merchant(a).checkouts.find(c=>c.id===req.params.id)??await archivedCheckout(a.id,"id",String(req.params.id));
   if(!c)throw new HttpError(404,"Checkout not found");res.json(publicCheckout(c));
 });
+// Automated-test completion with the same sk_test key that created the session. Sandbox only: the
+// path is the console's manual simulation (paid_via "manual_simulation") and obeys pause/freeze,
+// expiry and the daily simulated-receipt cap. Repeating it on a paid session returns the same state.
+checkoutRouter.post("/v1/checkout/sessions/:id/simulate",async(req,res)=>{
+  const{a,keyHash}=await bearer(req.get("authorization"));
+  const id=z.string().uuid().parse(req.params.id);
+  await sharedBudget("checkout-create",a.id,60,res);
+  await sharedBudget("api-key-create",keyHash,60,res);
+  await writable();
+  const c=await merchantUpdate(a.id,keyHash,a=>{simulate(a,id);return merchant(a).checkouts.find(c=>c.id===id)!;});
+  res.json(publicCheckout(c));
+});
 checkoutRouter.get("/checkout/:token",async(req,res)=>res.json(publicCheckout((await findPublic(String(req.params.token))).c)));
 checkoutRouter.post("/checkout/:token/check",verifyOrigin,async(req,res)=>res.json(publicCheckout((await findPublic(String(req.params.token))).c)));

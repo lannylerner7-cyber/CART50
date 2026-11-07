@@ -11,6 +11,42 @@ output:
 
 # Read this first
 
+## Funded Sandbox checkout settlement, search indexing allowlist — 2026-11-07
+
+- Hosted checkout now prints a `checkout:<token>` Sandbox destination. A
+  developer Sandbox wallet looks it up, locks the amount to the session's exact
+  satoshis and pays it: payer debit, merchant credit, `simulation_paid`,
+  `paid_via: "sandbox_transfer"`, merchant "Received" receipt and signed webhook
+  are written through a durable three-phase settlement that is idempotent and
+  resumed by the next request or the dispatcher sweep. Refused credits (expired,
+  already paid, limits) release the debit with a 409 reason. The hosted page
+  prints the receipt terminal inline, then returns to the merchant after 14 s.
+  Manual "Mark paid manually" remains as a console fallback.
+- Documentation and starter guidance now state why a forged webhook cannot mark
+  an order paid (HMAC with shared secret, timestamp window, event-id dedupe,
+  order binding, authenticated GET confirmation). The server never trusted the
+  browser; no public route can set `paid_at`.
+- Indexing: the shell no longer carries a global noindex meta. The API server
+  serves `/robots.txt` (allowlist: `/`, `/developers`, `/developers/about`,
+  `/developers/apply`, `/developers/resources` and its six section paths, plus
+  `/assets/`) and `/sitemap.xml` from `PUBLIC_ORIGIN`; `X-Robots-Tag: noindex`
+  stays on every other path, and the web app sets per-route title, description,
+  canonical and robots meta. New public pages: `/developers/about` and
+  `/developers/resources/<section>`. Owner vault, console, Sandbox, hosted
+  checkout and admin routes remain non-indexable by header, robots and meta.
+- External integrator feedback (ConnectLive sandbox test, 7/10) addressed:
+  return-URL completion parameters (`checkout_id`, `status`) documented; the
+  three completion paths (Sandbox wallet, test-key API, console fallback) laid
+  out in one place; new bearer endpoint
+  `POST /api/v1/checkout/sessions/:id/simulate` for automated tests (Sandbox
+  only, same semantics and limits as the console action, OpenAPI + unit test);
+  a chapter listing the Live behaviours that are not yet defined
+  (confirmations, under/overpayment, expiry funds, refunds, fees, settlement).
+  Their remaining items (public webhook endpoint, real-money detection) are on
+  the merchant side or blocked on Live activation.
+- Platform-admin `configured:false` remains unresolved (runtime secret value).
+  No deployment, host change, real transfer or Git push occurred.
+
 ## Independent platform-admin login — 2026-11-07
 
 - Added email/password login at the platform-admin route with a distinct host
@@ -1386,17 +1422,19 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-647 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+596 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
 | `.agents/agent_assets_metadata.toml` | 5315 | `fd850ae61e0519307dc1d3f37b35a89f9e863893f7329e0235d5c53916dde4c8` | Workspace asset metadata; not application logic. |
-| `.agents/memory/MEMORY.md` | 2630 | `e1f34e6dbbf74830a0893c67564e9eb1dccc8650476487072deb2320669cd5dc` | Durable project decision/lesson: MEMORY. |
+| `.agents/memory/MEMORY.md` | 3307 | `ca884fde91397d0bfc24a57ee37a88f79b7c7261ec1171002361da89fc7ed236` | Durable project decision/lesson: MEMORY. |
+| `.agents/memory/checkout-settlement.md` | 1595 | `d46fda5b371157ae114b69435c2e0de0812391e3553c0e67c90e4229010e46b9` | Durable project decision/lesson: checkout-settlement. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
-| `.agents/memory/developer-boundary.md` | 1548 | `d2b9ca125edeb0fe7664603895b4be04e53e08b95cc2c752965a1b2d05129b4f` | Durable project decision/lesson: developer-boundary. |
+| `.agents/memory/developer-boundary.md` | 5979 | `ad5761d9b49c305194514b67cbb41c4bc3035d61d5e92fa19a9ebb37bc0919df` | Durable project decision/lesson: developer-boundary. |
 | `.agents/memory/developer-intro-experience.md` | 2058 | `13b7d2762434ffc31d7a76b75c9fd35fe72a6d01a222e0e2daea906fafe85285` | Durable project decision/lesson: developer-intro-experience. |
 | `.agents/memory/emergency-audit-capacity.md` | 735 | `6a4b0430853bd8632a3f0ad31e8386e709b03c4418c1323a4574d68a6eaa8fa4` | Durable project decision/lesson: emergency-audit-capacity. |
+| `.agents/memory/fixture-browser-boundary.md` | 2880 | `5239dd12edc6311e7d42dac2cbb70bf8148eabf94b760a971e05386f80e4294d` | Durable project decision/lesson: fixture-browser-boundary. |
 | `.agents/memory/health-replication.md` | 2239 | `4b755891aeb81242e73bea695f5657520654aaec16e1e55f7eeb7971d631b2ec` | Durable project decision/lesson: health-replication. |
 | `.agents/memory/hosting-scope.md` | 4384 | `7b0ad7d558e79a77db161c532edf37035879cf2a010dd67e006f63b2e82ab3b0` | Durable project decision/lesson: hosting-scope. |
 | `.agents/memory/live-sandbox-boundary.md` | 2729 | `bacd5179c696cfbbe574181e62de5b77b644f902d8c69b64debdaf7a8941a569` | Durable project decision/lesson: live-sandbox-boundary. |
@@ -1406,52 +1444,69 @@ to publish: review repository assets before release.
 | `.agents/memory/qr-verification.md` | 664 | `d33954d52db2f10659a65870510d5b76a6c88c72fab228a3c7d282d52caf4c79` | Durable project decision/lesson: qr-verification. |
 | `.agents/memory/request-recovery.md` | 799 | `b846c19420be7142cbc24bae022a1dd8c9f207f1dcb4fc21d855d1dfe7ffd876` | Durable project decision/lesson: request-recovery. |
 | `.agents/memory/schema-evolution.md` | 828 | `103fdc6b2118e431650e2bed193e5284ab99f3263a29b5f9c71dda8dfb2a31cd` | Durable project decision/lesson: schema-evolution. |
+| `.agents/memory/search-indexing.md` | 1121 | `383a2ee3f163fbb3765ff6ea5994c027540c7ebdb5880e96eb5e76590d3f5c28` | Durable project decision/lesson: search-indexing. |
 | `.agents/memory/shared-limiter-choice.md` | 530 | `0d9d5950f4df3870f297d0fec014d87a43517a2f628f7170f8504510ffad95c0` | Durable project decision/lesson: shared-limiter-choice. |
 | `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
 | `.agents/memory/temporary-wallet-destruction.md` | 2255 | `308fab6c2e98bb62dc6f2cdc25c5f5716eb296a98b7f81af7c4e57bca7a4c538` | Durable project decision/lesson: temporary-wallet-destruction. |
-| `.agents/memory/wallet-presentation.md` | 3423 | `d6d5d955140f10e240989750df05ceb0c2266ec58e24a0a2cfc3a40a5c68334b` | Durable project decision/lesson: wallet-presentation. |
+| `.agents/memory/verification-mail-privacy.md` | 680 | `5379bfdd6427d5ae22937fc4254f6ead9073893de8c529dbabf540333fc1a1df` | Durable project decision/lesson: verification-mail-privacy. |
+| `.agents/memory/wallet-presentation.md` | 5223 | `89463830c9b1d41d0f8ac8b4b91203c216c4c99a02c06e9783de7161598a84e4` | Durable project decision/lesson: wallet-presentation. |
 | `.dockerignore` | 1308 | `baee3e84520fdf1074ee278b752611522e467dcdbe2216b14446893ba068863d` | Repository/tool configuration: .dockerignore. |
 | `.gitignore` | 911 | `04d7c0ec9e25280c87ff990c90b57492be5958258114a213e713fb01732857bd` | Repository/tool configuration: .gitignore. |
 | `.npmrc` | 56 | `1ded4f26f4851b35dae702edd5719d1be5ff31db6983858d088d5e6593ea7c99` | Repository/tool configuration: .npmrc. |
-| `.replit` | 856 | `8c9481890448c943c100b8d3bbcfac5329b96d4c0088880330e12fc0c3235bca` | Repository/tool configuration: .replit. |
+| `.replit` | 909 | `857864c4b71259a7de0ae1a3c159a9c978fb71d50c06ffa22f71fa90623821e6` | Repository/tool configuration: .replit. |
 | `.replitignore` | 239 | `5add696818c05230042bee377eedf5177a2e5e5e8757ed13c8df2cd3b0011e06` | Repository/tool configuration: .replitignore. |
 | `Dockerfile` | 1598 | `d9d46ce7dd433ea1d72e55d25b1557e006eaf44104036a6331619a21f221e8ef` | Multi-stage production website/API image; non-root runtime and HTTP health check. |
 | `artifacts/api-server/.replit-artifact/artifact.toml` | 784 | `e461708bfe50f6eb964fa755cf0c6ba813c19392be055d5ef96c729aa0173539` | Managed artifact service/routing configuration; update through artifact tooling. |
 | `artifacts/api-server/build.mjs` | 3657 | `97e0a7f2a0509d86b390bc9f1f97f4848eb77339b0c27ac1c7e90b17a8784d6a` | build.mjs module in artifacts/api-server; see the owning subsystem above. |
-| `artifacts/api-server/package.json` | 1117 | `62914689091c41d66a0083716b72b32bfcd8697bb173ce311b978f1d35f00a0c` | Package identity, dependencies and runnable scripts. |
-| `artifacts/api-server/src/app.ts` | 2195 | `07a60fb81e9cae20eefc4f3a9da812030f05790ef581b9cb62d12baa2576dbc8` | app.ts module in artifacts/api-server/src; see the owning subsystem above. |
+| `artifacts/api-server/package.json` | 1117 | `c3c5efa77f66937abda25aa3ad53d50059bbf455ff8c374b7057c88c4db95cec` | Package identity, dependencies and runnable scripts. |
+| `artifacts/api-server/src/app.ts` | 2580 | `f79c345877235dc494c54b88667d81d0b36df5a21f8296aafc40e3ae69f51997` | app.ts module in artifacts/api-server/src; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/archive.test.ts` | 2564 | `07078985ca78b0943e008d02e70fab4815f5f12db2fc6537b7b22228dbc86991` | Regression tests for archive; local checks, not hosted evidence. |
-| `artifacts/api-server/src/developers/archive.ts` | 2597 | `e1b59e44c5ee88cd14d53c324671968e965a91744eb331901d1d8b4d66db4bcb` | archive.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
-| `artifacts/api-server/src/developers/auth.ts` | 2636 | `0dc808abefeaeb29d16cef5cac6f33b1ea1af3feda4c90278cdb06f8045b1eb7` | auth.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/archive.ts` | 2592 | `a69db09ef4452021b6e7e31497bd4d41d6eca38b4f3daa2d10a35c357e21d01d` | archive.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/auth.ts` | 2638 | `e2d5c69aa6822959b1e26d4c49881f8cd014e13bb3c77b495f9bd59fd5f52fa8` | auth.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/backup-recovery.test.ts` | 1864 | `5bd4f2c5160000a6dfd398bceb6b3d1e64ad3115ce9bd4e8645e4fb8e2913472` | Regression tests for backup-recovery; local checks, not hosted evidence. |
-| `artifacts/api-server/src/developers/checkout-routes.ts` | 9928 | `b6e37d206cc1a4efe5a01d417b5ef519f84d33a5e6436cee288089fb0ea5daac` | checkout-routes.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
-| `artifacts/api-server/src/developers/checkout.test.ts` | 9775 | `abdafbfff23c33f6629dc3cd0cf03d3c4e61c341e1713bf0e577a1ed4dda9e2e` | Regression tests for checkout; local checks, not hosted evidence. |
-| `artifacts/api-server/src/developers/developers.test.ts` | 8264 | `8ffcbd6e4a37bc164c96709f4d02c5c16a2c4965c943b22c3dcb00f6dd8fbb91` | Regression tests for developers; local checks, not hosted evidence. |
+| `artifacts/api-server/src/developers/checkout-routes.ts` | 10440 | `55262704758b7d2416ccc792aaa3bd5dc2409dea7df51d87e239ded8bd7c77b3` | checkout-routes.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/checkout.test.ts` | 11441 | `236fef39eeb10d82909ab7614c4a82b64b1065a2514307233f7114487b8e93ce` | Regression tests for checkout; local checks, not hosted evidence. |
+| `artifacts/api-server/src/developers/developers.test.ts` | 9641 | `ec005622e25d82809e1e34bf04ffe41e5f9f5121114a47bf1150afb19c5b56c8` | Regression tests for developers; local checks, not hosted evidence. |
+| `artifacts/api-server/src/developers/input-schemas.test.ts` | 3883 | `e281153dc72f6c6880f6cd76a741b28ea0b61917998cd3d6a2bc352a7de00b1c` | Regression tests for input-schemas; local checks, not hosted evidence. |
+| `artifacts/api-server/src/developers/input-schemas.ts` | 900 | `e848ce80ab99541e902a18f78b8b4b4417d0ba70f4cd40e82eeae1fc58c8bb56` | input-schemas.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/ledger.test.ts` | 1942 | `72754fbe712db507c296194587ef29de3d153c11152edcd44b1cf25a157167c4` | Regression tests for ledger; local checks, not hosted evidence. |
-| `artifacts/api-server/src/developers/ledger.ts` | 2860 | `03d914027b30ca94ea6dfb69db15f8f25895d11076d258f7b1c94ad8332fbffc` | ledger.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/ledger.ts` | 3220 | `a49f8c6da2659d614e39ccc9246522846ee758d73a07fc0ce9c1786f8d168076` | ledger.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/limits.test.ts` | 2005 | `6805dbca5d91d17d37e9e8b0027e910c1863791620eea10be8200c9a34875300` | Regression tests for limits; local checks, not hosted evidence. |
-| `artifacts/api-server/src/developers/limits.ts` | 2154 | `9e8a26e9513e53d286c07e538fa7a203d87b3053e882883678b9f37142c473c9` | limits.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
-| `artifacts/api-server/src/developers/merchant.ts` | 9373 | `290bcb1f58116bee33ff090303797ada51c8e033afdde07b2a7e4f383c1a82b4` | merchant.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/limits.ts` | 2168 | `5d657f5046d354462dfe37a817df4b9f39ea3abbc1884c61d80f7c9f1ed05fd4` | limits.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/local-storage.ts` | 1510 | `6c86d0eee6c1d65940e5cb05cf269912acdbf00edb81b031cd650c94dd4c5af2` | local-storage.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/mail-diagnostics.test.ts` | 727 | `fe572b91bb5632a946f4a897b6dd1aaf35ba9bd556ae9c05bcec3079420375cd` | Regression tests for mail-diagnostics; local checks, not hosted evidence. |
+| `artifacts/api-server/src/developers/mail-diagnostics.ts` | 1027 | `1b7f231086f5a1559740332350c871da3a15189fb851eadbbc5bb97701cd7126` | mail-diagnostics.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/merchant.ts` | 11716 | `5e30ae94a83fde4bb23ac8f9c966aea3fe1afad4d401332da875bf4d1cb399f0` | merchant.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/outbox-scan.test.ts` | 2076 | `a48c9db97fe49962892af3cb7592b532417eb2d0f79d2891870adc21ed764d8f` | Regression tests for outbox-scan; local checks, not hosted evidence. |
-| `artifacts/api-server/src/developers/passkeys.ts` | 5210 | `e32a9e843d05da0a7c012f777357f8e0b5733d259540a64667b4a0333619c9d0` | passkeys.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
-| `artifacts/api-server/src/developers/routes.ts` | 12006 | `6547ea5607c267326be005d38a23185ba1b19a9c8850abdbda3c6f11da46598a` | routes.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
-| `artifacts/api-server/src/developers/store.ts` | 3246 | `20f10add5227893f73cf0a7632790168c5ba45cb313bf623ca736d2191ddb45d` | store.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
-| `artifacts/api-server/src/developers/webhooks.ts` | 5310 | `1a76551a55b169542d4372e26b27e17dafc43f9a1912d4a4a23550dfb0bb27cb` | webhooks.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/passkeys.ts` | 5207 | `7ac37c2abaa2bc925fc5b5db6d8a4b7ebc24a461bea8678c2d3db1f2fa92368d` | passkeys.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/routes.ts` | 13450 | `8c6d6d3b24db5f43cdc8c3cb4714b4ae8050dc4f4a9e24663bf07efed698951b` | routes.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/settlement.test.ts` | 12458 | `5bc48458a4cd49e0ae9814280c2bd930eeaedbc5e381dbcd40010f444934f0ea` | Regression tests for settlement; local checks, not hosted evidence. |
+| `artifacts/api-server/src/developers/settlement.ts` | 9180 | `3c08230af5ad1e3aeb5c8b57c5beb064d19e36f0532601a475ef7e87c48cf91d` | settlement.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/storage.ts` | 984 | `bd5a03f5d02f09c328668fed25a170ee7ed2be09e5ea7520caca783da2fff385` | storage.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/store.ts` | 4439 | `3e5310bcf9fbf66c9a6cee9f35934421fe70563ab2700470e7d269bb47dd8755` | store.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/terms.test.ts` | 1024 | `4c9cf9872a84eca653d4eefa44a133b5af0f819b866408d863e68c661818a9c6` | Regression tests for terms; local checks, not hosted evidence. |
+| `artifacts/api-server/src/developers/terms.ts` | 3843 | `c0a09cf1060a25bbd089cf6f42592cfa540248e6c0d95d54b34ca43dfe3a43b4` | terms.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/webhooks.ts` | 5488 | `da0cfbf43b2933894354ee7c37780ef57efa0b6b01b1f946cefbc54cb2f8aa17` | webhooks.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/index.ts` | 1043 | `6ec5314e0f9e52bf5adf47c638a7116dd1f39e83674f338d969331f44513c3d9` | index.ts module in artifacts/api-server/src; see the owning subsystem above. |
 | `artifacts/api-server/src/lib/.gitkeep` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Empty-directory placeholder. |
 | `artifacts/api-server/src/lib/logger.ts` | 421 | `29e1ca75036fe917595a3a74fd450857d845836fe0625c30b9caa02df4acba62` | logger.ts module in artifacts/api-server/src/lib; see the owning subsystem above. |
+| `artifacts/api-server/src/lib/security.ts` | 1735 | `b287bd66e235ceea7076a868485e635a1b84633bad57e70dbc6eacb2b037f585` | security.ts module in artifacts/api-server/src/lib; see the owning subsystem above. |
 | `artifacts/api-server/src/middlewares/.gitkeep` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Empty-directory placeholder. |
 | `artifacts/api-server/src/middlewares/admission.ts` | 745 | `bed05bed36e4379b502ad75ab15abb973d4de2b9f79b1409cc94a52f09c3c004` | admission.ts module in artifacts/api-server/src/middlewares; see the owning subsystem above. |
+| `artifacts/api-server/src/middlewares/request-body.test.ts` | 2482 | `f31d5ad8d75cdcf517452e69d2f1ef7c2cd6c55f1270c0f398a872e0cfb78e29` | Regression tests for request-body; local checks, not hosted evidence. |
+| `artifacts/api-server/src/middlewares/request-body.ts` | 664 | `e505544e02f91e49a9f5e8b59d7389cce85238d5f0a136adab02c801ed353530` | request-body.ts module in artifacts/api-server/src/middlewares; see the owning subsystem above. |
+| `artifacts/api-server/src/platform-admin/auth.test.ts` | 4005 | `fc8df5bba8eaf3d6ccc79f3437810704f20ec1ae3945c064e90d03cdb36215ab` | Regression tests for auth; local checks, not hosted evidence. |
+| `artifacts/api-server/src/platform-admin/auth.ts` | 5518 | `b376572a8f22032a83025ff61df1c89a0e4c13427b62710c7ed9b365245c7564` | auth.ts module in artifacts/api-server/src/platform-admin; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/health.ts` | 288 | `0386ceddb4ff4bff220af72ca38a62191ad95a2f41fd619df3bb9ceffce03db2` | health.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/index.ts` | 171 | `957c7d2e44a720dc48ffc511a738c57bb7659a3ab273c8b64b919a9d2a06b232` | index.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/sandbox-signet.ts` | 4073 | `c0ae7d2740314783d30b3870aeca7915120d55f2246f707c0647088791448930` | sandbox-signet.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/sandbox.ts` | 2753 | `372c1c31e79a21bd84e31173ce709a4837873b6b8021eab3ef0f0b3ae84b4a5c` | sandbox.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/vault.ts` | 9882 | `cf8f6db428f862d67f648a0149ff231eca27a433d65996409bfdffb2a9dd47c4` | Owner-gated vault API endpoints and contract validation. |
 | `artifacts/api-server/src/smtp-check.ts` | 2672 | `2181f6e32c377c4ff424a7fff89b78655b5ca61d3b975a191b07702fc490d2fc` | smtp-check.ts module in artifacts/api-server/src; see the owning subsystem above. |
-| `artifacts/api-server/src/static.test.ts` | 3537 | `c2182dd323af4de3876311843fd356e094ba191604e7189665ad2faa57fcc538` | Regression tests for static; local checks, not hosted evidence. |
-| `artifacts/api-server/src/static.ts` | 1642 | `006a51ea10d88adbbca9ea499bcb32030c72266e017412a8b58587e63f8f8a3b` | static.ts module in artifacts/api-server/src; see the owning subsystem above. |
+| `artifacts/api-server/src/static.test.ts` | 5100 | `d49e2f56375cc96667bb48f3c87cf2b84060a57a625f658759f6c0ebf4220526` | Regression tests for static; local checks, not hosted evidence. |
+| `artifacts/api-server/src/static.ts` | 4182 | `b9f6171718bba8211f58c2be9febfdde02a290cfb0558de3cc4b36654230a9a0` | static.ts module in artifacts/api-server/src; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/access.test.ts` | 6837 | `bb0a19f80249c165158aa00bd8c2f0e7027a84b62c9bda6b6a15a626a1865052` | Regression tests for access; local checks, not hosted evidence. |
-| `artifacts/api-server/src/vault/auth.ts` | 4658 | `8eb7f062aeddae21781b3dbd409c5f1a2b19ace7db80ffd95f794ba3f57ee4e5` | Owner-key verification, session authentication and request protections. |
+| `artifacts/api-server/src/vault/auth.ts` | 3035 | `39d175b6cb7beb4bb6df453459516aa6f1e28125e336ca505f64591f442649cb` | Owner-key verification, session authentication and request protections. |
 | `artifacts/api-server/src/vault/burst.test.ts` | 2353 | `f3e520a039e6803da77f02911aade92559648b200b64d9af2adc92a4f42a07ff` | Regression tests for burst; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/credential.test.ts` | 1405 | `b55efa6443b025f1b0e3f9be9dd46873d6abcda8a4d00c4d403dd857ee1e4f04` | Regression tests for credential; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/engine.test.ts` | 6030 | `969716c4a4ac0badf3c92ce613a43a814e8bcf59efac12d252945eebb435792e` | Regression tests for engine; local checks, not hosted evidence. |
@@ -1463,7 +1518,7 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/vault/market-request.test.ts` | 1550 | `674d48410cb7d9547cee76687e6bf39cb8c64c4d9ec36774ba1450661f1d230a` | Regression tests for market-request; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/market-request.ts` | 1010 | `818cde9f076e62f5e45bb772f2c3946df3dfc2bd0806479bc4d33cec9dd9c1da` | market-request.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/market.test.ts` | 1172 | `32e98a536b8de783a48055cd1ff738b5d0ca8dd63f33533bda9ad8932fad2816` | Regression tests for market; local checks, not hosted evidence. |
-| `artifacts/api-server/src/vault/market.ts` | 4073 | `d005ef12778e48be649c034deb4f81d5cb694503500e23e7fe2c2cd683c82823` | Market freshness, pricing state and alert evaluation. |
+| `artifacts/api-server/src/vault/market.ts` | 4096 | `0277db32d0f9152b9e1996090bb65e145e51bee5d7afc6450806766c57c7e8d2` | Market freshness, pricing state and alert evaluation. |
 | `artifacts/api-server/src/vault/network.ts` | 527 | `74b5f26c3290c49a2e2db6943ac4a87219dd7275c14eb345a2c7621f10e294f2` | network.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/node-sync.test.ts` | 2417 | `f5c3d8bd9c44edd3f6849dcab2884044502c5eb4f95e1eae4fff35539dde76ea` | Regression tests for node-sync; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/node-sync.ts` | 2520 | `cddc137f4a12b1f12c647a3188b21b182bcc46d59a1425ec10fb1a2f784340fb` | node-sync.ts module in artifacts/api-server/src/vault; see the owning subsystem above. |
@@ -1484,11 +1539,20 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/vault/smtp.test.ts` | 1306 | `8f99832fc6b62622254a129a431c390bd15691f81db9dd6891c53b767ca4678b` | Regression tests for smtp; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/smtp.ts` | 1981 | `54a2a9c5ef47fe207b0ca65447488271f9601a8fd92591f6a45a3e80d4fbfc93` | SMTP delivery transport. |
 | `artifacts/api-server/src/vault/store.ts` | 5461 | `8b02a67e0ee347e0dd278f17e5ff72027b9fb0bd213e6336c05400969e4d2fd6` | Metadata persistence adapters and application-state access. |
+| `artifacts/api-server/src/wallet-foundation/authorization.test.ts` | 4284 | `4d8b8bf14b852f2818c08915dda305533561cd5715c1d662215e32ee3faabcac` | Regression tests for authorization; local checks, not hosted evidence. |
+| `artifacts/api-server/src/wallet-foundation/emergency.test.ts` | 1913 | `deb79a995bfab451e85506842594f9bef9af77dad1ae67061f327fdc9ba0cace` | Regression tests for emergency; local checks, not hosted evidence. |
+| `artifacts/api-server/src/wallet-foundation/ledger.test.ts` | 9791 | `437bcbab1082c7344f4185bbb0847a8943f1a0beb0a04d4d9023efeb2a9e12c8` | Regression tests for ledger; local checks, not hosted evidence. |
+| `artifacts/api-server/src/wallet-foundation/ledger.ts` | 19327 | `07059e1f1b15156bcbbe29a9bd65419e33552bc50e58773aaa2e182c25fc38d5` | ledger.ts module in artifacts/api-server/src/wallet-foundation; see the owning subsystem above. |
+| `artifacts/api-server/src/wallet-foundation/race-worker.ts` | 386 | `ec7647f9e0237d89084ab0346c33a1d8c08bbcd41e4b0bf558f404279667e2ef` | race-worker.ts module in artifacts/api-server/src/wallet-foundation; see the owning subsystem above. |
+| `artifacts/api-server/src/wallet-foundation/recovery.test.ts` | 5157 | `bdd2dde160a722dbd2169401bfc0b690d276285a529d36f57e23a5432df5eebf` | Regression tests for recovery; local checks, not hosted evidence. |
+| `artifacts/api-server/src/wallet-foundation/runtime.test.ts` | 4719 | `6433f2bfca66c417a72db2aa0d4d7a571e82a4c390da6606288989f57c72c40c` | Regression tests for runtime; local checks, not hosted evidence. |
+| `artifacts/api-server/src/wallet-foundation/runtime.ts` | 3609 | `54e3fd5e08f2a78387f5c744ccb8006aaf44e3d930b270a48cad03d6f65e73fb` | runtime.ts module in artifacts/api-server/src/wallet-foundation; see the owning subsystem above. |
+| `artifacts/api-server/src/wallet-foundation/service.ts` | 5621 | `ff92aa3c3fd3746a22805bca5c02c46457e8353105c492703c661f9bf9f8b757` | service.ts module in artifacts/api-server/src/wallet-foundation; see the owning subsystem above. |
 | `artifacts/api-server/tsconfig.json` | 335 | `aa300909ccd1d4282761b5d6549a174717b663bb56cb0f59d107d4b3d96cb009` | TypeScript compilation/project-reference configuration. |
 | `artifacts/bitcoin-vault/.replit-artifact/artifact.toml` | 770 | `8ffc0ab0be434d79fa9639b72cde3be4bf299f71dd6692b49640f13852b9195d` | Managed artifact service/routing configuration; update through artifact tooling. |
 | `artifacts/bitcoin-vault/components.json` | 434 | `3a5d5af62f05e6e3de6c5085f31ed4f49273d57cfeae4d69d00a2568c91f54f9` | UI component tooling and import/style configuration. |
-| `artifacts/bitcoin-vault/index.html` | 1196 | `f88deb6225d6f81d6b9871c830ed69de1b5d7f7f70a3df479228add02ff7881f` | Browser HTML shell and asset entry. |
-| `artifacts/bitcoin-vault/package.json` | 2809 | `d3357a04c624527881d905120e802105a36662031a8b5d98a946f4aba7a65806` | Package identity, dependencies and runnable scripts. |
+| `artifacts/bitcoin-vault/index.html` | 1764 | `88ddca8ebbbffbd560be55fa8406bc945eaa612437ee39caeedf335945f42398` | Browser HTML shell and asset entry. |
+| `artifacts/bitcoin-vault/package.json` | 2806 | `4a84b1dfeaa7395952b5ea45d6daba75d975e911ac5d1f50eaa8a08680a47548` | Package identity, dependencies and runnable scripts. |
 | `artifacts/bitcoin-vault/public/assets/strongroom/brand/main-vault-mark.svg` | 399 | `8872fc6a3412e0b331335fe2573c22eabc4d1349aefc7d650f4ad4687becd17a` | Public static asset/tool: main-vault-mark.svg; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/assets/strongroom/developer/bonus.jpg` | 28501 | `2a5a23235a1b302499eb68bee5f953e5ae1a6e25c76458a9848e8dd2e43ad45a` | Public static asset/tool: bonus.jpg; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/assets/strongroom/developer/orb.jpg` | 39770 | `3d7f62ecb4ac3cf1a2923de8fa26b4bd5165ffbf0c6d056951d707640cdf9603` | Public static asset/tool: orb.jpg; never place generated secrets here. |
@@ -1502,27 +1566,32 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/public/developer-intro.jpg` | 26623 | `54a23c70afac8d50e2565ee1adfc1d84f1dae8ec415a224c0d3cb92c6042a194` | Public static asset/tool: developer-intro.jpg; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/developer-intro.mp4` | 623327 | `6eedf0a7ae201378dca65960af6da0ff106f8c5172be9bdfe43663bb7c030c45` | Public static asset/tool: developer-intro.mp4; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/developer-intro.webm` | 674213 | `4bf67c753b3886ce69a274ca39cbdbeeac2249578419ddaf86b254c86ab62411` | Public static asset/tool: developer-intro.webm; never place generated secrets here. |
-| `artifacts/bitcoin-vault/public/favicon.svg` | 163 | `8ffbde9092b1fa4de97c9481b76f518b131268c82e7c555041925225b1dab6e0` | Public static asset/tool: favicon.svg; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/favicon.svg` | 391 | `b43e8fb32c99818ce0dbb5a76f806615a88e81f01dde8146e5e4a22ee3af5ed2` | Public static asset/tool: favicon.svg; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/offline-keygen.html` | 3706 | `1102ffcdc57e9ed88ed53a7ea10f9e1b5acf5cee09c85cf466ed2e4ff5289c09` | Public static asset/tool: offline-keygen.html; never place generated secrets here. |
-| `artifacts/bitcoin-vault/public/robots.txt` | 26 | `331ea9090db0c9f6f597bd9840fd5b171830f6e0b3ba1cb24dfa91f0c95aedc1` | Public static asset/tool: robots.txt; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/robots.txt` | 592 | `258d5a2e92e48f2c72ca070d78c5cbb7c267ac2a4bf1ba5f5a61fda3c3e496bf` | Public static asset/tool: robots.txt; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/signet-setup.html` | 66997 | `41f76188e4442f023c632c16cad297819724ea1d1b913b2d5e0097d08544bb0e` | Public static asset/tool: signet-setup.html; never place generated secrets here. |
-| `artifacts/bitcoin-vault/src/App.tsx` | 7580 | `d818563f6222d2e263e06edc9e19ad8bd703b47fd317a44ce4337f4cb8f5e6e1` | Application routing/providers and access boundary. |
+| `artifacts/bitcoin-vault/src/App.tsx` | 8558 | `5bb0b9ffe54965157b7f98f6ed8092972300d1dbca67a2ecbb9785991b1d0921` | Application routing/providers and access boundary. |
+| `artifacts/bitcoin-vault/src/components/admin-shell.tsx` | 4283 | `ebc57691a213060e72a52107d4ddf1625761e97ef348557335e415ed0902f8e1` | admin-shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/branded-qr.tsx` | 1059 | `161d2024c73f0a763a4be93dd92cddcca03c6f1f46818689cef1de1ed6d17ea4` | branded-qr.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/data-table.tsx` | 10120 | `15af3d3bc09114998678cc044f2c4fe6fac77032aae8024c6f7ed724b00bee90` | data-table.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/developer-frame.tsx` | 6756 | `0abe55392b61b2a8067ce4e7244f56ec06d238038f7e3389d5927e74bb78dbff` | developer-frame.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/developer-intro.tsx` | 9000 | `a53ee802d7ba6f6f2506e0f859d04791a32214a6932f21e3488706e682ded68f` | developer-intro.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/developer-wallet-key.tsx` | 8837 | `670db14efbeaf285cbc6b674980ef46e2b25d3113b7b5e1a5e282d6c05659891` | developer-wallet-key.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/error-boundary.tsx` | 2735 | `c1ea4d88be8cd206a46bd87f19edf025b2504a70a2b65cd9c438e4a0e62dafe0` | error-boundary.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/components/kit.tsx` | 8463 | `44c5aa876dcf793e18313b1f9de3bbadf104e0a66164a37f8252935834f49164` | kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/kit.tsx` | 8456 | `809ad11e3e689f1c1bf82c76bc728c119e0971a038d9508a0e95531071a0e2f9` | kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/login-bitcoin-hero.tsx` | 4358 | `de1f14a1dfb9386191b11dddf5ecb4658bd1e0737b5891e68b5febbee5703351` | login-bitcoin-hero.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/node-sync.tsx` | 4469 | `285476519bb7b54b5224ccd30b8bd5ddf24a031ad104c565521219777b667ef6` | node-sync.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/price-chart.tsx` | 4344 | `fd3204d36d0667a55fc4d1d74aca4a32eab9c084b2be0e2d77abd84ff11580a2` | price-chart.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/receipt-terminal/index.tsx` | 6695 | `e7dea06ba1334031d50380d2d533259b95636d298e1c6568b27d22fa5d99c060` | index.tsx module in artifacts/bitcoin-vault/src/components/receipt-terminal; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/receipt-terminal/receipt-terminal.css` | 2814 | `245845059120943b6b98aa50b33c1f4fbd8cd98a07664a18beccdc0b186bcc4a` | receipt-terminal.css module in artifacts/bitcoin-vault/src/components/receipt-terminal; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/receipt-terminal/terminal.tsx` | 18222 | `8f4ca2f9be9869bb7f812118e955097d9204fc068f1782ee6f74c03ab210a445` | terminal.tsx module in artifacts/bitcoin-vault/src/components/receipt-terminal; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/receive.tsx` | 14356 | `ab109d033d04aeb9afbc3c377d864dc628c018979cd4655b1997e6594f52efa8` | Receive dialog, QR code, network warning, copy/share and readiness gating. |
 | `artifacts/bitcoin-vault/src/components/recipient-check.tsx` | 6504 | `6501c262170f0a5622fc9ca64806f42254193247e5afef4dfe08a78b72d26ea8` | recipient-check.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/sandbox-kit.tsx` | 2233 | `3622cffffc5cc272c4d203c96f2bb39f883a156c5506a222838a7a79c4de7858` | sandbox-kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/sandbox-shell.tsx` | 6351 | `1f572b25bf4769dae7b17acbd09b53a1b071f63e2997f7bbec9adab6a5dc3512` | sandbox-shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/sheet.tsx` | 2748 | `ebc64aa8cd585f254e5b45e5f858e73b66809a2b4ba3f3c958192800f5299992` | sheet.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/components/shell.tsx` | 8270 | `811d9c3311141e88722d960c9f33b77c71292deea2352595bce5ff5dc141b0a7` | shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/components/starter-export.tsx` | 11295 | `2cc6dc824f9daadfa8b5dacbef589def6c0f5e8c6da704c57e1a8e439862dd47` | starter-export.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/shell.tsx` | 8340 | `c462a3d3124ce08d333855d8f01b9bb2d47ebd6af56abc9e7662e78cdbd81baa` | shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/components/starter-export.tsx` | 11694 | `99cf9b427c1d795a5205dd72cac406d25ce98cd0488ee00828203c1332037abc` | starter-export.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/tx-row.tsx` | 2730 | `5c82f6b311c84afc3559efb1786a1a3136bd2c94d4ed2547b18a34ad6a82f07c` | tx-row.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/ui/accordion.tsx` | 2013 | `8e4230a3e6d38bfab7b02f00f9e948c8c4038432c5b1bf2d0ea44dc8b5ce09cc` | Reusable accordion UI primitive (wallet app). |
 | `artifacts/bitcoin-vault/src/components/ui/alert-dialog.tsx` | 4447 | `d76901a06e6881e94aa3847fde2602ee6f6ddc9f4cace9fa238627a5572bd24e` | Reusable alert-dialog UI primitive (wallet app). |
@@ -1579,6 +1648,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/components/ui/toggle-group.tsx` | 1767 | `6d7aca86245edf5d0a8f6f3ed73bd19316f4865425891eabccd6f3e37e59519e` | Reusable toggle-group UI primitive (wallet app). |
 | `artifacts/bitcoin-vault/src/components/ui/toggle.tsx` | 1494 | `5800d2099224ef90892e8c1d972d2a0964391c33cd43d7f5c6abf5cd42e023e1` | Reusable toggle UI primitive (wallet app). |
 | `artifacts/bitcoin-vault/src/components/ui/tooltip.tsx` | 1277 | `e3c6ea9d4ecd62881af33564e25be013d35a8a7fa78475a6dcc98a06c7f894eb` | Reusable tooltip UI primitive (wallet app). |
+| `artifacts/bitcoin-vault/src/components/wallet-foundation-kit.tsx` | 5821 | `29ae5e3c180b3c23bc4157870eb75fbea1e3dca21138a265043ffa880eda5e0d` | wallet-foundation-kit.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/hooks/use-coin-audio.ts` | 2576 | `a6e5595ebff2b4e305c568f354c7ad8e7a948635b058e6f0f4b521b8adf2d771` | use-coin-audio.ts module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/hooks/use-mobile.tsx` | 585 | `82bff42ff087bd5dc90a5d17609cc428b8688de92d1333073a839af5ad3c9cbd` | use-mobile.tsx module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/hooks/use-toast.ts` | 3952 | `12cce940e597e1d597f7063131acd19658d25e924904308bf719bde17b67e351` | use-toast.ts module in artifacts/bitcoin-vault/src/hooks; see the owning subsystem above. |
@@ -1587,19 +1657,23 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/developer.tsx` | 10460 | `ac4230b5ad1d7bc7bab3d9cb46e9e37ac75779b74cb5896e489d80402b29f72c` | developer.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.test.ts` | 823 | `6054ccce2ec59ee582f9784efb7f8f746470b352ade82ee1affc9497f0137194` | Regression tests for ledger-keys; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.ts` | 920 | `0ef19efdd008050bd8c98e9aea32d0fd97d163e08a6f02dfa44651b36a4352d3` | ledger-keys.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/lib/owner-location.ts` | 524 | `91335a76d362d5a0860e715db4b911fc6c0971d0d5d7ac2f18dd3b3769909639` | owner-location.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/owner-location.ts` | 984 | `21c48ec1471b9ca77ffc218ffb175fcf100f92988232f107a9f5612f27591af8` | owner-location.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/print.ts` | 699 | `88344fb2ff7853218999ae4e8da0b44fda9a39764a20e7cf100b90c2d0f3cdc4` | print.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/receipt-terminal.test.ts` | 8093 | `c894ef8351eb61bc23a405fb2e4d8ff0b06a3df33e8f31dd0be10411839581c7` | Regression tests for receipt-terminal; local checks, not hosted evidence. |
+| `artifacts/bitcoin-vault/src/lib/receipt-terminal.ts` | 22151 | `5fde04aa7e1a0461f2029ac71cbe5a777581829d37c9bc884ed6b30aaba84ccf` | receipt-terminal.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/request-recovery.test.ts` | 1955 | `404df275dea16c2614b5eb72eb818db9f56411d19153780b88d5bbc7cc0b831d` | Regression tests for request-recovery; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/request-recovery.ts` | 963 | `0b4194832e0969196c349ae455eb901e5eb97ffb4da5f474ad6bcab754dbb3f8` | request-recovery.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/sandbox-adapter.tsx` | 3587 | `e08bc4a551aaade8da4d0f399b33bbab4a13a4dd938966ad7400b472c9aaa075` | sandbox-adapter.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/sandbox.ts` | 1088 | `ae71e4015961856727e1ac86738c7d3656cf517802edf15a2c0c7dd61e37c081` | sandbox.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/seo.test.ts` | 3184 | `31932a2972f04a2fcf99800bf0242d3708fbcd471669d699395c790c3456a063` | Regression tests for seo; local checks, not hosted evidence. |
+| `artifacts/bitcoin-vault/src/lib/seo.ts` | 4731 | `8e705d9e5ca30eb5050b3a289ff8ed3aea68e0718dda5d41e98b099cfdff1202` | seo.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.test.ts` | 1648 | `86e951698a47a5037b3e43156cad26fc0ccb79f49fd1e723efd3d5fbd9d99eb0` | Regression tests for session-lock; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.ts` | 1115 | `5962a8ac11ca1035e7024c1463f78897f2d93d42a22fa39f57cc770aa775ee39` | Client lock, protected cache clearing and cross-tab session notification. |
-| `artifacts/bitcoin-vault/src/lib/starter-archive.ts` | 9093 | `deae1ba1b158e8e1beb9d1af2f22d4e4ee2a8ce3dda3c51a4f13475809868f5e` | starter-archive.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/starter-archive.ts` | 9185 | `15224ca22ea331d1cecf724c729aa2645fb863540fdfcd3bad227957d6ef7615` | starter-archive.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/starter-templates/app.js.txt` | 2892 | `a7a9e58e78b2d9ac59b2f8be93b5667f0a80f3936b67112c4b4687ff73ade441` | app.js.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/lib/starter-templates/index.html.txt` | 1542 | `71a84227eadfdbb8bd88e5ce7c58eafe3d431fbf181d782cb44f06c23a1faa57` | index.html.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/lib/starter-templates/server.mjs.txt` | 8073 | `b7f6162e35e9b18ac7e80085357913247fbf9b40ff2c23456a381d23bb59c591` | server.mjs.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
-| `artifacts/bitcoin-vault/src/lib/starter-templates/server.py.txt` | 8459 | `6d996d0e90b439fe236398712ba359574b52bb1508e74def09400022d87a030a` | server.py.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/starter-templates/index.html.txt` | 1596 | `4036e5b138320b26759a1bd66f094705b14079b1815b8ebc4970549ec816a659` | index.html.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/starter-templates/server.mjs.txt` | 8284 | `861444e29602dadcd2d0fdcbb25f112f0922cdcfb52297624d87fad95866c757` | server.mjs.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/starter-templates/server.py.txt` | 8628 | `34c0a610fa9bc3271437119a995ee1c10af4de23b9181b8cdfea9d22e978d1b4` | server.py.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/starter-templates/style.css.txt` | 1470 | `3d65b6d7576ffdb20d9631a612609c252aae5c68f356a18849ed2152673d3ca2` | style.css.txt module in artifacts/bitcoin-vault/src/lib/starter-templates; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/transfer-delay.test.ts` | 1514 | `72eb407e75c163ac8e923263fd2cf32b694395f15b99f4127a6542a5b89db7f6` | Regression tests for transfer-delay; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/transfer-delay.ts` | 1164 | `df573946bf3b4250cee7d7e3c8b91326cc627c32888e4c62bf32b0728222d486` | transfer-delay.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
@@ -1608,27 +1682,33 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/utils.ts` | 170 | `afc0e1dc0e142d6b81f688d91087f81a4b2db4240cf70f55b6e5e4dcc199ebf1` | utils.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/vault.tsx` | 3543 | `4aad0cc8f08811709b537612bb3f3331469751a5952290f6245e1a342023b61e` | vault.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/main.tsx` | 446 | `e7e03b61f962dc1787ea029d4941424475455366b5a4f079c8fcb4f5df4d076c` | React browser mount entrypoint. |
-| `artifacts/bitcoin-vault/src/pages/admin.tsx` | 15335 | `c92decd495b60c5f08f159a9f0e2a88e57266715a140f25ef4abc9388c72d176` | admin wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/access.tsx` | 11610 | `c2147463634c1195231ec3b3a5e54a84d310c87029aafe24704a654c37a9283b` | access wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/apply.tsx` | 7509 | `32358f33f78d013a304f01519e522c728496dca7cfecd4ca18fd81c81d9c800f` | apply wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/checkout.tsx` | 23289 | `c7d9156a0e13c1cee5109bd94338bfefc28be426dfb12deffd519b7fcac709b8` | checkout wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/index.tsx` | 7164 | `62d6e80cb8ea21482520d90e59f9a073f4c91745177f01887b0f715686c0dd70` | index wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/admin.tsx` | 24533 | `b21aa61212a9accc95b124fcac3129211344e17236db52d473bb84c1193471eb` | admin wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/about.tsx` | 5799 | `79cffd6091caa8ec15bd112326d8e088a79dcf9cc94e2d022baba3c3d8f5dacf` | about wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/access.tsx` | 11942 | `db80913af94528b28cccb486a9455102ada9a42017fb73915ea3ef650ddc6b89` | access wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/api-guide.tsx` | 19581 | `4dd605b8dd4c669f811b2edf1435a3118e43db6f3320ccef097e5ef76934e2f7` | api guide wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/apply.tsx` | 8062 | `56ff5a96b9bf293dac8dfcbb82691b839923458981528aa6ed3e3faca13b139d` | apply wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/checkout.tsx` | 24320 | `108e0076d3d4745699fdd7c40dc9eb4f26d63a53625ef0235fe6d10a80f5c90e` | checkout wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/hero-billboard.css` | 2017 | `8ed7919128bedc126f23de9d26740a078fdd0994cdf93b9055be1381482a9952` | hero billboard.css wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/hero-billboard.tsx` | 3081 | `75591f4ee11202605b184c017dde9ab5a98f0caafb3073a1d42b1034e78ad4c7` | hero billboard wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/index.tsx` | 7827 | `9b1657aef0a11f9120b2502089795087f5c94b761fb20ad47eb7119c4c5c5bb8` | index wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/landing.css` | 6118 | `f7e7fab3b8a72b3d516c24c4261967f6daa6a34f67b9c4e95173404fea980eb4` | landing.css wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/landing.tsx` | 15525 | `aa95a33c1dd6cad844db7e8ffe62c1e4dc99e2c3a2ae656192fb2ed3c1d44a47` | landing wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/landing.tsx` | 13613 | `f359acda52821fa333c0e7b3021c28219184f436be799b626bae8c21a67474fe` | landing wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/onboarding.tsx` | 14255 | `179327f6a86dfbc7d702915e64e0de126f54fc0bea15ac702df8b55e7af88b55` | onboarding wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/resources.tsx` | 6545 | `a5296bda0ce8c9bb69671f7df1983562ce80f4142b1c56810e5b7525e6a84019` | resources wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/resources.tsx` | 6026 | `bd86814d2af9295d9ae4c906959b20e8c319a66a9e6d4a745898fa9659539701` | resources wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/wallet-foundation.tsx` | 31104 | `0957056faba7ef1417a92003b834eba5d84d70258ad9abcdeb44301cad7bfc9a` | wallet foundation wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/explorer.tsx` | 4055 | `7d91e60eeba560738e2e1b925c5e2b9804f2f0e8b439aade2826542105bed57b` | explorer wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/hosted-checkout.tsx` | 7604 | `6fd848ef0856d701ab6a287f82ec172855990e787a9fdef69e5f8be4e4fcc92e` | hosted checkout wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/lock.tsx` | 13946 | `13f0cf4dcaed32c1a7437a12d27398bd40095a1c4a9032a7b5bde2cf1dbe3177` | lock wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/hosted-checkout.tsx` | 10555 | `c3e88200a1ea39747ae702479a82102a43feb115ede89690e0ce5b4df3740e51` | hosted checkout wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/lock.tsx` | 13945 | `c8459f7a33bf84046c65ad0491237302e7b2af51b2f38e6de3d087e3c67340c1` | lock wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/market.tsx` | 13015 | `448119cd3f61196d97d53c13027077904864406b3a69a0bd06b0b76f78d22f50` | market wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/not-found.tsx` | 1147 | `74653c0b180b50c89622040611f5050e5d4d14cf908f756bccdd44d6009b7bbe` | not found wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/overview.tsx` | 16447 | `b2e2b663f19aa745b781a9b90a25a974cfed1d644e61721ae6294606c072b03f` | overview wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/sandbox/index.tsx` | 23221 | `301123a2b9d5e2f766884608a83fe97659375fede19d4300752ca63c46c13632` | index wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/sandbox/signet.tsx` | 16878 | `5fdbf36420d1733a9ac1748fcce951f8b2fdf1ed5d184bfbebecaa96416da98c` | signet wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/overview.tsx` | 16449 | `ea0b4c74c884fe576b7964de77572b61f7c6808715f9f1220394a3213727bbe4` | overview wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/platform-admin.tsx` | 5835 | `9545956c519b550a7a80de85d85bc43b5eeba3de848c9df1be3a4920c16beff1` | platform admin wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/sandbox/index.tsx` | 25930 | `8192f4e1a46a6128f253cf48e6f4f3b480bbef99e883ea86b6c954be54d4335b` | index wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/sandbox/signet.tsx` | 15280 | `42233f60d763100f67dc7eae3e8e9307cf2c46648a4b204fe1c1634a25986822` | signet wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/settings.tsx` | 14963 | `ed94b8be823dc6678b76919972d78f13dee3908fde51479d05f1214598480b4b` | settings wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/spending.tsx` | 19950 | `011d235715c423aecb2fa6bbffa8b4fd83d6d2114cd5268b887e0d41bb1a29fd` | spending wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 13645 | `bf143717bf45e4ca251194d3b850548eef81cad963cb8441f12504a7d4a3cb89` | transactions wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/wallet-detail.tsx` | 13055 | `c802644332e0e40db6d8718d9b7efbf9af7aed6236241a780cf04221ed51caae` | wallet detail wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/spending.tsx` | 17174 | `40123703527415aeb39a0a74bcd7950522c1446ed0d1445dbb224a759c80db58` | spending wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/transactions.tsx` | 14214 | `56a4a54f4704f714d7e01783facc95216390caac7228da3b5cac4cd7eba121ef` | transactions wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/wallet-detail.tsx` | 13418 | `464bb873398e6dfbd5db25c7bf5db5f514392ab539e0e80d70bdb0f840afd604` | wallet detail wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallets.tsx` | 9598 | `ccdcf0a80728ec23bc9a147c2394e8d919a9c9c14d2714b1b7f7ba98f0f12284` | wallets wallet screen. |
 | `artifacts/bitcoin-vault/tsconfig.json` | 520 | `e0a2fd8a7f3bfc860ccab5623b1881e754eb02336612708ff8b59215e8c256c9` | TypeScript compilation/project-reference configuration. |
 | `artifacts/bitcoin-vault/vite.config.ts` | 1803 | `4f7c94d802c4f2d5f5c92e051ac99f5701d62d518a8cb412b9ae094879e0a4f7` | Vite host, bundling, aliases and artifact base-path configuration. |
@@ -1701,138 +1781,6 @@ to publish: review repository assets before release.
 | `artifacts/mockup-sandbox/src/main.tsx` | 157 | `29946f51942fba11605c7595fd82b50b0d7e50148e0194fd356dacbc958f18ec` | React browser mount entrypoint. |
 | `artifacts/mockup-sandbox/tsconfig.json` | 513 | `bd0a1d0c1afa46c590350664a29d7848f6ccb91cfbd76426c40798437369fbf0` | TypeScript compilation/project-reference configuration. |
 | `artifacts/mockup-sandbox/vite.config.ts` | 1592 | `7de0f52b190e4d8f0854ed852e7a0d24420b4242e22423c6dd2712e7b0497cc7` | Vite host, bundling, aliases and artifact base-path configuration. |
-| `attached_assets/0_IMG_2274_1791984759039.png` | 278201 | `c8cc5341a5dda5d6843381beb7b810f27723c19119388cf06ca2fe541cf5538d` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/0_IMG_2275_1791984832255.png` | 195336 | `a8b9ca1d661008b5cb9f0c95ce66966266a5a93ce91b916caca4f0c99c4165c5` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/EC2_us-east-1_1792037696300.jpeg` | 941008 | `b2c0e8c1f2c99405a83110bf657066ed982410d3be0d151db913dd067725b1d9` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/EC2_us-east-1_1792037704075.jpeg` | 941008 | `b2c0e8c1f2c99405a83110bf657066ed982410d3be0d151db913dd067725b1d9` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/EC2_us-east-1_1792038049797.jpeg` | 779352 | `854b73d94734e54eb6cc1e0783f37051b2025726531f57d6bb8460a255af2886` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2007_1792084027589.jpeg` | 729021 | `0ef52c0846cf29cfaa5c8c6bc051f67a52648977b86bbc6216609211c25d8753` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2008_1792084027589.jpeg` | 668599 | `9e9718544db6cfbfdc43ce3a8ab26131c62ad94ad72968825fb3658908670ef0` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2009_1792084154181.jpeg` | 766789 | `225b07400d4b19ecb343814350e561db7297b08892d55e1416bf643b53725df0` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2010_1792084304017.jpeg` | 828830 | `619089ef23fdc1168386b3b80ec66ef53f0fbe468c066dd553641327bafbd99a` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2010_1792084612626.jpeg` | 828830 | `619089ef23fdc1168386b3b80ec66ef53f0fbe468c066dd553641327bafbd99a` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2012_1792084477164.jpeg` | 261530 | `ec51214035ff9fb74005465fb3de76a84524a3e732135721e69cd435954366aa` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2012_1792084612626.jpeg` | 261530 | `ec51214035ff9fb74005465fb3de76a84524a3e732135721e69cd435954366aa` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2014_1792084477164.jpeg` | 353666 | `ab22a19ecef5b9c544cd3ea33dc32ffa42f897f1f8115fef2b86322cf845b380` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2014_1792084612626.jpeg` | 353666 | `ab22a19ecef5b9c544cd3ea33dc32ffa42f897f1f8115fef2b86322cf845b380` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2016_1792084612626.jpeg` | 334906 | `d0db97aaeecb816bb5fa47d0b53089ccf5777e315dd6e36f9af98775883097f1` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2016_1792119737134.jpeg` | 334906 | `d0db97aaeecb816bb5fa47d0b53089ccf5777e315dd6e36f9af98775883097f1` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2018_1792084612626.jpeg` | 329701 | `c9d32465c7a6266e7bf1ffff9f7f4d72ad807731ee368bfb07d295696acc9012` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2018_1792119737134.jpeg` | 329701 | `c9d32465c7a6266e7bf1ffff9f7f4d72ad807731ee368bfb07d295696acc9012` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2018_1792119882608.jpeg` | 329701 | `c9d32465c7a6266e7bf1ffff9f7f4d72ad807731ee368bfb07d295696acc9012` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2024_1792119882608.jpeg` | 580959 | `8faad80688b8f4212fcfda3013776623bf8bb7f3bcf7238bb2f70813484600ef` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2027_1792222186872.jpeg` | 334667 | `8b49360b28ffdfe0cc458ae681be428db318213fb3ab823e3f359b83373d6c34` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2262_1791972847481.jpeg` | 133994 | `859009edaa8fdb8f3a03633037a2627c07be091c533aa2716af3b55f9b363323` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2263_1791972847481.jpeg` | 117250 | `f92c72838322e8b401cf42917345da1b903f66586fb57cfbc5bf92085d11ffc0` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2264_1791972847481.jpeg` | 140771 | `d089aec0eb34aae907bfff0db170cf207076a814891d928d5402d6d7598bab6d` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2265_1791972847481.jpeg` | 139171 | `d7ab5bbfcbb6d06933705916bad75a3ca3dddf91c4c3d14693cd1820ba273149` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2267_1791976831016.png` | 2904959 | `bb6f3919274beecc60b14ad6cc04fc31049a64ba8d17b113f4af74414dc17cf8` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2268_1791976831016.jpeg` | 819061 | `87bd4267128d2f10474bc178c664bf7cbc98382067cc9df7735299a7351689f3` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2269_1791983612023.jpeg` | 241473 | `f32a56e2154ffee1fce226fd0c338bc9ade584f5d4587f79ff98ea65c1850f89` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2271_1791983904284.png` | 200540 | `a62ddb87f21767902a5e36fa26a59798fa49cb303232aa9a7922eb8da323edeb` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2272_1791983904284.png` | 214223 | `fb11340dddab4a54bfd76ac59ae52c9aca60116f0c2fc067122cf6cabb2e1051` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2279_1792000855236.jpeg` | 829339 | `932b88942595bd49e2137cb953c3b34f651051fc9b7499820da33905539fa684` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2281_1792000855236.jpeg` | 170062 | `94837321f53da47c12e3162d924450b4361e4b9c0bae984fbc19278dea7f3eea` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2294_1792016824115.jpeg` | 841332 | `37b5d27e57ea2f74956cdafc3054ed0c25898b3fe84e203c26e11c5856d35499` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2295_1792016824116.png` | 1283205 | `aae501f55764bbb51af2a8f1c7ece5bbcacb540bd9bde41b9b574cda04f27000` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2297_1792016824116.jpeg` | 181362 | `2ccf3c33a9cee0c5cf274c7e225199ccc29024b74a51849326c166e76126a82d` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2298_1792016824116.png` | 1427553 | `2c8df15d734261f9b9c2b22da5c273e9964411015f1da4318338ab3659f682c8` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2300_1792023930952.jpeg` | 431550 | `b7e3e8f938e0905cb7d27fd51c92b8a08e61116af8e14177a199ab9479b0a468` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2301_1792024021401.jpeg` | 235434 | `bc1479dd5bd1d4227d5994e3213ee2a13334a43c47cec3870bcc969eb3501ddd` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2301_1792024213798.jpeg` | 235434 | `bc1479dd5bd1d4227d5994e3213ee2a13334a43c47cec3870bcc969eb3501ddd` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2303_1792024213798.jpeg` | 281290 | `c7a5ddc6c84f337ffb4aba9b6cb8f3ebd0b4cd13582159ba683fbc1640d66cde` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2305_1792024213798.jpeg` | 287889 | `28a7b0c517c8ddafe5832cc28758ecafbc41c0d76293d0f66ed0c831aecc0a2a` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2307_1792024213798.jpeg` | 306006 | `c622b1557f584b370505c7688c2f048333a0e5f356dbf562a380f1508bbf95d3` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2308_1792024580716.png` | 199873 | `a97c7fa916dfdeb7aae55c72142ac061407947950ab2e6f9deb9e0361387cfdf` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2309_1792025919424.jpeg` | 154854 | `f65a19d039aae1d2e2105f6c3a1a81bf8ddcdefc6e8daf8079e3b00b7a44a2c3` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2312_1792027184181.png` | 163599 | `b253dafb21162d1f8969a845059b401c1df3651b95824024d11680b676f52e75` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2314_1792027603368.png` | 223111 | `f9c6123beb9dd1748ddab33503191bae7e6e384ee3656eb30beaf7c091eee1fa` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2316_1792027603369.jpeg` | 232236 | `ea511c8e22d637d591d81535e72ded4495d6c0c5d0c9a1d7f8426b38d7e1f003` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2317_1792027603369.png` | 586347 | `6ee6ee98fc34dfaa2aa0df6ca9a57cfa6df7f475ae65a27b56863fd1687eae1b` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2326_1792030739666.jpeg` | 3085349 | `4a443c583dbfb5e2b2fac3dd7536af5151501882db809b219b69b6b4e38c7632` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2339_1792036411713.png` | 160333 | `d7c2826c06ba927b4908067d4b4876bb20e012335a974d559bf0ca4cf26029b2` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2345_1792038414265.jpeg` | 277214 | `b4c1eff75d79765c05e478c1ec081e88391dba68113075a732ead5613d8483e7` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2346_1792038574640.png` | 189176 | `971d2a487cc925eed90550266fcd376812762491f2fa4edd737026e65e80148b` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2348_1792038741139.jpeg` | 253452 | `3d36bf2e6d7c904dc51e370e75165309082da3ea91094473e8f0e989f850f5a4` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2350_1792038874843.jpeg` | 239109 | `18c022b9a887d4ba45b3dad3ff941d7666edfcd17ef411491ef90224f7be2401` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2350_1792039037920.jpeg` | 239109 | `18c022b9a887d4ba45b3dad3ff941d7666edfcd17ef411491ef90224f7be2401` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2352_1792039037920.jpeg` | 228869 | `2bea81c742ac18eb7fce8026bf974debd23a4d1fb66da35713ae1e59d52b69f8` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2354_1792039037920.jpeg` | 249332 | `35bd1db32bcbd5073ae501538f241b0b47e6ad70f04df21a3af65b47d2298a3b` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2355_1792039368289.png` | 442407 | `4c30e5a70683466cdfc5d30456a1db7bbdfc0cc81c9210af32526f61a40de3da` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2356_1792039504367.png` | 393846 | `488002c8df36347e3beb24cc3d37321cf13734ca21c0483e699dcedb2ddc8e35` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2357_1792048639862.png` | 255850 | `5297b84353237a4152797d77de8629cccdc4f3e385c701202745947c91d86dba` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2359_1792048790801.jpeg` | 240983 | `010589a9fc4a8eb16860fe5378c3f8fa38de4ed3dc187ffd763017f616691be4` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2361_1792048790802.jpeg` | 309561 | `da5c1461721b7e92865f33f0605259a70d54108487236d21bbbe9c774df136de` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2364_1792049227489.jpeg` | 400087 | `22c5b740ff363e1cdaf85fe108a37e50de5332f14b39e909ea5cdc08be78be42` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2367_1792051780541.jpeg` | 3310005 | `f03a2deb4e95e2f74abe9579109efe104ae2d8de158095d56d27b8c545d8f16d` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2376_1792054295155.jpeg` | 283674 | `dd602ec94bdcc008ce6b1f4986b6a2b160e0f63aadb15b42401ea67f087473d6` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2379_1792059602120.jpeg` | 282438 | `4c38580ae2760aade05735543c704db64853286685e6b9a0b11ae843a42bb9af` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2385_1792067717921.jpeg` | 441868 | `f74caa750e038b5003f601131f14e1f50a18d556e1da0bea0c5e7d597274e800` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2386_1792068244022.jpeg` | 130551 | `9a8e805c7fbb0edf14e30d693b9f6835ba92f7752209d0555a341e00b293e98e` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2388_1792068244022.jpeg` | 155432 | `d60e04b6ff074afc9a7d61712967b8f17dd13612e68a0b4cfd1dd3d17ffb8d6f` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2390_1792068244022.jpeg` | 239172 | `287838a7152adbf9e292874e72c61fbdf422ddbe6c803d95f9474209d0adbb8b` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2392_1792068244022.jpeg` | 266628 | `ece2bc95edf14eed17e9b7fcad5538e79fb3c73c89c0b32f3d485c7104f0884a` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2394_1792068244022.jpeg` | 216998 | `550526eac16da22617effe4c6576769c96892abb5e4f2b4e5135ecf14a1bcd1a` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2396_1792068244022.jpeg` | 150521 | `f720cb9e0d1cdc551484f69f2fb954c011d6e85bad6681e8b72f6ca95f98747b` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2398_1792068244022.jpeg` | 144710 | `288db081f7de177f434dc7fb75befb68853936ace2fc2133217f8c7d0cfd73d6` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2400_1792068652914.jpeg` | 255012 | `6af8075b91822b68cd7a52b00f3e6d3431ab1658e1f6d35d832c8b1e951e6549` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2401_1792070951369.png` | 130971 | `55e02d95ae29ac3114a7bc1fa1d4db168d8e6a0db305e2fc42114daf2908296c` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2403_1792071592330.jpeg` | 222860 | `b3456cd43cd03c9d9d106db1ee121cec278c902616f9cfd66237b30b052f97f9` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2405_1792071592330.jpeg` | 197018 | `9a8714f69ba245818a5f2d7cd1312285f080cc52ca53ad822c61083391f2fd62` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2407_1792071592330.jpeg` | 212059 | `b5ccbf22aed7b06b640d86bd79242f785de3c65d85d939f677567c2dca837615` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2409_1792071592330.jpeg` | 216816 | `569b8ee321124cac430bb193d1554be7259d457fdd5031c5e1c31f2551cc7c1d` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2436_1792222645853.jpeg` | 276886 | `c2f09eebd1c73a3c1840d52c670d15636ad15a3df8b2017fcff8a3cc83104627` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2437_1792222645853.jpeg` | 196072 | `7906ddb2516f558d797749bcea9777bc87012079fbc6e189eb87cd4ba10cec0d` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2438_1792222645853.jpeg` | 214876 | `ce6fa0803ce8f69e47dc366fae85c0cbbe915ba931464ebb5885c09e8d6d30d1` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2439_1792222645853.jpeg` | 191782 | `4b7b6727f2abdf9305fa01776bf63647b19e53d3e11e251888836cb3cfaca61c` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2440_1792222645853.jpeg` | 248140 | `d9e1f01486bcef412070fd9861ad3d4b0fdc4dd8cf21cfc1fb39107a2d2c609c` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2488_1792396346905.jpeg` | 622877 | `ae1384dd66ea16d6357a4ffa0f3983a8c4133fe445bb20714352efb96bf580e6` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2490_1792396346906.jpeg` | 147460 | `b1563af0ed562efe41ef73e8c22ae2afa5129f4981bd2329f5be1813065b9b51` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2527_1792570801529.png` | 372133 | `0c8863a443041f27c7669591ee3bc032c9d103be761957b6a9448f39ebc9cd01` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/IMG_2528_1792570801529.jpeg` | 251441 | `ef5a077f0bec5505513f11ee54232a204525e4d247a5fbdaf53012d1e3bd0443` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Instance_details_EC2_us-east-1_1792026579263.jpeg` | 771370 | `b7448325b7cb709434e0939b0ec2d3052b1936d0e960472a6d83bf1c117ab57e` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Instance_details_EC2_us-east-1_1792027022480.jpeg` | 860135 | `39e51bc750872489a9eca4e9ead22aa8cc0687a60ff41b166ddea4a29fa7b048` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Modify_volume_EC2_us-east-1_1792033601063.jpeg` | 871430 | `64508cec1eb103ab7f50bf18b5f0ecf16a6d28ab9530b91688808574dd50df7a` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Pasted--Project-Blueprint-Self-Hosted-Single-User-Crypto-Node-_1791805333879.txt` | 2752 | `752e822393f96d8bb566a4136a7d8418a807a55d8f639be90fc8ee103ecc38a0` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Pasted--imagine-over-10-000-users-make-a-request-at-once-and-T_1792020129887.txt` | 2421 | `a18b5248e1562e71fee4f4407d687f525538dd0a21dc9c56edf8a08b07e32783` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Pasted-2026-Oct-14-17-27-45-Docker-29-8-1-with-BuildKit-and-Bu_1791998920351.txt` | 7083 | `30867b1c8836eec05e69426db70b104ec8c217db5cf38377f28139c862d6868e` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Pasted-2026-Oct-19-06-10-07-Docker-29-8-1-with-BuildKit-and-Bu_1792390617815.txt` | 52301 | `9bff7313d5788ccdffb47c1a2bd37e221e38d8fc5920b8d71c037198c3314fb0` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Pasted-Direct-answers-first-1-Pruned-not-archival-For-a-person_1791805377057.txt` | 8843 | `1fe0f380d4e15e37ae0d5c0f064d5bcde708a4c3a8b40bacee1aec56650c195d` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Pasted-Docker-29-8-1-with-BuildKit-and-Buildx-detected-on-depl_1791882749768.txt` | 4159 | `95771317a554c8d637d78e519c14d0384b0ecb93bb806ea82670ad2f6d59b275` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Pasted-Now-that-your-AWS-Linux-server-is-running-and-Coolify-i_1791805344910.txt` | 4442 | `2687908194139a4aba0372c7f61f8d1eb3033592579509ba8b555d12589ce91c` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Pasted-Overall-this-is-a-strong-plan-better-than-most-producti_1791808556236.txt` | 7951 | `e659977d457edecfe0ff0abc7acea4bdf2d71abb66d9a984e79f179d69bf3dda` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Pasted-Short-answer-the-language-isn-t-your-latency-problem-an_1791805387433.txt` | 5155 | `6f392cf12925bce3d1316d1f0add639e0d99355057104a5399a3c5b8d9aea071` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Pasted-The-Bitcoin-hot-sweeper-key-path-is-the-only-configurat_1791805354418.txt` | 4745 | `5c17ab5e65f907429d6856ac0044ef777420fab723e8cfa5a53c5b8747bf37b1` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Pasted-This-is-an-exceptionally-rigorous-sovereign-tier-self-c_1791808542763.txt` | 3931 | `665744a1d182a773808de8ebefd099a73a476565c77af4874b0ac3620cc97516` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Personal_Bitcoin_Vault_1792030925559.jpeg` | 3347731 | `355e952c4803450902754f25e6666c7d93f62a8d7eea866d0fc2e9a1707b98b1` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Screenshot_2026-10-14_at_20.39.23_1792028403291.jpeg` | 556523 | `9d9e8b7ffc5f14ce465b3adc04bb1888440e85104bc8d7c76e362f5b612fe326` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Screenshot_2026-10-14_at_21.03.56_1792029859254.jpeg` | 1021818 | `86d177744d3ea34cf89e1a25c71384d962c439f669e0c5209c6f22fdf3d4e5fa` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Screenshot_2026-10-14_at_21.06.43_1792030043231.jpeg` | 902113 | `5cc87d3bb2b7329125a6abd2fffef18d81e7f64020e3dd14bdbd0de878507831` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Screenshot_2026-10-14_at_21.12.21_1792030396366.jpeg` | 1102848 | `9bb52d1c55f23aa224b4e0b1030a3649446d9b0e3695e1b33e0589ca5a9811cf` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Screenshot_2026-10-14_at_21.12.49_1792030396366.jpeg` | 812723 | `79c73409a15f5549c8667861bb9bef6288b698f88fbbd11f9bd130138ff2cfcd` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Screenshot_2026-10-14_at_21.15.50_1792030576769.jpeg` | 958680 | `497905ce21dc022495474266adaabda2cfcd7b287a5a0c4df053b50227432ba7` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Screenshot_2026-10-14_at_21.24.25_1792031095032.jpeg` | 940552 | `3e41a0ae79e4d9c8c9eb676f70f5bf5e1b61f2825a5826419144d688a19dcef2` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Screenshot_2026-10-14_at_22.09.24_1792033819449.jpeg` | 885371 | `c0eeddf344628054e017e989bb7c4ec61720f15af0c3a5d7877e33a591107da8` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Screenshot_2026-10-14_at_22.13.41_1792034125022.jpeg` | 904536 | `2b350f36d7f7ddc6abb597ffef833336707daca1b1d54ec16d7f17649484120d` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Screenshot_2026-10-14_at_22.14.48_1792034125022.jpeg` | 885602 | `947c8fcb73c987313c2f1c36540723b7ccd7509af1441fcbc3b2aff1d3029719` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Screenshot_2026-10-14_at_22.28.52_1792034964557.jpeg` | 950752 | `00c6bc48ade7990bb91f1688bf95a031b12a3446e91353acac0f701d2d92ec69` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Snapshot_details_EC2_us-east-1_1792033287721.jpeg` | 979234 | `e4cef89983e476835e664709d4d6dee9f5635651b2079e52da2804ad0763da9f` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Snapshot_details_EC2_us-east-1_1792033309635.jpeg` | 979234 | `e4cef89983e476835e664709d4d6dee9f5635651b2079e52da2804ad0763da9f` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Snapshot_details_EC2_us-east-1_1792033309636.jpeg` | 881522 | `7ea0f8b78745dc77762fa9f652ce4f056e4b85a4c8a1e70945dce0e869030db2` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Snapshots_EC2_us-east-1_1792031919918.jpeg` | 1105368 | `f973e740ac4c14c89f197111bcb399d3a896afae7a13990f5e1706f10cb1d4da` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Volume_details_EC2_us-east-1_1792033601063.jpeg` | 1025195 | `f0239b7958401776221cb30b21110cd3a22c3adab03cba3cac5f8b1c216baf18` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Volume_details_EC2_us-east-1_1792038015624.jpeg` | 1383912 | `d5d4712f567d52531eba79665dfda33babe424334b1dc7c8f2e49609a820e7d0` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Volume_details_EC2_us-east-1_1792038136172.jpeg` | 1348384 | `9e4e3f0bb22e73e68118cea64c36663b9a43bb3695c55245448354b2a48e7be1` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Volume_details_EC2_us-east-1_1792038255342.jpeg` | 1455596 | `c52708978250d3a168388e78c8b6d4431d46213b8d8dfb2fcaf181e655805e34` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/Volumes_EC2_us-east-1_1792031434573.jpeg` | 1016627 | `097a1197ebbf352631c44b739bb10eb07832f4825251187dc883e41856ebc282` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/[Coolify]_Terminal_Coolify_1792051780541.jpeg` | 743145 | `ebed2f17005f4b3f8eed9a41e509ca034f0eb800561b4052555affd5059180d3` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/[Coolify]_Terminal_Coolify_1792051995060.jpeg` | 1073940 | `5fabe4879a2d28c74eb8dce1d92b432cdbfcc8eb9a4aff0509351935af0be590` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/[Coolify]_Terminal_Coolify_1792054030777.jpeg` | 1399226 | `d1fff4dfc481ff30ebeb6f23e46cf1858bea3f4eba8b89cd42c16d81fa364426` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/[Coolify]_vault-main..._Terminal_Coolify_1792053029807.jpeg` | 551797 | `1e28f88c9f18b8c73932bac7877e4a39a02f2842834540c7f9bcd1e96308a5df` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/image_1792053162896.jpg` | 2558591 | `abb652a8598b95682aceb9c8d5df23ed539409968836aef2fd6e1958aa19a3ad` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/image_1792082835480.jpg` | 3036130 | `78a2801db1041c4e7d851155707d4fadca992716c4bcbb7d83c5a0f9e038a358` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/image_1792390801393.png` | 101452 | `f9a210d45292d0c727975ea9075272ba891ccacae7dcc27d89cc2efdf77b2e62` | Uploaded reference/evidence asset; content not reproduced here. |
-| `attached_assets/image_1792394429049.png` | 256590 | `99981973e58177ca0ca22424e91047bd14fcba69c11d5f6195988033b11b08d5` | Uploaded reference/evidence asset; content not reproduced here. |
 | `deploy/app-config.mjs` | 3639 | `76f336b8bd3fbe2e0a077964b21600cf8e8d1ce38db09553c9cf8e6005fdaf93` | Deployment configuration/tool: app-config.mjs; see deployment chapter and runbooks. |
 | `deploy/app-config.test.mjs` | 3964 | `992a3d9bf3a91795d59aa33467cff58b75d283f42b80511e74a926656cee2f0b` | Regression tests for app-config; local checks, not hosted evidence. |
 | `deploy/app-entrypoint.mjs` | 665 | `62eaea1cda8f23f2d87fc62e8dcfe68c2a94e4f145049ba88e791e61620ba923` | Deployment configuration/tool: app-entrypoint.mjs; see deployment chapter and runbooks. |
@@ -1850,22 +1798,33 @@ to publish: review repository assets before release.
 | `deploy/vault-engine.service` | 606 | `c05c133b8fe8fd2a1f2391f24bbdc825470a9290e8e7399ab34e06308a6487dd` | Deployment configuration/tool: vault-engine.service; see deployment chapter and runbooks. |
 | `deploy/vault-regtest.Dockerfile` | 768 | `556ac4df33192ce5b22af6fc3948f367b4b7096141f8b6e4a5df2a5a308c3e41` | Deployment configuration/tool: vault-regtest.Dockerfile; see deployment chapter and runbooks. |
 | `deploy/vault-regtest.Dockerfile.dockerignore` | 126 | `c87f626c7c5177a00915301822c369b06aba4b800dbb9cc96bfb24f80b130094` | Deployment configuration/tool: vault-regtest.Dockerfile.dockerignore; see deployment chapter and runbooks. |
+| `docs/api-security-review.md` | 6085 | `0e6a6524676aa0c6c7d96753627a4db13ff2b8cec62bb3d235a98a9dee346b29` | Detailed api security review runbook/status reference; respect dated evidence. |
 | `docs/coolify-bitcoin-setup.md` | 6457 | `79ea5ce97c779418b08abb5b0005cbee3bef98d72c9d7fe244dbad369b932e08` | Detailed coolify bitcoin setup runbook/status reference; respect dated evidence. |
 | `docs/coolify-deployment.md` | 15094 | `057b41e8c68fcd84d75167d56030ca3b21c6db25c427b117a2fb8cebdcc525da` | Detailed coolify deployment runbook/status reference; respect dated evidence. |
 | `docs/database-schema.md` | 3150 | `83c765f8d07d3008a0813094dd0ea961dbd923a960a3fee98537ad4ca494c47c` | Detailed database schema runbook/status reference; respect dated evidence. |
-| `docs/developer-access.md` | 9276 | `3f8b1528bfa3c4db364f558086ddaeb1e48b662d7ae76bfa21509e20d7b90d10` | Detailed developer access runbook/status reference; respect dated evidence. |
+| `docs/developer-access.md` | 9868 | `7d2bb5cb78b5b94dc9e55bcf4e17ff6ef56b70ecc9f7b71b8a04e28c6a9e100c` | Detailed developer access runbook/status reference; respect dated evidence. |
 | `docs/developer-release-commissioning.md` | 18312 | `e6627161b430b1de3589948d58ec6d989c9a3ff2b930e4e8472e8199e2a977f7` | Detailed developer release commissioning runbook/status reference; respect dated evidence. |
+| `docs/developer-settlement-design.md` | 11382 | `f1df1e86fced3d6591d1d288445c9cffdafd3718be2de11899abd9dec5bb32fd` | Detailed developer settlement design runbook/status reference; respect dated evidence. |
+| `docs/developer-wallet-acceptance-2026-10-31.md` | 5382 | `d29579be26b3b6de2211bbdefb5e1fab586fffc08908ebe73809974519f57552` | Detailed developer wallet acceptance 2026 10 31 runbook/status reference; respect dated evidence. |
+| `docs/developer-wallet-foundation.md` | 13393 | `4d614e9f2eb38e894cd64ca654ac086ffda12fe8cee0e8cd4b05d874cbf0eb4d` | Detailed developer wallet foundation runbook/status reference; respect dated evidence. |
 | `docs/github-readiness.md` | 11521 | `10908f86e6a211ff20ae51d92f6e0c11938d131426fdfa100a3c4f1979d82c65` | Detailed github readiness runbook/status reference; respect dated evidence. |
 | `docs/hosted-readiness-audit-2026-10-27.md` | 6240 | `bb8e32fb1ff2a4e8f35cb9bcf6ab41526d1ba0d91dbd4c014b26d3e1161fc6b7` | Detailed hosted readiness audit 2026 10 27 runbook/status reference; respect dated evidence. |
+| `docs/legal/developer-terms-and-privacy.md` | 15962 | `25fda07a635c623e9104af6ed5abfcbbe5609896492897750ae2c015f5f64b20` | Detailed developer terms and privacy runbook/status reference; respect dated evidence. |
 | `docs/live-sandbox-storage.md` | 6083 | `9faef15b9e15c7bc8ba56916972278d2bd721053acabeeb0b02ed1f33b13b13f` | Detailed live sandbox storage runbook/status reference; respect dated evidence. |
 | `docs/live-session-readiness.md` | 3430 | `ef1e8eecf530e98a45c922f3af036cc4febd62117e59edaab5d447c7b75384a5` | Detailed live session readiness runbook/status reference; respect dated evidence. |
 | `docs/login-security.md` | 6803 | `3759d7aa17f02836e9f4ca921a06b0e964fc0f04e246c6368b3ce4c0385c9abf` | Detailed login security runbook/status reference; respect dated evidence. |
 | `docs/mainnet-and-capacity.md` | 9136 | `57430c0a1d0d3b13cf5b403aa8fad650c80aff1883d574c5837ca7541f5f38d2` | Detailed mainnet and capacity runbook/status reference; respect dated evidence. |
 | `docs/mainnet-sync-monitor.md` | 1687 | `1aec872da31af91d241d5575f1034813b9179f4498d63a2c81ecb8c505d4bce2` | Detailed mainnet sync monitor runbook/status reference; respect dated evidence. |
+| `docs/owner-route-terms-acceptance.md` | 1228 | `d3eadc9179c7f099c533746735ae61add200d13b14a2d08503a4a0c9bda99d64` | Detailed owner route terms acceptance runbook/status reference; respect dated evidence. |
+| `docs/platform-admin.md` | 3014 | `2c6312996c7c599b851135cce39328f5e693a899a28cd481fd98b5028f2e505b` | Detailed platform admin runbook/status reference; respect dated evidence. |
+| `docs/protected-admin-acceptance.md` | 7061 | `69aea168b7ed9aad2fd2b723414118d955d54b6ef084b57a45b5a520a58d8979` | Detailed protected admin acceptance runbook/status reference; respect dated evidence. |
+| `docs/protected-admin-multitab-acceptance.md` | 4644 | `baa93f66130208538ec8cdf5202d153ee27c033938712bd7f8ee3f7557094ac3` | Detailed protected admin multitab acceptance runbook/status reference; respect dated evidence. |
+| `docs/public-copy-review.md` | 3055 | `61d102697f378fc38fb31d0327b079760ad7a18562d52521d169aa391a8c1bdc` | Detailed public copy review runbook/status reference; respect dated evidence. |
+| `docs/receipt-terminal-integration.md` | 4564 | `1296691092bcb490bdcb456bf628947dcdb2951586cc9014a187f496c743ef2f` | Detailed receipt terminal integration runbook/status reference; respect dated evidence. |
 | `docs/receive-readiness.md` | 2926 | `ed851ccc6e98853b4468a3e82ef5c363fc1fcfc5205118aeea128b6606350b8d` | Detailed receive readiness runbook/status reference; respect dated evidence. |
 | `docs/request-recovery.md` | 2568 | `842926f8da879ba667c434e0c5dd0305c4312cf61ac500611ce36aa3bba2e207` | Detailed request recovery runbook/status reference; respect dated evidence. |
-| `docs/sandbox-checkout.md` | 10079 | `0c2f793ca8caf4422e5005f9d154b13274236e2797baf9bb0e34638581f706a6` | Detailed sandbox checkout runbook/status reference; respect dated evidence. |
-| `docs/self-hosted-checkout-starter.md` | 3094 | `9afb256f24e43869d111f2726a711003975af4316ade38191a13639d3cf7beac` | Detailed self hosted checkout starter runbook/status reference; respect dated evidence. |
+| `docs/sandbox-checkout.md` | 13733 | `64e562028123b53442a6175bf1118a2241c6f04c1b3b9ff06eb225dc39a0f884` | Detailed sandbox checkout runbook/status reference; respect dated evidence. |
+| `docs/self-hosted-checkout-starter.md` | 4889 | `07a963a77634ac4bec1d903e85a4c8a34c8132106400645e9e4458446b0e943a` | Detailed self hosted checkout starter runbook/status reference; respect dated evidence. |
 | `docs/server-held-custody.md` | 4265 | `d9785925e1ccf930279868dbcd503e7ce0b69391870463504e8c2f3421ce3f4a` | Detailed server held custody runbook/status reference; respect dated evidence. |
 | `docs/strongroom-complete-figma-design-brief.txt` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Detailed strongroom complete figma design brief.txt runbook/status reference; respect dated evidence. |
 | `docs/strongroom-figma-handoff.html` | 20206 | `1f27678f79f6e7e42f3905bcb4583b380b2e4f96687611fcff67df9c3f0fadc6` | Detailed strongroom figma handoff.html runbook/status reference; respect dated evidence. |
@@ -1878,18 +1837,18 @@ to publish: review repository assets before release.
 | `docs/vault-operations.md` | 12192 | `f203dab0c9abbd7ff916a825bc8bcfaa664493b0e30c6a7b5eff4149d283e3ed` | Detailed vault operations runbook/status reference; respect dated evidence. |
 | `es.txt` | 1 | `01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b` | Legacy root text asset; not an executable entrypoint; purpose requires owner review. |
 | `lib/api-client-react/package.json` | 265 | `ae70f97a12d1f7e7cbb291b5ffd1d6893f0d7a0ff7721a21e615d47bccfad789` | Package identity, dependencies and runnable scripts. |
-| `lib/api-client-react/src/custom-fetch.ts` | 12068 | `2eeece990a8dc1145a09fa2b88aa95dd1e2218d6d296988600f70e632711b1a7` | Client HTTP transport and request/session integration. |
-| `lib/api-client-react/src/generated/api.schemas.ts` | 14523 | `b95078f23b1bbdb7827f9cd6248c055fa683e21cca15bd15e5fcf7a78328f607` | Generated api.schemas.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-client-react/src/generated/api.ts` | 135101 | `8c91dd2733dd32a6df09e581a6ffa91126fb624beaa3da0b6080cebc36e937f7` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-client-react/src/custom-fetch.ts` | 12100 | `6637fa71afc564f47e48827148411bbab9e51d1ff11200623169cc3667ef3ab5` | Client HTTP transport and request/session integration. |
+| `lib/api-client-react/src/generated/api.schemas.ts` | 19905 | `05c317b5b3f9e9416d88946d3fe3b9ba17298ae4229836bc0e415fd8be2e2166` | Generated api.schemas.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-client-react/src/generated/api.ts` | 157059 | `c89e126b9fb58906053eec3013cfa080b2558114de4725fd355f87959d0d46e1` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-client-react/src/index.ts` | 208 | `708d0a9abb7cc7cc6c4873185fb57bc1873f82521c7dff78bbf3c0939d83e21f` | index.ts module in lib/api-client-react/src; see the owning subsystem above. |
 | `lib/api-client-react/tsconfig.json` | 267 | `a00fda842228e3478705abcf2c76d9641f5d6263cd5d2df0b613d5379088ad73` | TypeScript compilation/project-reference configuration. |
-| `lib/api-spec/openapi.yaml` | 84489 | `b073583aba090ea088618aa8d12e08fd3e13c83454c25400b5e23d8f70aa8e25` | Authoritative HTTP API contract. |
-| `lib/api-spec/orval.config.ts` | 2051 | `17bbe15ed439c69c5a900398b2a146e4c8d8c79365479cb0ca9adc4dd4058776` | orval.config.ts module in lib/api-spec; see the owning subsystem above. |
-| `lib/api-spec/package.json` | 228 | `2c0f6e86a51350d26ad83e057f0ae4a886b1d8fd484965b34a6a762c0495f088` | Package identity, dependencies and runnable scripts. |
+| `lib/api-spec/openapi.yaml` | 92249 | `c622fdd2be7f0f3fa2511c2caf3ff7072d5130de88efe6670d4ff0c0c352d895` | Authoritative HTTP API contract. |
+| `lib/api-spec/orval.config.ts` | 1914 | `b969e7b9ce77991d96cf5739e66536d9253a6bac7744050de1f1de8694b2915d` | orval.config.ts module in lib/api-spec; see the owning subsystem above. |
+| `lib/api-spec/package.json` | 228 | `1282fba615d56f2e67c61d9dfb5f31955bbb81f0a9af8d04b9290fa3b7c4d865` | Package identity, dependencies and runnable scripts. |
 | `lib/api-zod/package.json` | 189 | `07009861b2ba8decccb4e9d78d743cb7273bd91915231b5eb1463b296efca13e` | Package identity, dependencies and runnable scripts. |
-| `lib/api-zod/src/generated/api.ts` | 32894 | `6abb44e97f41fb0baa6fc8170cd61cefb962d0572dde12a90f3e6ae3bb9f04c0` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/api.ts` | 40622 | `c6b927c9a2010d0f2fd542259c2db441e5a75922c1eccfdee7f45fa872181f36` | Generated api.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/activity.ts` | 220 | `6a40ba64d552dccf6f83273d142b81fa514c03fae4d38bf900bb214880154ce1` | Generated activity.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/adminDeveloper.ts` | 401 | `ef5e97cc0b0c066c0be3a1850938d0deae8b416c9cc04893f3d0a91bb7803ae9` | Generated adminDeveloper.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/adminDeveloper.ts` | 540 | `86a70a628ca2472a7ddbfc8afc1fc5eff494cc27aef517086ec21bd0fe842043` | Generated adminDeveloper.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/alert.ts` | 367 | `416ac7eeea3c9e6b301029cbc01bb4ce0e01b39d84f00c94f2ddb930192fa228` | Generated alert.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/alertInput.ts` | 512 | `4917d8e0399d7c90b3894594ea1f09668c57e888566d82af7a0a3eb6720be2a2` | Generated alertInput.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/alertInputKind.ts` | 276 | `1000180b62ffa329c9f672f0740bd9cdcad0d20a70e06fbe8bc1df5a980fdcd0` | Generated alertInputKind.ts contract/registry output; update its source generator rather than hand-editing. |
@@ -1912,19 +1871,30 @@ to publish: review repository assets before release.
 | `lib/api-zod/src/generated/types/developerSession.ts` | 560 | `bad1703329ad45e1fe50f3e0f9f2f9eb33da72a77eb289bbaf0d84931499f077` | Generated developerSession.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/developerSessionLevel.ts` | 298 | `d916e34f2cd333b2ab2728647e7965607d69331698cbb13b5ad83d679739f045` | Generated developerSessionLevel.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/developerTerms.ts` | 217 | `005e32401ba66afd67757e9cc6fbd6a5091885ab6011addf47606013679637ba` | Generated developerTerms.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/developerWalletKeyRequest.ts` | 365 | `ea825e93f398b76e65f752f4c58ad440c9b549231dfc8188a8d1c770a7569e20` | Generated developerWalletKeyRequest.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/developerWalletKeyRequestScopesItem.ts` | 448 | `390de407dc58f4800c36857f069db20f58d8ee214fecc259077c34c54e227603` | Generated developerWalletKeyRequestScopesItem.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/developerWalletKeyResult.ts` | 206 | `766943310e1c90d6343ac3aa94ae52239a38ac12008dac75fdb3694096c430bb` | Generated developerWalletKeyResult.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/error.ts` | 143 | `599b889a1d4f13051d0e001b3da6e0d76fa1b9af37351bdc04b539d32f6aa936` | Generated error.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/exploreVaultParams.ts` | 152 | `f1c650d6a5473b38bf188fcb184f8b7e1db9cccde0bdd8a27397ca6740f27ee0` | Generated exploreVaultParams.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/exploreVaultParams.ts` | 154 | `43bd1728ba5bd6d8bc3700e41dd03a9c2a6b888a18558793e0b2eb3500631a19` | Generated exploreVaultParams.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/explorer.ts` | 418 | `0cf5f1266b2870b16574fb229c828a5e4b5eb76ef98234a2f2ded78a004eb8da` | Generated explorer.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/explorerDetails.ts` | 157 | `61cf7f255b34f7689e7e5f0dee1f8a59ed696c1ab15d1f3eb7d90c352cdcc136` | Generated explorerDetails.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/getDeveloperAdminParams.ts` | 158 | `dc41c033676362164f29522ef566b536de77563187c56ceb66fc5de99e51fdce` | Generated getDeveloperAdminParams.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/getDeveloperSandboxAddressParams.ts` | 172 | `e99ef6a1d406375bff0a411e165e411e049bb714d4af64f32c3ed025f9e2002a` | Generated getDeveloperSandboxAddressParams.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/getRecipientParams.ts` | 196 | `cbea3cd6efa96afec1fdfdf305bbff45e3efbfb6d61774dea250202210fa28f9` | Generated getRecipientParams.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/getSandboxAddressParams.ts` | 205 | `a26a1836efcef1523c4573fc38115ff16665a0d097f316ae29ae4d7021bf8831` | Generated getSandboxAddressParams.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/foundationCommand.ts` | 333 | `be8c6373dafcc037bb31dd95b5b2fb5c0a7e3ea016a4b738baf8fc516c0a5dbd` | Generated foundationCommand.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/foundationCommandAction.ts` | 586 | `dbb539fd1fce66575b6996bb15905bb235867ab317cc2e13bd80c7ddba74ec52` | Generated foundationCommandAction.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/foundationPage.ts` | 407 | `26fe2842b46ab1e952692cd17867c5f0181642b6b6dbfc49a5eaf4a278124841` | Generated foundationPage.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/foundationRecord.ts` | 160 | `939afbdf6a9d1e8e062c0f190decf0606a971356a84a705dc3b6b53da8922ead` | Generated foundationRecord.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/foundationSession.ts` | 205 | `ed936fe9e27ae11e05bf3d0b8e96e04c54ecc3660f56e6aadb5242a6c527074d` | Generated foundationSession.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/getDeveloperAdminParams.ts` | 160 | `f81634d5804ced323da28a02421bb1f5c10dfa355bed3d59246af0da981424aa` | Generated getDeveloperAdminParams.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/getDeveloperSandboxAddressParams.ts` | 174 | `ef32c05680070ba33548dc56e1bb65d06ddc075e5bcf966587303095ba9273d5` | Generated getDeveloperSandboxAddressParams.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/getRecipientParams.ts` | 206 | `1e05d2c19271d67ed686f6721d33150ac0d56768391f2f5e4575a63965798d4f` | Generated getRecipientParams.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/getSandboxAddressParams.ts` | 215 | `2fc56d03f1c0eb20cca5cca38a56a38d6257cc7cad2748c0a98d8afa42058715` | Generated getSandboxAddressParams.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/getWalletFoundationViewKind.ts` | 492 | `717d92299dc60aa4a5dae7c08df05cfe19ec799c9c9e1bd571691a6a473a9530` | Generated getWalletFoundationViewKind.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/getWalletFoundationViewParams.ts` | 305 | `159b45f949b20ce47cd88f74aa3a68c45ecdb9c2f1faf71b38d96a1b52f91291` | Generated getWalletFoundationViewParams.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/healthStatus.ts` | 151 | `6ccf17c2dc7f498c00627c8568bea6f04963b1954d3db765d8b4278bf343ca66` | Generated healthStatus.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/hostedCheckout.ts` | 518 | `1eb4f5cc47c601f7318721bfae779a673b5d6f59dddef40e0594249cc19f9991` | Generated hostedCheckout.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/hostedCheckout.ts` | 834 | `0f8096a1eff525adc66a3d83e14a29281e5733878eb69c54642144c4cc639db5` | Generated hostedCheckout.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/hostedCheckoutEnvironment.ts` | 298 | `8add062556274efc025549475aaf1d646f74230ad85097802b99ddd5a081ed87` | Generated hostedCheckoutEnvironment.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/hostedCheckoutPaidVia.ts` | 364 | `20d578ac86351a0eb98c6222e540aea5b9567e5df062732ddc160dd09396ef10` | Generated hostedCheckoutPaidVia.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/hostedCheckoutStatus.ts` | 332 | `fb0946e528f2c1141e6332d5aab846dcde8ea53e92a91e199a43833d37896056` | Generated hostedCheckoutStatus.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/index.ts` | 2923 | `257928f171b087541084a8f7e52f587642a31c13dfe19f3c287cd6b978e2a814` | Generated index.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/index.ts` | 3838 | `d163749ec87915564af36e321350303573f59652e1c8d27eb96710caa418871a` | Generated index.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/market.ts` | 408 | `233be950c911aca8a078cce723369b48047274d4fae3c7ccb16f3911d64894fd` | Generated market.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/marketHistoryItem.ts` | 169 | `26fd394071ba2518780d96392359e8376bef0ae5575e21c7b9d6ef60f7afe61b` | Generated marketHistoryItem.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/nodeStatus.ts` | 445 | `fc4c73ed90dc8a3ed388751d00b5e2be962510f1cff370bb186fa9419185ad76` | Generated nodeStatus.ts contract/registry output; update its source generator rather than hand-editing. |
@@ -1938,17 +1908,24 @@ to publish: review repository assets before release.
 | `lib/api-zod/src/generated/types/paymentInput.ts` | 676 | `ac6b5bc567d3a5eac8dfd4aa8b1dfb809f50307b124e92cd17f7ec0aae399fcb` | Generated paymentInput.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/paymentInputWalletId.ts` | 408 | `2aad03ea14f49960f9ab4085296643f2cd4aba4097d5af0768abdc29be476b54` | Generated paymentInputWalletId.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/paymentReview.ts` | 344 | `3e539cb4c144d8fa553f48c9da69a514a8600bd776616461fbba33a74016b6e8` | Generated paymentReview.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/platformAdminCredentials.ts` | 262 | `4da1ef97620fb8bf19c1cfa479cb34ae320bb853e41c1c7fbbe37257c00b6ce4` | Generated platformAdminCredentials.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/platformAdminSession.ts` | 337 | `4ffd93cc6699f498b2ec9f829bbd0840b3eaed553e5da0904593b388171b4d37` | Generated platformAdminSession.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/recipientObservation.ts` | 643 | `fbc111dea8d9d9d37b6fc49ae5e8bdd25c6c5c6148b314f1a684ee5a504a3093` | Generated recipientObservation.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/recipientObservationNetwork.ts` | 294 | `248ab979f59b2e89aa69f1b7c79259edc9a8755b922e5c452b7bdab263217527` | Generated recipientObservationNetwork.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/recipientObservationProvider.ts` | 315 | `4c12df91d2b3c029d5cc331f3fefdcf4e1e27a7d002b11dc4d88c2733b088f01` | Generated recipientObservationProvider.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/recipientTransaction.ts` | 245 | `91eb19d9e5da322c59069604765ae446578426a69af1a04280c0746c2cd522ae` | Generated recipientTransaction.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/rotationInput.ts` | 181 | `6989e68a829980a1bf52e74d4cef83387b4c58b1aba5db1f0e4071d9ecf78133` | Generated rotationInput.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/sandboxAddressInfo.ts` | 465 | `648a37dad318fd07a916d5632d6943dcfd39493e5beb1d7920bfa9dd4672fba3` | Generated sandboxAddressInfo.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/sandboxAddressInfo.ts` | 676 | `23d18dbe00c8a404c28f89bd1fe9908613b2c3d0a63a6b698a5b2b23229fabb1` | Generated sandboxAddressInfo.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/sandboxAddressInfoEnvironment.ts` | 314 | `9072505ad9e73c484d0907319028130622f460ddf016e88dc42ca2e94229f690` | Generated sandboxAddressInfoEnvironment.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/sandboxAddressInfoKind.ts` | 302 | `71c191c57d68d4974e0d20bdfeeddfbe79fec76ea9d0bafe5b377aa8a9105a80` | Generated sandboxAddressInfoKind.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/sandboxCheckoutRef.ts` | 197 | `ac0936192b5ded2de48e8553b847673ebdb57b8fa390ee723bc0338437809c04` | Generated sandboxCheckoutRef.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/sandboxCheckoutTarget.ts` | 462 | `98474f4f924ec455ac1611b17def7cb9c6ee412857f3287b64e25f83e9802a45` | Generated sandboxCheckoutTarget.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/sandboxCheckoutTargetStatus.ts` | 360 | `5d38c081bc11e86307e405b2bd63e2a78654ea35239880468c38ba1a520c1b28` | Generated sandboxCheckoutTargetStatus.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/sandboxExecuteInput.ts` | 206 | `7605714d53a28f09d546023012a194b579320bb363baac6f81ce06f6318e4b9a` | Generated sandboxExecuteInput.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/sandboxReceipt.ts` | 345 | `359d7acd98571c684a81dbeb2705eb6d20c8491371c28ed86831e027961580b7` | Generated sandboxReceipt.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/sandboxReceipt.ts` | 578 | `fa9e8fd84be4547c133998c9097f50033a8ef0bb3073d479b3e7221d74801f3a` | Generated sandboxReceipt.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/sandboxReceiptDirection.ts` | 288 | `60b61eff3c132303dfe5de1039aa1004e66e1128322dd07c04985b42318813b1` | Generated sandboxReceiptDirection.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/sandboxReceiptStatus.ts` | 296 | `19a85ad84a2b2f244bb1da251327a15202ef12c8fb29cdef727016dcfb846ddf` | Generated sandboxReceiptStatus.ts contract/registry output; update its source generator rather than hand-editing. |
-| `lib/api-zod/src/generated/types/sandboxReview.ts` | 380 | `d1088d617e2e876e1117a2766304b5405ffb7788a726004cb1b792ae8ea8c680` | Generated sandboxReview.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/sandboxReview.ts` | 500 | `c6af77d4980aedf911c1deb771a238d23b0057566e524259b41f7f871e1281d5` | Generated sandboxReview.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/sandboxReviewInput.ts` | 264 | `3ed25e7424d255ea61f0484d7f69af5f1d28c7bb0361c36a8bbee8b9eaa9dea5` | Generated sandboxReviewInput.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/sandboxReviewStatus.ts` | 292 | `7c0616875ac659449ac633e52b56b1efadbe38107940d6519c09317cbd79221c` | Generated sandboxReviewStatus.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/sandboxSignetInput.ts` | 334 | `b6de74ed962d7b6c29c434025d923fe272c54790d76835de03ddc4a50943e1ef` | Generated sandboxSignetInput.ts contract/registry output; update its source generator rather than hand-editing. |
@@ -1961,6 +1938,9 @@ to publish: review repository assets before release.
 | `lib/api-zod/src/generated/types/settings.ts` | 390 | `af184a0c2d420d1c20cb7c44a0637f13991f9d24587a3ac112a457d25fccd216` | Generated settings.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/settingsInput.ts` | 344 | `a0cd0b532ef9abcb692a66d3a1b39de390a3712ebd7454ae196a4252d46afdda` | Generated settingsInput.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/transaction.ts` | 413 | `b09b4fe732c8544dc135a3c08f4d3e6922cd2be10e565a1c709a6f43c6ac2ed7` | Generated transaction.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/verificationEmailDiagnostic.ts` | 564 | `d2bb168f8ef0df3a9a1e55b6b46c6427bf6272168246572d9a49e72080aa07f7` | Generated verificationEmailDiagnostic.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/verificationEmailDiagnosticError.ts` | 530 | `f43d05ace901cd4b92301701fabdc988a02703ae78612161dba6c24ea4df42ea` | Generated verificationEmailDiagnosticError.ts contract/registry output; update its source generator rather than hand-editing. |
+| `lib/api-zod/src/generated/types/verificationEmailDiagnosticStatus.ts` | 360 | `2c5cf73faefd20e623b7db6b6cb62333d7d2e25afd9ee4aa98ac38774bb1cd38` | Generated verificationEmailDiagnosticStatus.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/wallet.ts` | 564 | `f8d593321777ad0e76e9ec65edd07f40b1f4f101563073e9a23601c1d687b265` | Generated wallet.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/walletInput.ts` | 273 | `866f90f078d7d6c5ac5c850448f5bf3a50ca0974b5301b0f3a08854440780213` | Generated walletInput.ts contract/registry output; update its source generator rather than hand-editing. |
 | `lib/api-zod/src/generated/types/walletKind.ts` | 298 | `7f602e874b1871f99da465b1eb865a27a1269197f00061b6409e28e003ea8da1` | Generated walletKind.ts contract/registry output; update its source generator rather than hand-editing. |
@@ -1987,22 +1967,26 @@ to publish: review repository assets before release.
 | `lib/vault-cloudflare/tsconfig.json` | 206 | `71f61c1494eae268125f8cb1af3530c1d205b784f0b4b1f04fc8e30c4799dd28` | TypeScript compilation/project-reference configuration. |
 | `lib/vault-cloudflare/wrangler.jsonc` | 734 | `5999164a4e53708fa087e3353560a56bf1435c8ae971ca4d6c0570a91d74550d` | wrangler.jsonc module in lib/vault-cloudflare; see the owning subsystem above. |
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
-| `pnpm-lock.yaml` | 224175 | `714025631ddd5482406a777dd349c3e90a733500a6408bd3690890ad40c7db49` | Pinned workspace dependency resolution. |
-| `pnpm-workspace.yaml` | 4660 | `55fa26fa8e462c4b51ace8b951415f2b45dad597bd22923d7e2a4017b0b558b0` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 69054 | `87ec496b571e1228c3b10ba2521e7952cf035bfbe92072ef0396438b3f2215c7` | Living architecture, readiness, roadmap and complete source inventory. |
-| `replit.md` | 3884 | `cb9d969a53606b536b272adfce48fc291804268dc9652cad675b95a4520ca4bf` | Collaborator instructions, operating constraints and documentation maintenance contract. |
+| `pnpm-lock.yaml` | 220498 | `a8ddbdc1fa3c77030c71ecd3e37072e2077d52c0f09abe6d319fc9f74335cc37` | Pinned workspace dependency resolution. |
+| `pnpm-workspace.yaml` | 4727 | `c2648e54a1cba7fd233f0cbf74f37514c2dc7dd4ee8a48384a954806b502afbf` | Workspace membership, dependency catalogs and package policy. |
+| `project road map.Rmd` | 87004 | `11154d8dfe876a0cd3f1e42d1b162a646ea07f916c254ad161ab416e1f7a744e` | Living architecture, readiness, roadmap and complete source inventory. |
+| `replit.md` | 4495 | `4ba9e48c35ce1ec0f9884bdd8f3881e35ed84621bb304ef1d8f62add19159ae6` | Collaborator instructions, operating constraints and documentation maintenance contract. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/developer-capacity-check.mts` | 2050 | `ea82c34dfd141ec3f6b675df74e518473f356529d2c996e0c288ac9ca6de8527` | Operator/build utility: developer-capacity-check.mts; inspect flags before invoking. |
-| `scripts/developer-ui-fixture.mts` | 4076 | `f19cb040643710b750eb3369203ece0ee125e753b9c23dd80033bb1e872421da` | Operator/build utility: developer-ui-fixture.mts; inspect flags before invoking. |
+| `scripts/developer-ui-fixture.mts` | 7077 | `908139a75c2ee77b78b0a63a3269595e009edd4bf921b29fbb05105f60c254a6` | Operator/build utility: developer-ui-fixture.mts; inspect flags before invoking. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
-| `scripts/package.json` | 336 | `2cc5a16fa30ac908526d4740473b38d8d5c95e1ed19032a5f5b9b970ec892602` | Package identity, dependencies and runnable scripts. |
+| `scripts/package.json` | 544 | `95987aed4abb27e80558a5f05a9ef80e5e25cb266c70598176503ee2be106d10` | Package identity, dependencies and runnable scripts. |
 | `scripts/post-merge.sh` | 72 | `b9e43e43dcbacd4bd26b84d68dd616270a6aacbd51ab25a2f6b1b81484eadc37` | Operator/build utility: post-merge.sh; inspect flags before invoking. |
+| `scripts/protected-admin.config.mjs` | 776 | `be82ad285e21b355ffceab0190d2dbf4cf2d86652b77c1accbd44b0c36567ded` | Operator/build utility: protected-admin.config.mjs; inspect flags before invoking. |
+| `scripts/protected-admin/admin.spec.mjs` | 7876 | `c277f32d7d05daf6336bc1da6920482e82931f1dee73f8fde986eb5bdd531c9e` | Operator/build utility: admin.spec.mjs; inspect flags before invoking. |
+| `scripts/protected-admin/fixture.mjs` | 4197 | `99d88a7a4ec1940e33fbd63ffeeb382cd22547f2485545b5a10054204c1ed806` | Operator/build utility: fixture.mjs; inspect flags before invoking. |
+| `scripts/protected-admin/local-only.mjs` | 680 | `427c1e46d6e59abcec21dbcf0376498f65b3bd412e850752cffa26c49a33a878` | Operator/build utility: local-only.mjs; inspect flags before invoking. |
 | `scripts/signet-generator-browser.test.mjs` | 2552 | `4974c31fa508a5e1b5da4f2c13aa8e3ed62e89fed74992b93ba0101e9b4f817d` | Regression tests for signet-generator-browser; local checks, not hosted evidence. |
 | `scripts/signet-setup-generator.mjs` | 6352 | `66284122a83fffd182fb0c1aac99eaf48b03cd1c15ff8fef45df8742e541357b` | Operator/build utility: signet-setup-generator.mjs; inspect flags before invoking. |
 | `scripts/signet-setup-generator.template.html` | 4034 | `d6759aa0108ade15a7860000bd41661bd94ad8d802b7570186938be91104844a` | Operator/build utility: signet-setup-generator.template.html; inspect flags before invoking. |
 | `scripts/signet-setup-generator.test.mjs` | 2443 | `86fa7380f089d2c83a524ccbbff680097b6b4372be0a43ec793d74f60a16c08f` | Regression tests for signet-setup-generator; local checks, not hosted evidence. |
 | `scripts/src/hello.ts` | 46 | `9a865c3de9900891e697e1ee8632dd565ce69bd7cb6b610e48b26bc0ee9e81e9` | Operator/build utility: hello.ts; inspect flags before invoking. |
-| `scripts/test-starter-export.mjs` | 7376 | `82238202ea7adcf3ec6af66ccf685f42b926ed24b4f8ee20528437839487843a` | Operator/build utility: test-starter-export.mjs; inspect flags before invoking. |
+| `scripts/test-starter-export.mjs` | 7724 | `d7ea4df4af84779c9223a1db279e41223d4b67b7a9d5ff1103ade795411fc62c` | Operator/build utility: test-starter-export.mjs; inspect flags before invoking. |
 | `scripts/tsconfig.json` | 157 | `636dea76ed898c62e56d6657ed97bb3edc85feb0ea8256b5198849d5c6cf462a` | TypeScript compilation/project-reference configuration. |
 | `scripts/update-roadmap.mjs` | 9075 | `246b1a11d004e22cf25612bdebe84bdf7487aa3113383be614d25dc5b8fa40f5` | Deterministic file inventory generator and stale-document check. |
 | `scripts/update-roadmap.test.mjs` | 2302 | `835d9b356ce704b84be849bbfd976c95077ad5db223624b5d85bc8ed8d98c889` | Regression tests for update-roadmap; local checks, not hosted evidence. |
@@ -2013,9 +1997,10 @@ to publish: review repository assets before release.
 | `scripts/vault-live-probe.test.mjs` | 2036 | `3d39bce9677f184c6e13a5c8c985cb55be158965a9b9cc316e19fd4b956a4731` | Regression tests for vault-live-probe; local checks, not hosted evidence. |
 | `scripts/vault-package.test.mjs` | 5244 | `3fca7c9c48ac9353fd55293d75ff09149dbcc83b6185c0eb0adab65d18125147` | Regression tests for vault-package; local checks, not hosted evidence. |
 | `scripts/vault-release.sh` | 2413 | `7bb1b6fd9606776f9d10b239ae3d973f2d5221f91632972550d41e3563f1a362` | Operator/build utility: vault-release.sh; inspect flags before invoking. |
-| `scripts/vault-ui-fixture.mts` | 2696 | `c5593dd396e0a2e7711f47e5603760e435486f4d72e8003a420305aa6b41186a` | Operator/build utility: vault-ui-fixture.mts; inspect flags before invoking. |
-| `scripts/vault-ui-mock-signer.mts` | 4693 | `9c4062fbf53534ab05bccf493528c8a1bea4bb07a61e5b676aded798d22c1b10` | Operator/build utility: vault-ui-mock-signer.mts; inspect flags before invoking. |
+| `scripts/vault-ui-fixture.mts` | 2822 | `0f804f77737515662fa4fe5de069500ae64d6a63ac458b2d1c81f1f500959a10` | Operator/build utility: vault-ui-fixture.mts; inspect flags before invoking. |
+| `scripts/vault-ui-mock-signer.mts` | 5363 | `53a3df71adae27f02a587156b03a7126dfcb9619ee125337f09af3edb2afaad0` | Operator/build utility: vault-ui-mock-signer.mts; inspect flags before invoking. |
 | `scripts/vault-verify.sh` | 1278 | `ae4084c55e5282f05fc2e74665530dafe0132ae22458b13c1c626c58c8056d86` | Operator/build utility: vault-verify.sh; inspect flags before invoking. |
+| `scripts/wallet-foundation-fixture.mts` | 6114 | `c39a6c62329afe94ae106c8e9bf0f16a5a6f3decec11de06994e6af79304fadd` | Operator/build utility: wallet-foundation-fixture.mts; inspect flags before invoking. |
 | `services/vault-engine/admission.go` | 679 | `75535c621e210d79a5e9b54e102490bafeef0f19dbe926b9a74049a4ab6dcf87` | admission.go module in services/vault-engine; see the owning subsystem above. |
 | `services/vault-engine/admission_test.go` | 1981 | `4359fa9b2e35332a0f7f2a3ad241dd7691f7b3f0b30658d036507f7622e58baf` | Regression tests for admission; local checks, not hosted evidence. |
 | `services/vault-engine/custody.go` | 3206 | `be7232547ef26afc4877b6e9175d70adddfe8e35964b61c24586323b91dded80` | custody.go module in services/vault-engine; see the owning subsystem above. |

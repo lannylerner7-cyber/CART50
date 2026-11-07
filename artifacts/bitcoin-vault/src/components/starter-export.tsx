@@ -33,7 +33,7 @@ export function WebhookHelp() {
     <Help label="What is a webhook URL">
       <p>A webhook is an <b>HTTPS endpoint on your hosting</b> that receives order updates from MainVaultWallet. For example: <code>https://yourshop.com/webhooks/mainvault</code>. Your server must accept POST requests there and verify each event with your webhook signing secret.</p>
       <p>Use your existing website domain and add the endpoint in your server code. The path <code>/webhooks/mainvault</code> needs no separate DNS record. If you choose a subdomain instead, point that subdomain to your hosting and configure HTTPS there. A DNS record alone does not create the endpoint.</p>
-      <p>The return URL is different: it is the exact page the buyer's browser is sent back to. A redirect to it, or a buyer clicking "I've sent", <b>never proves payment</b>. Only a verified webhook (in this sandbox, a simulated one) may change order state.</p>
+      <p>The return URL is different: it is the exact page the buyer's browser is sent back to. A redirect to it, or a buyer clicking "I've made the payment", <b>never proves payment</b>. Only a verified webhook (in this sandbox, a simulated one) may change order state.</p>
     </Help>
   );
 }

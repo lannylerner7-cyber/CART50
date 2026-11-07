@@ -1,15 +1,21 @@
 import { randomUUID } from "node:crypto";
 import { HttpError } from "../lib/security";
-import { centsFor, type Account, type DevSession } from "./store";
+import { centsFor, type Account, type DevReview, type DevSession } from "./store";
 
 export const destinationFor = (a: Account) => `sandbox-${a.id}`;
+/** Session-bound review without server-only fields. Checkout reviews expose only what the payer already saw. */
+export function publicReview(r: DevReview) {
+  const { sessionHash, settlementId, checkout, ...rest } = r;
+  return { ...rest, receiptId: r.receiptId ?? null, amountSats: r.amountSats,
+    ...(checkout ? { checkout: { id: checkout.checkoutId, reference: checkout.reference, amountSats: checkout.amountSats } } : {}) };
+}
 export function snapshot(a: Account, s: DevSession) {
   if (a.provisioning !== "ready" || !a.quote) throw new HttpError(409, "Complete account provisioning first");
   return {
     environment: "sandbox", simulatedCreditCents: centsFor(a), simulatedBalanceSats: a.balanceSats,
     assignedAddress: destinationFor(a), signetAvailable: false, quote: a.quote,
     message: "Sandbox balances use the exchange rate recorded when your workspace was created. Activity here stays within your Sandbox account.",
-    transactions: a.transactions, reviews: a.reviews.filter(r => r.sessionHash === s.hash).map(({sessionHash,...r})=>({...r,receiptId:r.receiptId??null})),
+    transactions: a.transactions, reviews: a.reviews.filter(r => r.sessionHash === s.hash).map(publicReview),
   };
 }
 export function review(a: Account, s: DevSession, amountCents: number, destination: string) {
@@ -23,8 +29,7 @@ export function review(a: Account, s: DevSession, amountCents: number, destinati
   a.reviews=a.reviews.filter(r=>r.status==="complete" || Date.parse(r.expiresAt)>Date.now());
   if(a.reviews.length>=1000) throw new HttpError(429,"Too many reviews");
   a.reviews.push(r);
-  const {sessionHash,...publicReview}=r;
-  return {...publicReview,receiptId:null};
+  return publicReview(r);
 }
 export function execute(a: Account,s: DevSession,id:string,confirmed:boolean) {
   const r=a.reviews.find(r=>r.id===id && r.sessionHash===s.hash);

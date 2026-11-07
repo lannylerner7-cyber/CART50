@@ -1,8 +1,8 @@
-import { Link, Route, Switch, useLocation, useParams } from 'wouter';
+import { Link, Route, Switch, useLocation, useParams, useSearch } from 'wouter';
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { FileText, ShieldCheck, Ban, Loader2, Search } from 'lucide-react';
-import type { SandboxReview, SandboxSnapshot, SandboxReceipt } from '@workspace/api-client-react';
+import { FileText, ShieldCheck, Ban, Loader2, Search, Store } from 'lucide-react';
+import type { SandboxReview, SandboxSnapshot, SandboxReceipt, SandboxCheckoutTarget } from '@workspace/api-client-react';
 import { CopyText, Empty, ErrorPanel, Panel, Pill, Skel, Stat } from '@/components/kit';
 import { SandboxCard, SandboxHeader, Reconnecting } from '@/components/sandbox-kit';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { stamp, errMsg } from '@/lib/vault';
 import type { ReactNode } from 'react';
 import { demoUsd, outcomeUnknown, parseCents } from '@/lib/sandbox';
+import { satsToBtc } from '@/lib/vault';
 import NotFound from '@/pages/not-found';
 import { useSandboxAdapter } from '@/lib/sandbox-adapter';
 import { ReceiptTerminal } from '@/components/receipt-terminal';
@@ -59,7 +60,7 @@ function Home() {
           </div>
         </section>
         <Panel title="Recent activity" meta={<Link href="/sandbox/activity" className="font-semibold text-foreground underline underline-offset-4" data-testid="link-all-activity">View all</Link>}>
-          {d.transactions.length === 0 ? <Empty icon={<FileText className="h-5 w-5" />} title="No activity yet" body="Payments you send appear here." /> : <TxList items={d.transactions.slice(0, 5)} />}
+          {d.transactions.length === 0 ? <Empty icon={<FileText className="h-5 w-5" />} title="No activity yet" body="Payments you send and checkout payments you receive appear here." /> : <TxList items={d.transactions.slice(0, 5)} />}
         </Panel>
       </div>
       <div className="min-w-0 space-y-5">
@@ -77,12 +78,36 @@ function Home() {
 
 function TxList({ items }: { items: SandboxReceipt[] }) {
   return <ul className="divide-y divide-border">
-    {items.map((t) => (
-      <li key={t.id}><Link href={`/sandbox/receipt/${encodeURIComponent(t.id)}`} className="-mx-2 flex items-center justify-between gap-3 rounded-xl px-2 py-3.5 hover:bg-muted/50" data-testid={`row-sandbox-tx-${t.id}`}>
-        <div className="min-w-0"><div className="text-[14.5px] font-semibold">Sent</div><div className="truncate text-[12.5px] text-muted-foreground">{stamp(t.createdAt)} · {t.destination}</div></div>
-        <div className="shrink-0 text-right"><div className="font-mono text-[14px] font-semibold">-{demoUsd(t.amountCents)}</div><div className="text-[12px] text-muted-foreground">Complete</div></div>
-      </Link></li>))}
+    {items.map((t) => {
+      const incoming = t.direction === 'in';
+      const title = incoming ? 'Received' : t.checkout ? 'Paid checkout' : 'Sent';
+      const detail = t.checkout ? `Order ${t.checkout.reference}` : t.destination;
+      return (
+        <li key={t.id}><Link href={`/sandbox/receipt/${encodeURIComponent(t.id)}`} className="-mx-2 flex items-center justify-between gap-3 rounded-xl px-2 py-3.5 hover:bg-muted/50" data-testid={`row-sandbox-tx-${t.id}`}>
+          <div className="min-w-0"><div className="text-[14.5px] font-semibold">{title}</div><div className="truncate text-[12.5px] text-muted-foreground">{stamp(t.createdAt)} · {detail}</div></div>
+          <div className="shrink-0 text-right"><div className={`font-mono text-[14px] font-semibold ${incoming ? 'text-ok' : ''}`}>{incoming ? '+' : '-'}{demoUsd(t.amountCents)}</div><div className="text-[12px] text-muted-foreground">Complete</div></div>
+        </Link></li>);
+    })}
   </ul>;
+}
+
+/** Hosted checkout found behind a `checkout:` destination. The amount is the merchant's; the payer cannot edit it. */
+function CheckoutTargetCard({ co, now }: { co: SandboxCheckoutTarget; now: number }) {
+  const ms = Date.parse(co.expiresAt) - now;
+  const open = co.status === 'pending' && ms > 0;
+  return (
+    <div className={`rounded-xl border p-3 text-[12.5px] ${open ? 'border-ok/30 bg-ok/5' : 'border-warn/40 bg-warn/5'}`} data-testid="card-checkout-target">
+      <div className={`flex items-center gap-1.5 font-semibold ${open ? 'text-ok' : 'text-warn'}`}><Store className="h-3.5 w-3.5" /> Hosted checkout {open ? 'ready to pay' : co.status === 'simulation_paid' ? 'already paid' : 'expired'}</div>
+      <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+        <dt className="text-muted-foreground">Order</dt><dd className="font-mono" data-testid="text-checkout-reference">{co.reference}</dd>
+        <dt className="text-muted-foreground">Amount</dt><dd className="font-mono" data-testid="text-checkout-sats">{satsToBtc(String(co.amount_sats))} sim BTC · {co.amount_sats.toLocaleString('en-US')} sats</dd>
+        <dt className="text-muted-foreground">From your balance</dt><dd className="font-mono">{demoUsd(co.amountCents)}</dd>
+        <dt className="text-muted-foreground">{open ? 'Expires in' : 'Status'}</dt><dd className="font-mono">{open ? `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}` : co.status}</dd>
+      </dl>
+      {co.selfPay && <p className="mt-2 text-muted-foreground">This checkout belongs to your own account. Paying it moves the amount out and back in, and still settles the session.</p>}
+      {!open && <p className="mt-2 text-muted-foreground">{co.status === 'simulation_paid' ? 'Nothing more to send. Ask the merchant for a new session if you need another test.' : 'Ask the merchant for a fresh checkout link.'}</p>}
+    </div>
+  );
 }
 
 function Wallet() {
@@ -111,6 +136,7 @@ function SendPage() {
 function SendFlow({ d }: { d: SandboxSnapshot }) {
   const qc = useQueryClient();
   const [, nav] = useLocation();
+  const search = useSearch();
   const adapter = useSandboxAdapter();
   const review = adapter.useReview();
   const exec = adapter.useExec();
@@ -132,6 +158,14 @@ function SendFlow({ d }: { d: SandboxSnapshot }) {
   useEffect(() => { if (!checking) return; const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, [checking]);
   const elapsed = checking ? Math.floor((now - startedAt) / 1000) : 0;
   const check = (v: string) => { const t = v.trim(); setDest(t); setPasteErr(null); setStartedAt(Date.now()); setNow(Date.now()); if (t && t === lookup) void addr.refetch(); else setLookup(t); };
+  // A hosted checkout page links here with ?destination=checkout:<token>; verify it immediately, once.
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (prefilled.current) return;
+    prefilled.current = true;
+    const param = new URLSearchParams(search).get('destination')?.trim();
+    if (param && param.length <= 100 && param.startsWith('checkout:')) check(param);
+  }, [search]); // eslint-disable-line react-hooks/exhaustive-deps
   const paste = async () => {
     setPasteErr(null);
     try {
@@ -144,14 +178,18 @@ function SendFlow({ d }: { d: SandboxSnapshot }) {
     }
   };
 
-  const cents = parseCents(amount);
   const assigned = d.assignedAddress;
   const destOk = !!dest && lookup === dest && addr.isSuccess && !addr.isFetching && addr.data?.destination === dest;
+  const co = destOk && addr.data?.kind === 'checkout' && addr.data.checkout ? addr.data.checkout : null;
+  const coOpen = !!co && co.status === 'pending' && Date.parse(co.expiresAt) > now;
+  useEffect(() => { if (!co) return; const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, [co]);
+  // Checkout amounts come from the merchant's session; the field only accepts input for wallet-to-wallet sends.
+  const cents = co ? co.amountCents : parseCents(amount);
   const within = cents !== null && cents <= d.simulatedCreditCents;
   const left = rv ? Math.max(0, Math.ceil((Date.parse(rv.expiresAt) - now) / 1000)) : 0;
 
   const doReview = () => {
-    if (!destOk || !cents || !within) return;
+    if (!destOk || !cents || !within || (co && !coOpen)) return;
     review.mutate({ data: { amountCents: cents, destination: dest } }, { onSuccess: (r) => { if (alive.current) { setRv(r); setAck(false); setUnknown(false); } } });
   };
   const done = (receiptId: string) => { void qc.invalidateQueries({ queryKey: adapter.snapshotKey() }); adapter.invalidateAddresses(qc); if (alive.current) nav(`/sandbox/receipt/${encodeURIComponent(receiptId)}`); };
@@ -187,7 +225,8 @@ function SendFlow({ d }: { d: SandboxSnapshot }) {
             {checking && <p role="status" className="flex items-center gap-2 text-[12.5px] text-muted-foreground" data-testid="status-lookup"><Loader2 className="h-3.5 w-3.5 animate-spin" /> {elapsed > 8 ? `Still checking with the sandbox ledger (${elapsed}s). Review stays locked until a response arrives.` : 'Checking with the sandbox ledger'}</p>}
             {!checking && lookup && lookup === dest && addr.isError && <div data-testid="text-dest-error"><ErrorPanel error={addr.error} onRetry={() => { setStartedAt(Date.now()); void addr.refetch(); }} title="Destination not accepted" /></div>}
             {!checking && lookup !== dest.trim() && dest.trim() && <p className="text-[12.5px] text-muted-foreground">Destination changed. Press Check to verify it before review.</p>}
-            {destOk && addr.data && (
+            {co && <CheckoutTargetCard co={co} now={now} />}
+            {destOk && addr.data && !co && (
               <div className="rounded-xl border border-ok/30 bg-ok/5 p-3 text-[12.5px]" data-testid="card-lookup-result">
                 <div className="font-semibold text-ok">Destination verified</div>
                 <div className="mt-1 text-muted-foreground">Balance {demoUsd(addr.data.simulatedCreditCents)} · {addr.data.transactionCount} entr{addr.data.transactionCount === 1 ? 'y' : 'ies'} · checked {stamp(addr.data.checkedAt)}</div>
@@ -197,24 +236,32 @@ function SendFlow({ d }: { d: SandboxSnapshot }) {
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="sb-amt">Amount · demoUSD</Label>
-            <Input id="sb-amt" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-12 rounded-2xl font-mono text-lg" placeholder="25.00" data-testid="input-sandbox-amount" />
-            {amount && cents === null && <span className="text-[12.5px] text-destructive">Enter an amount like 25.00</span>}
+            <Input id="sb-amt" inputMode="decimal" value={co ? (co.amountCents / 100).toFixed(2) : amount} onChange={(e) => setAmount(e.target.value)} readOnly={!!co} className={`h-12 rounded-2xl font-mono text-lg ${co ? 'bg-muted/60' : ''}`} placeholder="25.00" data-testid="input-sandbox-amount" />
+            {co && <span className="text-[12.5px] text-muted-foreground">Fixed by the checkout: exactly {co.amount_sats.toLocaleString('en-US')} simulated sats.</span>}
+            {!co && amount && cents === null && <span className="text-[12.5px] text-destructive">Enter an amount like 25.00</span>}
             {cents !== null && !within && <span className="text-[12.5px] text-destructive">Exceeds available balance.</span>}
           </div>
           {review.isError && <ErrorPanel error={review.error} title="Review rejected" />}
-          <Button className="h-12 rounded-full font-bold" disabled={!destOk || !within || review.isPending} onClick={doReview} data-testid="button-sandbox-review"><ShieldCheck className="h-4 w-4" /> {review.isPending ? 'Preparing review' : 'Review payment'}</Button>
-          {!destOk && <p className="text-[12.5px] text-muted-foreground">{assigned ? 'Review unlocks after the current destination is checked successfully.' : 'Review unavailable: no simulation identifier is assigned.'}</p>}
+          <Button className="h-12 rounded-full font-bold" disabled={!destOk || !within || review.isPending || (!!co && !coOpen)} onClick={doReview} data-testid="button-sandbox-review"><ShieldCheck className="h-4 w-4" /> {review.isPending ? 'Preparing review' : co ? 'Review checkout payment' : 'Review payment'}</Button>
+          {!destOk && <p className="text-[12.5px] text-muted-foreground">{assigned ? 'Review unlocks after the current destination is checked successfully. Paste your own identifier or a hosted checkout destination (checkout:…).' : 'Review unavailable: no simulation identifier is assigned.'}</p>}
         </div>) : (<div className="grid gap-4">
           <Pill tone={left > 0 ? 'neutral' : 'bad'}>{left > 0 ? `Review valid ${left}s` : 'Review expired'}</Pill>
           <Stat label="Amount · demoUSD"><span className="font-display text-3xl font-bold" data-testid="text-review-amount">{demoUsd(rv.amountCents)}</span></Stat>
-          <div><div className="text-[12px] text-muted-foreground">Destination identifier</div><div className="mt-1 break-all rounded-2xl bg-muted/60 p-3 font-mono text-[14px]" data-testid="text-review-destination">{rv.destination}</div></div>
+          {rv.checkout && (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 rounded-2xl border border-border p-3 text-[13px]" data-testid="card-review-checkout">
+              <dt className="text-muted-foreground">Paying order</dt><dd className="font-mono">{rv.checkout.reference}</dd>
+              <dt className="text-muted-foreground">Exact amount</dt><dd className="font-mono">{rv.checkout.amountSats?.toLocaleString('en-US') ?? rv.amountSats?.toLocaleString('en-US')} simulated sats</dd>
+              <dt className="text-muted-foreground">Checkout ID</dt><dd className="break-all font-mono text-[12px]">{rv.checkout.id}</dd>
+            </dl>
+          )}
+          <div><div className="text-[12px] text-muted-foreground">{rv.checkout ? 'Checkout destination' : 'Destination identifier'}</div><div className="mt-1 break-all rounded-2xl bg-muted/60 p-3 font-mono text-[14px]" data-testid="text-review-destination">{rv.destination}</div></div>
           <div className="text-[12.5px] text-muted-foreground">Review {rv.id} · created {stamp(rv.createdAt)}</div>
           <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border p-3 text-[14px]"><Checkbox checked={ack} onCheckedChange={(v) => setAck(!!v)} data-testid="checkbox-sandbox-ack" className="mt-0.5" /> I checked the destination and amount. This is a sandbox payment with no real value.</label>
           {unknown && <div role="status" className="rounded-2xl border border-warn/40 bg-warn/5 p-3 text-[13px]" data-testid="status-sandbox-unknown">The response was interrupted; the result is not yet confirmed. Check status or retry the same review. The server applies each review at most once. Do not create a replacement payment.</div>}
           {exec.isError && !unknown && <ErrorPanel error={exec.error} title="Payment rejected" />}
           {exec.isError && unknown && <p className="font-mono text-[11.5px] text-muted-foreground">{errMsg(exec.error)}</p>}
           <div className="flex flex-wrap gap-2">
-            <Button className="h-12 rounded-full px-6 font-bold" disabled={!ack || exec.isPending || (left <= 0 && !unknown)} onClick={submit} data-testid="button-sandbox-submit">{exec.isPending ? 'Submitting' : unknown ? 'Retry same review' : 'Confirm and send'}</Button>
+            <Button className="h-12 rounded-full px-6 font-bold" disabled={!ack || exec.isPending || (left <= 0 && !unknown)} onClick={submit} data-testid="button-sandbox-submit">{exec.isPending ? 'Submitting' : unknown ? 'Retry same review' : rv.checkout ? 'Confirm and pay checkout' : 'Confirm and send'}</Button>
             {unknown && <Button variant="outline" className="h-12 rounded-full" onClick={() => void reconcile()} disabled={exec.isPending} data-testid="button-sandbox-reconcile">Check status</Button>}
             <Button variant="outline" className="h-12 rounded-full" disabled={exec.isPending || unknown} onClick={() => { setRv(null); setAck(false); setUnknown(false); review.reset(); exec.reset(); }} data-testid="button-sandbox-edit">Discard review</Button>
           </div>
@@ -232,7 +279,7 @@ function SendFlow({ d }: { d: SandboxSnapshot }) {
 function ActivityPage() {
   return <Loader>{(d) => (<>
     <SandboxHeader title="Activity" desc="Every payment on your sandbox ledger." />
-    {d.transactions.length === 0 ? <Empty icon={<FileText className="h-5 w-5" />} title="No activity yet" body="Payments you send appear here." action={<Link href="/sandbox/send" className="font-semibold underline" data-testid="link-empty-send">Send</Link>} /> : (
+    {d.transactions.length === 0 ? <Empty icon={<FileText className="h-5 w-5" />} title="No activity yet" body="Payments you send and checkout payments you receive appear here." action={<Link href="/sandbox/send" className="font-semibold underline" data-testid="link-empty-send">Send</Link>} /> : (
       <Panel><TxList items={d.transactions} /></Panel>)}
     {d.reviews.some((r) => r.status === 'pending') && <p className="text-[12.5px] text-muted-foreground">{d.reviews.filter((r) => r.status === 'pending').length} unsubmitted review(s) will expire on their own.</p>}
   </>)}</Loader>;

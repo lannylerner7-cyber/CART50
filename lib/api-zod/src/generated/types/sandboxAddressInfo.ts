@@ -5,6 +5,8 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { SandboxAddressInfoEnvironment } from './sandboxAddressInfoEnvironment';
+import type { SandboxAddressInfoKind } from './sandboxAddressInfoKind';
+import type { SandboxCheckoutTarget } from './sandboxCheckoutTarget';
 import type { SandboxReceipt } from './sandboxReceipt';
 
 export interface SandboxAddressInfo {
@@ -14,4 +16,6 @@ export interface SandboxAddressInfo {
   transactionCount: number;
   transactions: SandboxReceipt[];
   checkedAt: string;
+  kind?: SandboxAddressInfoKind;
+  checkout?: SandboxCheckoutTarget;
 }

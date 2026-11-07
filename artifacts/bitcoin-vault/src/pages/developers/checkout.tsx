@@ -6,7 +6,7 @@ import {
   checkoutConsoleAction, useGetDeveloperConsole, type CheckoutCommand, type CheckoutCommandResult,
 } from '@workspace/api-client-react';
 import { Card, DevChip, DevTopBar, Notice } from '@/components/developer-frame';
-import { Pill, SkelRows, ErrorPanel, statusTone } from '@/components/kit';
+import { CopyText, Pill, SkelRows, ErrorPanel, statusTone } from '@/components/kit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -162,7 +162,8 @@ export default function CheckoutConsolePage() {
     setPreviewUrl(null);
     const r = await run('create-preview', { amountSats: Math.trunc(Number(pAmount)), reason: pRef.trim(), returnUrls: [pUrl] }, 'preview');
     const u = r?.message;
-    if (u && /^https:\/\//.test(u)) setPreviewUrl(u);
+    // The server returns the absolute hosted URL for its own origin (https in production, http only in loopback fixtures).
+    if (u && /^https?:\/\/\S+\/checkout\//.test(u)) setPreviewUrl(u);
   };
   const previewOk = /^[0-9]{1,9}$/.test(pAmount) && Number(pAmount) > 0 && pRef.trim().length > 0 && d?.returnUrls.includes(pUrl);
 
@@ -198,7 +199,7 @@ export default function CheckoutConsolePage() {
                   ))}
                 </ul>
                 <div className="mt-2 flex gap-2"><Input value={newUrl} onChange={(e) => setNewUrl(e.target.value)} placeholder="https://shop.example/thanks" disabled={urls.length >= 5} data-testid="input-return-url" /><Button variant="outline" onClick={addUrl} disabled={!httpsOk(newUrl.trim()) || urls.length >= 5} data-testid="button-add-url"><Plus className="h-4 w-4" /></Button></div>
-                <div className="mt-4 grid gap-1.5"><Label htmlFor="hook" className="flex items-center gap-1">Webhook URL (empty disables) <Help label="Webhook vs return URL"><p>Webhook: your deployed HTTPS server that receives signed POSTs. Return URL: the exact page the buyer's browser lands on afterwards. Neither the redirect nor an "I've sent" click proves payment.</p></Help></Label><Input id="hook" value={hook} onChange={(e) => setHook(e.target.value)} placeholder="https://shop.example/hooks/checkout" data-testid="input-webhook-url" /></div>
+                <div className="mt-4 grid gap-1.5"><Label htmlFor="hook" className="flex items-center gap-1">Webhook URL (empty disables) <Help label="Webhook vs return URL"><p>Webhook: your deployed HTTPS server that receives signed POSTs. Return URL: the exact page the buyer's browser lands on afterwards. Neither the redirect nor an "I've made the payment" click proves payment.</p></Help></Label><Input id="hook" value={hook} onChange={(e) => setHook(e.target.value)} placeholder="https://shop.example/hooks/checkout" data-testid="input-webhook-url" /></div>
                 {!hookValid && <p className="mt-1 text-[12px] text-destructive">Must be an HTTPS URL.</p>}
                 <Button className="mt-4 rounded-full" disabled={!urlsValid || !hookValid || busy !== null} onClick={() => { void save(); }} data-testid="button-save-settings">{busy === 'settings' ? 'Saving' : 'Save'}</Button>
                 <Button variant="outline" className="mt-4 ml-2 rounded-full" disabled={!hook.trim() || !hookValid || !urlsValid || busy!==null} onClick={()=>setConfirm({action:'settings',data:{returnUrls:urls,webhookUrl:hook.trim(),reason:'rotate-webhook'},title:'Replace webhook signing secret?',body:'Save the new secret on your server. Existing queued events retain their previous signing secret.'})} data-testid="button-rotate-webhook">Replace signing secret</Button>
@@ -244,17 +245,19 @@ export default function CheckoutConsolePage() {
 
             <Card testId="card-sessions">
               <div className="flex items-center justify-between"><div className="text-[13px] font-semibold">Checkout sessions</div><Button size="sm" variant="ghost" onClick={() => q.refetch()} data-testid="button-refresh-console"><RefreshCw className="h-4 w-4" /></Button></div>
+              <p className="mt-1 text-[12.5px] text-muted-foreground">Pending sessions settle when a Sandbox wallet pays their destination. Automated tests can complete their own sessions with <code className="font-mono">POST /api/v1/checkout/sessions/:id/simulate</code> and the test key; "Mark paid manually" below does the same by hand.</p>
               {!d.checkouts.length ? <p className="mt-3 text-[13px] text-muted-foreground">No sessions yet. Create one from your server or the preview above.</p> : (
                 <div className="mt-3 divide-y divide-border">
                   {d.checkouts.map((c) => (
                     <div key={c.id} className="flex flex-wrap items-center justify-between gap-3 py-3" data-testid={`row-checkout-${c.id}`}>
                       <div className="min-w-0">
                         <div className="font-mono text-[12.5px]">{c.reference} · {satsToBtc(String(c.amount_sats))} sim BTC</div>
-                        <div className="font-mono text-[11.5px] text-muted-foreground">{c.id} · expires {stamp(c.expiresAt)}</div>
+                        <div className="font-mono text-[11.5px] text-muted-foreground">{c.id} · {c.paid_at ? `settled ${stamp(c.paid_at)}${c.paid_via === 'sandbox_transfer' ? ' · Sandbox wallet' : ' · manual'}` : `expires ${stamp(c.expiresAt)}`}</div>
+                        {c.status === 'pending' && <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[11.5px] text-muted-foreground"><span className="truncate" data-testid={`text-destination-${c.id}`}>{c.sandbox_destination}</span><CopyText value={c.sandbox_destination} display="Copy destination" /></div>}
                       </div>
                       <div className="flex items-center gap-2">
                         <Pill tone={statusTone(c.status)} testId={`status-checkout-${c.id}`}>{c.status}</Pill>
-                        {c.status === 'pending' && <Button size="sm" variant="outline" className="rounded-full" disabled={busy !== null} onClick={() => setConfirm({ action: 'simulate', data: { checkoutId: c.id }, title: 'SIMULATE PAYMENT', body: `Marks ${c.reference} as simulation_paid and sends a webhook. No real Bitcoin moves.` })} data-testid={`button-simulate-${c.id}`}>Simulate payment</Button>}
+                        {c.status === 'pending' && <Button size="sm" variant="ghost" className="rounded-full" disabled={busy !== null} onClick={() => setConfirm({ action: 'simulate', data: { checkoutId: c.id }, title: 'MARK PAID MANUALLY', body: `Marks ${c.reference} as simulation_paid without a payer wallet and sends the webhook. Use this only for automated tests. No real Bitcoin moves.` })} data-testid={`button-simulate-${c.id}`}>Mark paid manually</Button>}
                       </div>
                     </div>
                   ))}

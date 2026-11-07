@@ -25,6 +25,7 @@
     "/checkout/{token}/check": {"post":{"operationId":"checkHostedCheckout","parameters":[{"name":"token","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"Status only; cannot mark paid","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HostedCheckout"}}}}}}},
     "/v1/checkout/sessions": {"post":{"operationId":"createMerchantCheckout","parameters":[{"name":"Idempotency-Key","in":"header","required":true,"schema":{"type":"string"}}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CheckoutCreate"}}}},"responses":{"200":{"description":"Created or reconciled checkout; bearer sk_test required","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HostedCheckout"}}}}}}},
     "/v1/checkout/sessions/{id}": {"get":{"operationId":"getMerchantCheckout","parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string"}}],"responses":{"200":{"description":"Merchant-owned checkout; bearer sk_test required","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HostedCheckout"}}}}}}},
+    "/v1/checkout/sessions/{id}/simulate": {"post":{"operationId":"simulateMerchantCheckout","summary":"Complete a Sandbox checkout from an automated test","description":"Sandbox only. Marks the merchant's own pending session simulation_paid with paid_via manual_simulation, credits the simulated balance once and queues the signed checkout.simulation_paid event. Idempotent on paid sessions; 409 when expired, 429 when the daily simulated-receipt cap is reached, 404 for another tenant's session.","parameters":[{"name":"id","in":"path","required":true,"schema":{"type":"string","format":"uuid"}}],"responses":{"200":{"description":"Current checkout after completion; bearer sk_test required","content":{"application/json":{"schema":{"$ref":"#/components/schemas/HostedCheckout"}}}}}}},
     "/developers/session": {
       "get": {"operationId":"getDeveloperSession","responses":{"200":{"description":"Isolated developer session and terms","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeveloperSession"}}}}}}
     },
@@ -1880,7 +1881,7 @@
       "CheckoutCreate":{"type":"object","required":["amount_sats","reference","return_url"],"properties":{"amount_sats":{"type":"integer"},"reference":{"type":"string"},"return_url":{"type":"string"}}},
       "CheckoutCommand":{"type":"object","properties":{"requestId":{"type":"string"},"accountId":{"type":"string"},"checkoutId":{"type":"string"},"reason":{"type":"string"},"paused":{"type":"boolean"},"amountSats":{"type":"integer"},"returnUrls":{"type":"array","items":{"type":"string"}},"webhookUrl":{"type":"string"}}},
       "CheckoutCommandResult":{"type":"object","properties":{"ok":{"type":"boolean"},"key":{"type":"string"},"webhookSecret":{"type":"string"},"message":{"type":"string"}}},
-      "HostedCheckout":{"type":"object","required":["id","url","status","amount_sats","reference","expiresAt","environment","return_url","qrPayload"],"properties":{"id":{"type":"string"},"url":{"type":"string"},"status":{"type":"string","enum":["pending","simulation_paid","expired"]},"amount_sats":{"type":"integer"},"reference":{"type":"string"},"expiresAt":{"type":"string"},"environment":{"type":"string","enum":["simulation"]},"return_url":{"type":["string","null"]},"qrPayload":{"type":"string"}}},
+      "HostedCheckout":{"type":"object","required":["id","url","status","amount_sats","reference","expiresAt","environment","return_url","qrPayload","sandbox_destination","paid_at","paid_via"],"properties":{"id":{"type":"string"},"url":{"type":"string"},"status":{"type":"string","enum":["pending","simulation_paid","expired"]},"amount_sats":{"type":"integer"},"reference":{"type":"string"},"expiresAt":{"type":"string"},"environment":{"type":"string","enum":["simulation"]},"return_url":{"type":["string","null"]},"qrPayload":{"type":"string"},"sandbox_destination":{"type":"string","description":"Paste into a MainVault Sandbox wallet to pay this session with simulated balance. Format checkout:<token>."},"paid_at":{"type":["string","null"]},"paid_via":{"type":["string","null"],"enum":["sandbox_transfer","manual_simulation",null]}}},
       "CheckoutDelivery":{"type":"object","required":["checkoutId","eventId","status","attempts","lastError"],"properties":{"checkoutId":{"type":"string"},"eventId":{"type":"string"},"status":{"type":"string"},"attempts":{"type":"integer"},"lastError":{"type":["string","null"]}}},
       "CheckoutAudit":{"type":"object","required":["at","action","reason","actor"],"properties":{"at":{"type":"string"},"action":{"type":"string"},"reason":{"type":"string"},"actor":{"type":"string"}}},
       "CheckoutConsole":{"type":"object","required":["accountId","status","paused","returnUrls","webhookUrl","apiKeyPrefix","checkouts","deliveries","liveApplication","liveEnabled"],"properties":{"accountId":{"type":"string"},"status":{"type":"string"},"paused":{"type":"boolean"},"returnUrls":{"type":"array","items":{"type":"string"}},"webhookUrl":{"type":["string","null"]},"apiKeyPrefix":{"type":["string","null"]},"checkouts":{"type":"array","items":{"$ref":"#/components/schemas/HostedCheckout"}},"deliveries":{"type":"array","items":{"$ref":"#/components/schemas/CheckoutDelivery"}},"liveApplication":{"type":"string"},"liveEnabled":{"type":"boolean"}}},
@@ -2800,16 +2801,41 @@
         "type": "object",
         "additionalProperties": true
       },
+      "SandboxCheckoutRef": {
+        "type": "object",
+        "required": ["id", "reference"],
+        "properties": {
+          "id": { "type": "string" },
+          "reference": { "type": "string" },
+          "amountSats": { "type": "integer" }
+        }
+      },
       "SandboxReceipt": {
         "type": "object",
         "required": ["id", "amountCents", "destination", "createdAt", "status", "balanceAfterCents"],
         "properties": {
           "id": { "type": "string" },
           "amountCents": { "type": "integer" },
+          "amountSats": { "type": "integer" },
           "destination": { "type": "string" },
           "createdAt": { "type": "string" },
           "status": { "type": "string", "enum": ["simulation_complete"] },
-          "balanceAfterCents": { "type": "integer" }
+          "balanceAfterCents": { "type": "integer" },
+          "direction": { "type": "string", "enum": ["out", "in"] },
+          "checkout": { "$ref": "#/components/schemas/SandboxCheckoutRef" }
+        }
+      },
+      "SandboxCheckoutTarget": {
+        "type": "object",
+        "required": ["id", "reference", "amount_sats", "amountCents", "status", "expiresAt", "selfPay"],
+        "properties": {
+          "id": { "type": "string" },
+          "reference": { "type": "string" },
+          "amount_sats": { "type": "integer" },
+          "amountCents": { "type": "integer", "description": "Demo-credit view of amount_sats using the payer's own pinned quote." },
+          "status": { "type": "string", "enum": ["pending", "simulation_paid", "expired"] },
+          "expiresAt": { "type": "string" },
+          "selfPay": { "type": "boolean" }
         }
       },
       "SandboxAddressInfo": {
@@ -2821,7 +2847,9 @@
           "simulatedCreditCents": { "type": "integer" },
           "transactionCount": { "type": "integer" },
           "transactions": { "type": "array", "items": { "$ref": "#/components/schemas/SandboxReceipt" } },
-          "checkedAt": { "type": "string" }
+          "checkedAt": { "type": "string" },
+          "kind": { "type": "string", "enum": ["wallet", "checkout"] },
+          "checkout": { "$ref": "#/components/schemas/SandboxCheckoutTarget" }
         }
       },
       "SandboxReviewInput": {
@@ -2846,11 +2874,13 @@
         "properties": {
           "id": { "type": "string" },
           "amountCents": { "type": "integer" },
+          "amountSats": { "type": "integer" },
           "destination": { "type": "string" },
           "createdAt": { "type": "string" },
           "expiresAt": { "type": "string" },
           "status": { "type": "string", "enum": ["pending", "complete"] },
-          "receiptId": { "type": ["string", "null"] }
+          "receiptId": { "type": ["string", "null"] },
+          "checkout": { "$ref": "#/components/schemas/SandboxCheckoutRef" }
         }
       },
       "SandboxSnapshot": {

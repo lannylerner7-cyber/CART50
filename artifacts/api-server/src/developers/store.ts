@@ -6,11 +6,21 @@ import type { MerchantState } from "./merchant";
 import type { MailDiagnostic } from "./mail-diagnostics";
 
 export type DevSession = { hash: string; csrf: string; expires: number; level: "onboarding" | "full"; passkeyAt?: number };
-export type DevReview = { id: string; destination: string; amountCents: number; amountSats: number; sessionHash: string; createdAt: string; expiresAt: string; status: "pending" | "complete"; receiptId?: string };
-export type DevReceipt = { id: string; destination: string; amountCents: number; amountSats: number; balanceAfterCents: number; balanceAfterSats: number; createdAt: string; status: "simulation_complete"; test: true };
+/** Hosted checkout bound to a review: the amount is fixed by the merchant's session, never by the payer. */
+export type ReviewCheckout = { token: string; merchantId: string; checkoutId: string; reference: string; amountSats: number };
+export type DevReview = { id: string; destination: string; amountCents: number; amountSats: number; sessionHash: string; createdAt: string; expiresAt: string; status: "pending" | "complete"; receiptId?: string; checkout?: ReviewCheckout; settlementId?: string };
+export type DevReceipt = { id: string; destination: string; amountCents: number; amountSats: number; balanceAfterCents: number; balanceAfterSats: number; createdAt: string; status: "simulation_complete"; test: true; direction?: "out" | "in"; checkout?: { id: string; reference: string } };
+/**
+ * Durable record of a cross-account Sandbox transfer. Payer debit and merchant credit
+ * live in different versioned rows, so completion is idempotent and resumable:
+ * debited -> settled once the merchant credit is applied, or debited -> released
+ * when the merchant can no longer accept it (expired, paid elsewhere, limits).
+ */
+export type Settlement = { id: string; reviewId: string; merchantId: string; checkoutId: string; token: string; reference: string; amountSats: number; amountCents: number; createdAt: string; state: "debited" | "settled" | "released"; receiptId?: string; failure?: string };
 export type Account = {
   walletApiKey?:{hash:string;scopes:string[];expiresAt:number;version:number};
   merchant?: MerchantState;
+  settlements?: Settlement[];
   id: string; email: string; name: string; createdAt: string; termsVersion: string; acceptedAt: string;
   verified: boolean; passkeys: StoredPasskey[]; keyHash?: string; sessions: DevSession[];
   verification?: { hash: string; expires: number; sentAt: number; attempts: number; delivery: "pending" | "sent" | "failed"; diagnostic?: MailDiagnostic };

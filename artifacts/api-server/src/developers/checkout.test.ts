@@ -56,8 +56,15 @@ test("checkout/admin boundaries, idempotent simulation and leased webhook outbox
     assert.equal((await req("/v1/checkout/sessions/"+id,"GET",undefined,undefined,{authorization:"Bearer "+otherKey.data.key})).status,404);
     assert.equal((await req(`/checkout/${token}/check`,"POST",{})).data.status,"pending");
     assert.equal((await req("/developer-console/simulate","POST",{checkoutId:id},b.client)).status,404);
+    // Test-key automation: another tenant's key cannot complete it, no key cannot complete it, the owning key can, repeatedly.
+    assert.equal((await req(`/v1/checkout/sessions/${id}/simulate`,"POST",{},undefined,{authorization:"Bearer "+otherKey.data.key})).status,404);
+    assert.equal((await req(`/v1/checkout/sessions/${id}/simulate`,"POST",{})).status,401);
+    assert.equal((await req("/v1/checkout/sessions/not-a-uuid/simulate","POST",{},undefined,bearer)).status,400);
+    const apiPaid=await req(`/v1/checkout/sessions/${id}/simulate`,"POST",{},undefined,bearer);
+    assert.equal(apiPaid.status,200);assert.equal(apiPaid.data.status,"simulation_paid");assert.equal(apiPaid.data.paid_via,"manual_simulation");
     const paid=await Promise.all([1,2].map(()=>req("/developer-console/simulate","POST",{checkoutId:id},a.client)));
     assert.ok(paid.every(r=>r.status===200));
+    assert.equal((await req(`/v1/checkout/sessions/${id}/simulate`,"POST",{},undefined,bearer)).data.paid_at,apiPaid.data.paid_at,"repeat completion is idempotent");
     assert.equal((await accountBy("id",a.id))!.balanceSats,3025000);
     const status=await req(`/checkout/${token}`);assert.equal(status.data.status,"simulation_paid");
     assert.match(status.data.return_url,/checkout_id=/);

@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Redirect, Route, Switch, useLocation } from 'wouter';
+import { Redirect, Route, Switch, useLocation, useSearch } from 'wouter';
 import { useGetDeveloperSession, type DeveloperSession } from '@workspace/api-client-react';
 import { ErrorBoundary } from '@/components/error-boundary';
 import { ErrorPanel } from '@/components/kit';
@@ -12,6 +12,7 @@ import { Apply, Landing, Register } from '@/pages/developers/apply';
 import { KeyPage, Passkey, Provision, Verify } from '@/pages/developers/onboarding';
 import { Live, Login } from '@/pages/developers/access';
 const ResourcesPage = lazy(() => import('@/pages/developers/resources'));
+const AboutPage = lazy(() => import('@/pages/developers/about'));
 const CheckoutConsolePage = lazy(() => import('@/pages/developers/checkout'));
 import NotFound from '@/pages/not-found';
 import { DeveloperIntroGate } from '@/components/developer-intro';
@@ -25,7 +26,11 @@ const SandboxRouter = lazy(() => import('@/pages/sandbox'));
 /** Minimal preconditions; each page renders its own completed state instead of bouncing. */
 function Need({ when, children }: { when: (s: DeveloperSession) => boolean; children: ReactNode }) {
   const { session } = useDev();
-  if (!session.authenticated) return <Redirect to="/login" />;
+  const [loc] = useLocation();
+  const search = useSearch();
+  // Keep a Sandbox deep link (e.g. a hosted checkout destination) across the sign-in redirect.
+  const next = loc.startsWith('/sandbox') ? `?next=${encodeURIComponent(loc + (search ? `?${search}` : ''))}` : '';
+  if (!session.authenticated) return <Redirect to={`/login${next}`} />;
   if (!when(session)) return <Redirect to={nextStep(session)} />;
   return <>{children}</>;
 }
@@ -51,7 +56,6 @@ function DevSandbox() {
 const full = (s: DeveloperSession) => !!s.ready && !!s.keyIssued;
 
 function Routes() {
-  const { session, email } = useDev();
   const [loc] = useLocation();
   if (loc === '/sandbox' || loc.startsWith('/sandbox/')) return <Need when={full}><DevSandbox /></Need>;
   return (
@@ -64,7 +68,9 @@ function Routes() {
         <Route path="/passkey"><Need when={(s) => !!s.verified}><Passkey /></Need></Route>
         <Route path="/provision"><Need when={(s) => !!s.passkeyEnrolled}><Provision /></Need></Route>
         <Route path="/key"><Need when={(s) => !!s.ready}><KeyPage /></Need></Route>
+        <Route path="/about"><Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading</p>}><AboutPage /></Suspense></Route>
         <Route path="/resources"><Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading resources</p>}><ResourcesPage /></Suspense></Route>
+        <Route path="/resources/:section"><Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading resources</p>}><ResourcesPage /></Suspense></Route>
         <Route path="/login" component={Login} />
         <Route path="/live"><Need when={(s) => !!s.passkeyEnrolled}><Live /></Need></Route>
         <Route path="/checkout"><Need when={(s) => !!s.passkeyEnrolled}><Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading checkout console</p>}><CheckoutConsolePage /></Suspense></Need></Route>

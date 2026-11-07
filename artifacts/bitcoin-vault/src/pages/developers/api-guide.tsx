@@ -9,6 +9,7 @@ const steps = [
   ['webhook-guide', '6. Receive signed webhooks'],
   ['recovery', '7. Handle retries and errors'],
   ['launch', '8. Test your integration'],
+  ['live-scope', '9. What Live has not defined yet'],
 ];
 const curl = `curl "$VAULT_API_BASE/v1/checkout/sessions" \\
   --request POST \\
@@ -91,7 +92,7 @@ export function ApiGuide() {
     <p>For the mainvaultwallet.com service, the API base is <code>https://mainvaultwallet.com/api</code>. Preview accounts and keys belong to the preview service; they do not automatically work on another deployment. Use the base shown in the console where you issued your key.</p>
     <ul>
       <li><b>API base:</b> your server sends authenticated requests here. Hosting your shop on another domain does not change this address.</li>
-      <li><b>Return URL:</b> for example <code>https://yourshop.com/thanks</code>. This is a browser page customers visit after completion. A visit does not prove payment.</li>
+      <li><b>Return URL:</b> for example <code>https://yourshop.com/thanks</code>. This is a browser page customers visit after completion. The hosted page appends two query parameters when it sends the shopper there: <code>checkout_id</code> (the session <code>id</code>) and <code>status</code> (<code>simulation_paid</code>). Any query string already in your saved URL is kept. Accept these parameters in your route validation, but use them only to look the order up on your server; a visit does not prove payment.</li>
       <li><b>Webhook URL:</b> for example <code>https://yourshop.com/webhooks/mainvault</code>. This is a server POST handler, not the page where customers enter an amount.</li>
     </ul>
     <p>An existing-domain path needs no new DNS record. Implement the route on your hosting. An optional <code>webhook.yourshop.com</code> subdomain needs DNS pointing to your hosting and a valid HTTPS certificate; DNS alone does not implement the handler. Do not point your merchant webhook DNS to MainVaultWallet.</p>
@@ -113,12 +114,21 @@ VAULT_CHECKOUT_KEY=sk_test_REPLACE_ON_YOUR_SERVER
     <pre className="dl-code overflow-x-auto p-4">{curl}</pre>
     <details><summary>Node.js server example</summary><pre className="dl-code overflow-x-auto p-4">{node}</pre></details>
     <details><summary>Python server example</summary><pre className="dl-code overflow-x-auto p-4">{python}</pre></details>
-    <p>Success returns JSON with <code>id</code>, <code>url</code>, <code>status</code>, <code>environment</code>, <code>amount_sats</code>, <code>reference</code>, <code>expiresAt</code>, <code>qrPayload</code> and <code>return_url</code>. Save the ID and redirect to the returned URL. The return URL in the response stays null until completion. Sessions expire after 30 minutes.</p>
+    <p>Success returns JSON with <code>id</code>, <code>url</code>, <code>status</code>, <code>environment</code>, <code>amount_sats</code>, <code>reference</code>, <code>expiresAt</code>, <code>qrPayload</code>, <code>sandbox_destination</code>, <code>paid_at</code>, <code>paid_via</code> and <code>return_url</code>. Save the ID and redirect to the returned URL. The return URL in the response stays null until completion. Sessions expire after 30 minutes.</p>
     <p>The same idempotency key and body return the original checkout. Reusing the key with different input returns 409. Never generate a new key merely because the first response was lost.</p>
     <h3 id="status">5. Display and reconcile status</h3>
     <p><code>GET /api/v1/checkout/sessions/:id</code> uses your server bearer key and only reads sessions owned by your account. Query from your server; do not expose the key in a polling widget.</p>
-    <p>The hosted QR opens the checkout page. “I've sent payment” refreshes status; it cannot approve or credit an order. To complete a Sandbox checkout, use the explicit simulate action in your authenticated console. The resulting status is <code>simulation_paid</code> and the event is <code>checkout.simulation_paid</code>. Pending sessions can expire; do not treat an expired session as paid.</p>
-    <p>If you omit a webhook, checkout still works: your backend must read status and reconcile orders itself. The return page should ask your server for the order state. Never mark an order complete from a URL parameter, a customer claim, a screenshot, or a wallet address alone.</p>
+    <p>The hosted page shows a Sandbox payment destination, <code>sandbox_destination</code> (<code>checkout:&lt;token&gt;</code>). The shopper pastes it into a MainVault Sandbox wallet; the amount locks to the session's exact <code>amount_sats</code> and settles once the shopper confirms. Settlement debits the payer, credits your Sandbox balance, sets the status to <code>simulation_paid</code> with <code>paid_via: "sandbox_transfer"</code>, prints the receipt on the hosted page and queues the <code>checkout.simulation_paid</code> event; the shopper is then returned to your return URL. The hosted QR only opens the page, and “I've made the payment” only re-reads status; neither can approve or credit an order. The console's manual action remains available for automated tests without a payer wallet and reports <code>paid_via: "manual_simulation"</code>. Pending sessions can expire; do not treat an expired session as paid.</p>
+    <p><b>How a Sandbox session becomes paid.</b> There are exactly three ways, and the hosted page is not one of them:</p>
+    <ol>
+      <li><b>Sandbox wallet (default):</b> the shopper pays <code>sandbox_destination</code> from a Sandbox wallet. Status becomes <code>simulation_paid</code>, <code>paid_via: "sandbox_transfer"</code>.</li>
+      <li><b>Automated tests:</b> your test suite calls <code>POST /api/v1/checkout/sessions/:id/simulate</code> with the same <code>sk_test</code> bearer key that created the session. No body is required. The response is the completed checkout (<code>paid_via: "manual_simulation"</code>); calling it again on a paid session returns the same state. Expired sessions answer 409, another tenant's session 404, and the 10,000,000-sat daily simulated-receipt cap answers 429.</li>
+      <li><b>Console fallback:</b> "Mark paid manually" in your checkout console does the same as the test endpoint, with a confirmation step.</li>
+    </ol>
+    <pre className="dl-code overflow-x-auto p-4">{`curl "$VAULT_API_BASE/v1/checkout/sessions/$CHECKOUT_ID/simulate" \\
+  --request POST --header "Authorization: Bearer $VAULT_CHECKOUT_KEY"`}</pre>
+    <p>All three credit your Sandbox balance once and queue the same signed <code>checkout.simulation_paid</code> event, so your webhook handler and status reconciliation are exercised identically. Whichever path you use, treat the outcome as a test event only.</p>
+    <p>If you omit a webhook, checkout still works: your backend must read status and reconcile orders itself (polling <code>GET /api/v1/checkout/sessions/:id</code> every 30 seconds while an order is open is a reasonable pattern; honour 429). The return page should ask your server for the order state. Never mark an order complete from a URL parameter, a customer claim, a screenshot, or a wallet address alone.</p>
     <h3 id="webhook-guide">6. Receive signed webhooks</h3>
     <p>MainVaultWallet sends an HTTPS POST with JSON, <code>X-Vault-Event-Id</code> and <code>X-Vault-Signature: t=unix_seconds,v1=hex_hmac_sha256</code>. The signed bytes are the timestamp, a period, and the exact raw request body.</p>
     <pre className="dl-code overflow-x-auto p-4">{`{
@@ -128,7 +138,7 @@ VAULT_CHECKOUT_KEY=sk_test_REPLACE_ON_YOUR_SERVER
   "data": {
     "id": "checkout-uuid", "reference": "order-123",
     "amount_sats": 25000, "environment": "simulation",
-    "status": "simulation_paid"
+    "status": "simulation_paid", "paid_via": "sandbox_transfer"
   }
 }`}</pre>
     <details><summary>Node.js signature verification helper</summary><pre className="dl-code overflow-x-auto p-4">{verifier}</pre></details>
@@ -140,6 +150,16 @@ VAULT_CHECKOUT_KEY=sk_test_REPLACE_ON_YOUR_SERVER
       <li>Return 2xx only after a durable commit or durable queue admission. Perform slow work in a worker. Invalid signatures should be rejected; temporary storage failures should return a non-2xx response so delivery can retry.</li>
     </ol>
     <p>Delivery is at least once. Retries keep the event ID and body but use a new signature timestamp. The dispatcher checks every 30 seconds, processes up to ten due deliveries per sweep, and uses bounded backoff up to one hour. Automatic delivery stops after eight attempts; inspect the console and retry explicitly once the receiver is fixed. Network delivery has a five-second request timeout; redirects are not followed.</p>
+    <h4 id="spoofing">Why a forged webhook cannot mark your order paid</h4>
+    <p>Anyone who learns your webhook URL can POST JSON to it. The checks above are what stop that request from changing an order:</p>
+    <ul>
+      <li><b>Signature:</b> the HMAC is computed with a secret only your server and MainVaultWallet hold, over the timestamp and the exact bytes received. A forged or edited body fails constant-time comparison. Treat a missing signature exactly like a wrong one.</li>
+      <li><b>Freshness:</b> a captured, genuine delivery replayed later fails the five-minute timestamp window.</li>
+      <li><b>Uniqueness:</b> a genuine delivery replayed inside the window is rejected by the unique event-ID insert, so it cannot update twice.</li>
+      <li><b>Binding:</b> the event must name a checkout ID your server created, with the stored reference, the expected <code>amount_sats</code>, <code>environment: "simulation"</code> and <code>type: "checkout.simulation_paid"</code>. An event for a different or unknown session changes nothing.</li>
+      <li><b>Independent confirmation:</b> when in doubt, read <code>GET /api/v1/checkout/sessions/:id</code> from your server with your bearer key. Only MainVaultWallet can answer that call, and only after a funded settlement or your own console action set <code>paid_at</code>.</li>
+    </ul>
+    <p>Nothing reachable from the browser can set a session to paid: the public page and its “I've made the payment” button only read status, the return redirect is a plain navigation, and a settlement requires an authenticated Sandbox wallet with a sufficient balance.</p>
     <h3 id="recovery">7. Handle retries and errors</h3>
     <ul>
       <li><b>400:</b> invalid JSON or input. Fix the request; do not loop on validation failures.</li>
@@ -156,11 +176,13 @@ VAULT_CHECKOUT_KEY=sk_test_REPLACE_ON_YOUR_SERVER
     <ol>
       <li>Create one order, store its checkout ID, open the returned page and verify its amount.</li>
       <li>Repeat the exact create request and confirm the same checkout; change the amount with the same key and confirm rejection.</li>
-      <li>Confirm the customer's status button does not complete the order. Simulate completion explicitly, then verify the signed event and return page.</li>
+      <li>Confirm the customer's status button does not complete the order. Pay the session from a Sandbox wallet (your own account works), then verify the signed event, the printed receipt and the return page.</li>
       <li>Replay a valid event and confirm only one order update. Reject wrong signatures, stale timestamps and mismatched amounts.</li>
       <li>Make your receiver temporarily return 500; confirm retries and recovery in the delivery console. Test a missing webhook using server-side status reconciliation.</li>
       <li>Test expiration, wrong-account reads, revoked keys, lost responses and mobile checkout. Confirm no secret appears in browser requests or downloadable public assets.</li>
     </ol>
     <p>For a self-hosted interface, use the Node or Python starter download in the checkout console. Configure its API base, return page and secrets on your hosting, retain its persistent data volume, and implement your shop's order authorization. The starter does not replace your user accounts or financial ledger.</p>
+    <h3 id="live-scope">9. What Live has not defined yet</h3>
+    <p>Live payments are not activated, and a passing Sandbox integration is not approval to take real customer payments. The following real-money behaviours are <b>not yet specified or documented</b>, so do not infer them from Sandbox: confirmation depth before an order counts as paid, underpayment and overpayment handling, what happens to funds that arrive after a session expires, refunds, network and service fees, settlement timing and payout, and the event names and statuses for real payments (Sandbox only ever emits <code>checkout.simulation_paid</code>). Each will be published with Live activation; until then, keep real-money assumptions out of your order logic and build your reconciliation around server-side status reads and signed events, which will carry over.</p>
   </section>;
 }

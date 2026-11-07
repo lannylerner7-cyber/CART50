@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { Link } from 'wouter';
-import { ArrowLeft, BookOpen, FileText, Link2, Mail, Scale, Shield } from 'lucide-react';
+import { Link, useParams } from 'wouter';
+import { ArrowLeft, BookOpen, FileText, Info, Link2, Mail, Scale, Shield } from 'lucide-react';
 import { DevTopBar } from '@/components/developer-frame';
 import { useDev } from '@/lib/developer';
 import { ApiGuide } from './api-guide';
@@ -11,13 +11,16 @@ const NAV = [
   ['documentation', 'Documentation', BookOpen], ['integration', 'Integration', Link2], ['contact', 'Contact', Mail],
 ] as const;
 
+/** One page, six sections. Each section also has its own indexable path (/resources/<section>). */
 export default function Resources() {
   const { session } = useDev();
   const terms = session.terms;
+  const { section } = useParams<{ section?: string }>();
   useEffect(() => {
-    const id = window.location.hash.slice(1);
+    const id = section ?? window.location.hash.slice(1);
     if (id) document.getElementById(id)?.scrollIntoView();
-  }, []);
+    else window.scrollTo(0, 0);
+  }, [section]);
 
   return (
     <div className="dl pb-16">
@@ -28,8 +31,9 @@ export default function Resources() {
           <div className="dl-eyebrow">Resources</div>
           <ul className="mt-4 flex flex-wrap gap-2 md:flex-col md:gap-1">
             {NAV.map(([h, l, I]) => (
-              <li key={h}><a href={'#' + h} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-[14px] hover:bg-[hsl(140_20%_90%/.06)]" data-testid={`link-resource-${h}`}><I className="h-4 w-4 dl-volt" aria-hidden />{l}</a></li>
+              <li key={h}><Link href={'/resources/' + h} className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-[14px] hover:bg-[hsl(140_20%_90%/.06)] ${section === h ? 'bg-[hsl(140_20%_90%/.08)]' : ''}`} aria-current={section === h ? 'page' : undefined} data-testid={`link-resource-${h}`}><I className="h-4 w-4 dl-volt" aria-hidden />{l}</Link></li>
             ))}
+            <li><Link href="/about" className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-[14px] hover:bg-[hsl(140_20%_90%/.06)]" data-testid="link-resource-about"><Info className="h-4 w-4 dl-volt" aria-hidden />About MainVault</Link></li>
           </ul>
         </nav>
         <main id="dl-res" className="dl-prose min-w-0 space-y-8">
@@ -65,8 +69,8 @@ export default function Resources() {
               <li>Configure exact HTTPS return URLs (no wildcards, fragments or custom ports) and a public HTTPS webhook endpoint on port 443.</li>
               <li>Issue a test key from the checkout console. Keys are checkout-only, expire after 90 days, and are shown once.</li>
               <li>Redirect shoppers to the returned <code>url</code>. The QR encodes that checkout URL, not a Bitcoin payment request.</li>
-              <li>The shopper's "I've sent" button only re-checks status. Mark a session paid with the explicit simulate action in your console.</li>
-              <li>Use verified simulation webhooks to update test orders only, never to fulfil real orders. A return redirect is not proof of payment.</li>
+              <li>The hosted page shows a Sandbox payment destination (<code>sandbox_destination</code>). Paying it from a Sandbox wallet settles the session automatically; the "I've made the payment" button only re-reads status. Marking a session paid from the console is a fallback for tests without a payer wallet.</li>
+              <li>Fulfil test orders only from a webhook whose signature you verified: check the timestamp, compare the HMAC in constant time, ignore repeated event IDs and confirm the amount and reference against your own order. A return redirect or a status shown in the browser is never proof of payment.</li>
             </ul>
           </section>
           <section id="contact" className="dl-card p-6 md:p-8">

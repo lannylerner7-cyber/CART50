@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'wouter';
+import { Link, useLocation, useSearch } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
 import { browserSupportsWebAuthn, startAuthentication } from '@simplewebauthn/browser';
 import { Fingerprint, KeyRound, Lock, LogOut, ArrowRight } from 'lucide-react';
@@ -45,7 +45,14 @@ export function Login() {
   const k = key.trim();
   const supported = browserSupportsWebAuthn();
 
-  useEffect(() => { if (session.authenticated && !pk.busy && !login.isPending) nav(session.ready && session.keyIssued ? '/sandbox' : nextStep(session)); }, [session.authenticated, session.ready, session.keyIssued, session.passkeyEnrolled, pk.busy, login.isPending, nav]); // eslint-disable-line react-hooks/exhaustive-deps
+  const search = useSearch();
+  useEffect(() => {
+    if (!(session.authenticated && !pk.busy && !login.isPending)) return;
+    // Only same-app Sandbox paths are honoured; anything else falls back to the default landing.
+    const next = new URLSearchParams(search).get('next') ?? '';
+    const safeNext = /^\/sandbox(\/[A-Za-z0-9/_-]*)?(\?[A-Za-z0-9=&%._:-]*)?$/.test(next) ? next : null;
+    nav(session.ready && session.keyIssued ? (safeNext ?? '/sandbox') : nextStep(session));
+  }, [session.authenticated, session.ready, session.keyIssued, session.passkeyEnrolled, pk.busy, login.isPending, nav]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const submitKey = (e: React.FormEvent) => {
     e.preventDefault();

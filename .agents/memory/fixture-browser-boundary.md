@@ -46,3 +46,10 @@ authenticator available to the second target.
 but use genuine UI enrollment per target. Avoid accessibility snapshots while
 a disposable credential input is populated; masking screenshots does not
 necessarily mask the accessibility tree.
+
+The disposable developer fixture (`scripts/developer-ui-fixture.mts`, HTTP on
+localhost:4400) serves `artifacts/bitcoin-vault/dist/public`, so build first
+with `NODE_ENV=production PORT=3000 BASE_PATH=/`. Its mail sink keys messages
+by lower-cased email; the fixture origin is http, so UI that assumes https
+links (e.g. preview URLs) must accept `https?`. Remove `/tmp/developer-ui-isolated-*`
+after stopping it.

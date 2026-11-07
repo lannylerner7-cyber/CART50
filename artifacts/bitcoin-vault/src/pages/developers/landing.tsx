@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, BookOpen, Code2, FileText, Fingerprint, KeyRound, Link2, Mail, QrCode, Repeat, Scale, Shield, ShieldCheck, Webhook } from 'lucide-react';
+import { ArrowRight, BookOpen, Code2, FileText, Fingerprint, Info, KeyRound, Link2, Mail, QrCode, Repeat, Scale, Shield, ShieldCheck, Webhook } from 'lucide-react';
 import { DevTopBar } from '@/components/developer-frame';
 import { BRAND_MARK } from '@/lib/assets';
 import { nextStep, useDev } from '@/lib/developer';
@@ -28,20 +28,20 @@ const CAPS = [
   { i: QrCode, t: 'A connected checkout', b: 'Give shoppers a hosted checkout page and a QR link to open it on another device. Bring them back to your website when the flow is complete.' },
   { i: Webhook, t: 'Signed order updates', b: 'Receive signed events on your server, verify their origin and keep your order records up to date. Interrupted deliveries are retried.' },
   { i: Fingerprint, t: 'Passkey-protected access', b: 'Manage your integration with passkey sign-in and scoped API keys. Keep credentials on your server, away from browser code.' },
-  { i: ShieldCheck, t: 'Test the full journey', b: 'Use Sandbox to try checkout, order updates and receipts before requesting Live access. Control when a test order completes from your console.' },
+  { i: ShieldCheck, t: 'Test the full journey', b: 'Use Sandbox to try checkout, order updates and receipts before requesting Live access. Pay a test checkout from a Sandbox wallet and watch it settle on its own.' },
 ];
 
 const FLOW = [
   { n: '01', t: 'Create', b: 'Your backend calls POST /api/v1/checkout/sessions with a Bearer sk_test key.', code: 'Authorization: Bearer sk_test_…\nIdempotency-Key: order-123-v1' },
   { n: '02', t: 'Redirect', b: 'Send the shopper to the returned url. Sessions expire after 30 minutes.', code: '302 → session.url' },
-  { n: '03', t: 'Simulate', b: 'From your console, explicitly simulate receipt. Duplicate calls never credit twice.', code: 'status: open → paid (simulation)' },
+  { n: '03', t: 'Pay', b: 'The shopper pays the session from a Sandbox wallet. The exact amount settles once; duplicates never credit twice.', code: 'status: pending → simulation_paid' },
   { n: '04', t: 'Verify', b: 'Fulfil from the verified webhook, not from the return redirect.', code: 'checkout.simulation_paid\nverify v1 · dedupe by id' },
 ];
 
 export function Landing({ prefix = '' }: { prefix?: string }) {
   const { session } = useDev();
   const authed = session.authenticated;
-  const res = (h: string) => prefix + '/resources#' + h;
+  const res = (h: string) => prefix + '/resources/' + h;
   const primary = authed
     ? <Link href={prefix + nextStep(session)} className="dl-btn" data-testid="link-resume">Resume setup <ArrowRight className="h-4 w-4" aria-hidden /></Link>
     : <Link href={prefix + '/apply'} className="dl-btn" data-testid="link-apply">Apply for access <ArrowRight className="h-4 w-4" aria-hidden /></Link>;
@@ -164,6 +164,7 @@ export function Landing({ prefix = '' }: { prefix?: string }) {
             <nav aria-label="Developers">
               <div className="dl-eyebrow !text-[hsl(200_8%_60%)]">Developers</div>
               <ul className="mt-4 space-y-3 text-[14px]">
+                <li><Link href={prefix + '/about'} className="inline-flex items-center gap-2 hover:text-[hsl(var(--volt))]" data-testid="link-footer-about"><Info className="h-4 w-4 dl-ash" aria-hidden />About MainVault</Link></li>
                 {[[BookOpen, 'Documentation', 'documentation'], [Link2, 'Integration', 'integration'], [Mail, 'Contact us', 'contact']].map(([I, l, h]) => {
                   const Icon = I as typeof Scale;
                   return <li key={h as string}><Link href={res(h as string)} className="inline-flex items-center gap-2 hover:text-[hsl(var(--volt))]" data-testid={`link-footer-${h}`}><Icon className="h-4 w-4 dl-ash" aria-hidden />{l as string}</Link></li>;

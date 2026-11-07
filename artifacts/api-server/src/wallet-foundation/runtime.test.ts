@@ -10,6 +10,7 @@ import {localDeveloperStorage} from "../developers/local-storage";
 import {independentDeveloperRuntime} from "./runtime";
 import {createAccount,updateAccount,accountBy} from "../developers/store";
 import {hash} from "../lib/security";
+import {DEVELOPER_TERMS_VERSION} from "../developers/terms";
 
 test("independent onboarding storage, scoped keys, fresh passkey rotation and owner boundary",async()=>{
   const dir=mkdtempSync(join(tmpdir(),"wallet-identity-"));
@@ -23,7 +24,7 @@ test("independent onboarding storage, scoped keys, fresh passkey rotation and ow
   const base=`http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   const authHeaders={"Content-Type":"application/json",Origin:"http://localhost"};
   try{
-    const register=await fetch(base+"/api/developers/register",{method:"POST",headers:authHeaders,body:JSON.stringify({name:"Independent",email:"new@example.invalid",termsVersion:"preview-draft-1",accepted:true})});
+    const register=await fetch(base+"/api/developers/register",{method:"POST",headers:authHeaders,body:JSON.stringify({name:"Independent",email:"new@example.invalid",termsVersion:DEVELOPER_TERMS_VERSION,accepted:true})});
     assert.equal(register.status,200);
     assert.ok(await accountBy("email","new@example.invalid"));
     const a=await createAccount("A","a@example.invalid","fixture"),b=await createAccount("B","b@example.invalid","fixture");

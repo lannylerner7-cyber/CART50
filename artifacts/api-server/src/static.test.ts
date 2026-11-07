@@ -21,13 +21,30 @@ test("single-origin container routing keeps API and missing assets out of SPA fa
   const base = `http://127.0.0.1:${address.port}`;
   try {
     const checkout="/checkout/12345678-1234-1234-1234-123456789abc."+"A".repeat(43);
-    for (const route of ["/", "/wallets", "/settings/security",checkout]) {
+    for (const route of ["/", "/wallets", "/settings/security",checkout,"/developers/resources/terms","/developers/login","/mainvaultwallet/personal/admin/wallets"]) {
       const response = await fetch(base + route);
       assert.equal(response.status, 200);
       assert.equal(response.headers.get("cache-control"), "no-store");
-      assert.match(response.headers.get("x-robots-tag") ?? "", /noindex/);
       assert.match(await response.text(), /vault-test/);
+      // Only the public developer pages may be indexed; vault, console, checkout and admin routes stay hidden.
+      const indexable = ["/","/developers/resources/terms"].includes(route);
+      assert.equal(response.headers.get("x-robots-tag"), indexable ? null : "noindex, nofollow, noarchive", route);
     }
+    assert.equal((await fetch(base + "/developers/about/")).headers.get("x-robots-tag"), null);
+    assert.equal((await fetch(base + "/developers/aboutx")).headers.get("x-robots-tag"), "noindex, nofollow, noarchive");
+    const robots = await (await fetch(base + "/robots.txt")).text();
+    assert.match(robots, /^User-agent: \*$/m);
+    assert.match(robots, /^Allow: \/\$$/m);
+    assert.match(robots, /^Allow: \/developers\/resources\/documentation\$$/m);
+    assert.match(robots, /^Allow: \/assets\/$/m);
+    assert.match(robots, /^Disallow: \/$/m);
+    assert.match(robots, new RegExp(`^Sitemap: ${base.replace(/[.*+?^$()|[\]\\]/g, "\\$&")}/sitemap.xml$`, "m"));
+    assert.doesNotMatch(robots, /mainvaultwallet\/personal|checkout|sandbox|login/);
+    const sitemapResponse = await fetch(base + "/sitemap.xml");
+    assert.match(sitemapResponse.headers.get("content-type") ?? "", /xml/);
+    const sitemap = await sitemapResponse.text();
+    for (const p of ["/", "/developers/about", "/developers/apply", "/developers/resources", "/developers/resources/privacy"]) assert.ok(sitemap.includes(`<loc>${base}${p}</loc>`), p);
+    assert.doesNotMatch(sitemap, /personal\/admin|\/sandbox|\/checkout\/|\/login|<loc>[^<]*\/developers<\/loc>/);
     assert.deepEqual(await (await fetch(base + "/api/healthz")).json(), { status: "ok" });
     const missingAPI = await fetch(base + "/api/missing");
     assert.equal(missingAPI.status, 404);

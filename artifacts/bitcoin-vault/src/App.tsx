@@ -28,6 +28,7 @@ import { SandboxShell } from '@/components/sandbox-shell';
 import { lockClient, LOCK_EVENT } from '@/lib/session-lock';
 import { retryRead, readRetryDelay, transientReadError } from '@/lib/request-recovery';
 import { DEVELOPER_HOMEPAGE, isOwnerLocation, legacyOwnerRedirect, OWNER_BASE, PLATFORM_ADMIN_PATH } from '@/lib/owner-location';
+import { useRouteSeo } from '@/lib/seo';
 
 const SESSION_KEY = getGetVaultSessionQueryKey();
 const on401 = (e: unknown) => {
@@ -141,6 +142,7 @@ function Gate() {
 /** /developers is a separate principal with its own QueryClient; it renders before (and instead of) the owner Gate. */
 function Entry() {
   const [location] = useLocation();
+  useRouteSeo(location);
   const legacyOwner = legacyOwnerRedirect(location);
   if (legacyOwner) return <Redirect to={legacyOwner} replace />;
   if (location === PLATFORM_ADMIN_PATH || location === `${PLATFORM_ADMIN_PATH}/`) return <Suspense fallback={<p className="p-6">Loading administrator sign-in…</p>}><PlatformAdmin /></Suspense>;

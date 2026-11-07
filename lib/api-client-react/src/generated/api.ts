@@ -1249,6 +1249,81 @@ export function useGetMerchantCheckout<TData = Awaited<ReturnType<typeof getMerc
 
 
 
+export const getSimulateMerchantCheckoutUrl = (id: string,) => {
+
+
+
+
+  return `/api/v1/checkout/sessions/${id}/simulate`
+}
+
+/**
+ * Sandbox only. Marks the merchant's own pending session simulation_paid with paid_via manual_simulation, credits the simulated balance once and queues the signed checkout.simulation_paid event. Idempotent on paid sessions; 409 when expired, 429 when the daily simulated-receipt cap is reached, 404 for another tenant's session.
+ * @summary Complete a Sandbox checkout from an automated test
+ */
+export const simulateMerchantCheckout = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<HostedCheckout> => {
+
+  return customFetch<HostedCheckout>(getSimulateMerchantCheckoutUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSimulateMerchantCheckoutMutationKey = () => ['simulateMerchantCheckout'] as const;
+
+export const getSimulateMerchantCheckoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateMerchantCheckout>>, TError,SimulateMerchantCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof simulateMerchantCheckout>>, TError,SimulateMerchantCheckoutMutationVariables, TContext> => {
+
+const mutationKey = getSimulateMerchantCheckoutMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof simulateMerchantCheckout>>, SimulateMerchantCheckoutMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  simulateMerchantCheckout(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SimulateMerchantCheckoutMutationResult = NonNullable<Awaited<ReturnType<typeof simulateMerchantCheckout>>>
+
+    export type SimulateMerchantCheckoutMutationError = ErrorType<unknown>
+    export type SimulateMerchantCheckoutMutationVariables = {id: string}
+
+    /**
+ * @summary Complete a Sandbox checkout from an automated test
+ */
+export const useSimulateMerchantCheckout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof simulateMerchantCheckout>>, TError,SimulateMerchantCheckoutMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof simulateMerchantCheckout>>,
+        TError,
+        SimulateMerchantCheckoutMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSimulateMerchantCheckoutMutationOptions(options));
+    }
+
 export const getGetDeveloperSessionUrl = () => {
 
 

@@ -113,7 +113,10 @@ export const GetDeveloperConsoleResponse = zod.object({
   "expiresAt": zod.string(),
   "environment": zod.enum(['simulation']),
   "return_url": zod.string().nullable(),
-  "qrPayload": zod.string()
+  "qrPayload": zod.string(),
+  "sandbox_destination": zod.string().describe('Paste into a MainVault Sandbox wallet to pay this session with simulated balance. Format checkout:<token>.'),
+  "paid_at": zod.string().nullable(),
+  "paid_via": zod.union([zod.literal('sandbox_transfer'),zod.literal('manual_simulation'),zod.literal(null)]).nullable()
 })),
   "deliveries": zod.array(zod.object({
   "checkoutId": zod.string(),
@@ -228,7 +231,10 @@ export const GetHostedCheckoutResponse = zod.object({
   "expiresAt": zod.string(),
   "environment": zod.enum(['simulation']),
   "return_url": zod.string().nullable(),
-  "qrPayload": zod.string()
+  "qrPayload": zod.string(),
+  "sandbox_destination": zod.string().describe('Paste into a MainVault Sandbox wallet to pay this session with simulated balance. Format checkout:<token>.'),
+  "paid_at": zod.string().nullable(),
+  "paid_via": zod.union([zod.literal('sandbox_transfer'),zod.literal('manual_simulation'),zod.literal(null)]).nullable()
 })
 
 
@@ -245,7 +251,10 @@ export const CheckHostedCheckoutResponse = zod.object({
   "expiresAt": zod.string(),
   "environment": zod.enum(['simulation']),
   "return_url": zod.string().nullable(),
-  "qrPayload": zod.string()
+  "qrPayload": zod.string(),
+  "sandbox_destination": zod.string().describe('Paste into a MainVault Sandbox wallet to pay this session with simulated balance. Format checkout:<token>.'),
+  "paid_at": zod.string().nullable(),
+  "paid_via": zod.union([zod.literal('sandbox_transfer'),zod.literal('manual_simulation'),zod.literal(null)]).nullable()
 })
 
 
@@ -268,7 +277,10 @@ export const CreateMerchantCheckoutResponse = zod.object({
   "expiresAt": zod.string(),
   "environment": zod.enum(['simulation']),
   "return_url": zod.string().nullable(),
-  "qrPayload": zod.string()
+  "qrPayload": zod.string(),
+  "sandbox_destination": zod.string().describe('Paste into a MainVault Sandbox wallet to pay this session with simulated balance. Format checkout:<token>.'),
+  "paid_at": zod.string().nullable(),
+  "paid_via": zod.union([zod.literal('sandbox_transfer'),zod.literal('manual_simulation'),zod.literal(null)]).nullable()
 })
 
 
@@ -285,7 +297,34 @@ export const GetMerchantCheckoutResponse = zod.object({
   "expiresAt": zod.string(),
   "environment": zod.enum(['simulation']),
   "return_url": zod.string().nullable(),
-  "qrPayload": zod.string()
+  "qrPayload": zod.string(),
+  "sandbox_destination": zod.string().describe('Paste into a MainVault Sandbox wallet to pay this session with simulated balance. Format checkout:<token>.'),
+  "paid_at": zod.string().nullable(),
+  "paid_via": zod.union([zod.literal('sandbox_transfer'),zod.literal('manual_simulation'),zod.literal(null)]).nullable()
+})
+
+
+/**
+ * Sandbox only. Marks the merchant's own pending session simulation_paid with paid_via manual_simulation, credits the simulated balance once and queues the signed checkout.simulation_paid event. Idempotent on paid sessions; 409 when expired, 429 when the daily simulated-receipt cap is reached, 404 for another tenant's session.
+ * @summary Complete a Sandbox checkout from an automated test
+ */
+export const SimulateMerchantCheckoutParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const SimulateMerchantCheckoutResponse = zod.object({
+  "id": zod.string(),
+  "url": zod.string(),
+  "status": zod.enum(['pending', 'simulation_paid', 'expired']),
+  "amount_sats": zod.int(),
+  "reference": zod.string(),
+  "expiresAt": zod.string(),
+  "environment": zod.enum(['simulation']),
+  "return_url": zod.string().nullable(),
+  "qrPayload": zod.string(),
+  "sandbox_destination": zod.string().describe('Paste into a MainVault Sandbox wallet to pay this session with simulated balance. Format checkout:<token>.'),
+  "paid_at": zod.string().nullable(),
+  "paid_via": zod.union([zod.literal('sandbox_transfer'),zod.literal('manual_simulation'),zod.literal(null)]).nullable()
 })
 
 
@@ -344,19 +383,32 @@ export const GetDeveloperSandboxResponse = zod.object({
   "transactions": zod.array(zod.object({
   "id": zod.string(),
   "amountCents": zod.int(),
+  "amountSats": zod.int().optional(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "status": zod.enum(['simulation_complete']),
-  "balanceAfterCents": zod.int()
+  "balanceAfterCents": zod.int(),
+  "direction": zod.enum(['out', 'in']).optional(),
+  "checkout": zod.object({
+  "id": zod.string(),
+  "reference": zod.string(),
+  "amountSats": zod.int().optional()
+}).optional()
 })),
   "reviews": zod.array(zod.object({
   "id": zod.string(),
   "amountCents": zod.int(),
+  "amountSats": zod.int().optional(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "expiresAt": zod.string(),
   "status": zod.enum(['pending', 'complete']),
-  "receiptId": zod.string().nullable()
+  "receiptId": zod.string().nullable(),
+  "checkout": zod.object({
+  "id": zod.string(),
+  "reference": zod.string(),
+  "amountSats": zod.int().optional()
+}).optional()
 }))
 }).and(zod.object({
   "simulatedBalanceSats": zod.int(),
@@ -385,12 +437,29 @@ export const GetDeveloperSandboxAddressResponse = zod.object({
   "transactions": zod.array(zod.object({
   "id": zod.string(),
   "amountCents": zod.int(),
+  "amountSats": zod.int().optional(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "status": zod.enum(['simulation_complete']),
-  "balanceAfterCents": zod.int()
+  "balanceAfterCents": zod.int(),
+  "direction": zod.enum(['out', 'in']).optional(),
+  "checkout": zod.object({
+  "id": zod.string(),
+  "reference": zod.string(),
+  "amountSats": zod.int().optional()
+}).optional()
 })),
-  "checkedAt": zod.string()
+  "checkedAt": zod.string(),
+  "kind": zod.enum(['wallet', 'checkout']).optional(),
+  "checkout": zod.object({
+  "id": zod.string(),
+  "reference": zod.string(),
+  "amount_sats": zod.int(),
+  "amountCents": zod.int().describe('Demo-credit view of amount_sats using the payer\'s own pinned quote.'),
+  "status": zod.enum(['pending', 'simulation_paid', 'expired']),
+  "expiresAt": zod.string(),
+  "selfPay": zod.boolean()
+}).optional()
 })
 
 
@@ -527,12 +596,29 @@ export const GetSandboxAddressResponse = zod.object({
   "transactions": zod.array(zod.object({
   "id": zod.string(),
   "amountCents": zod.int(),
+  "amountSats": zod.int().optional(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "status": zod.enum(['simulation_complete']),
-  "balanceAfterCents": zod.int()
+  "balanceAfterCents": zod.int(),
+  "direction": zod.enum(['out', 'in']).optional(),
+  "checkout": zod.object({
+  "id": zod.string(),
+  "reference": zod.string(),
+  "amountSats": zod.int().optional()
+}).optional()
 })),
-  "checkedAt": zod.string()
+  "checkedAt": zod.string(),
+  "kind": zod.enum(['wallet', 'checkout']).optional(),
+  "checkout": zod.object({
+  "id": zod.string(),
+  "reference": zod.string(),
+  "amount_sats": zod.int(),
+  "amountCents": zod.int().describe('Demo-credit view of amount_sats using the payer\'s own pinned quote.'),
+  "status": zod.enum(['pending', 'simulation_paid', 'expired']),
+  "expiresAt": zod.string(),
+  "selfPay": zod.boolean()
+}).optional()
 })
 
 
@@ -545,19 +631,32 @@ export const GetSandboxResponse = zod.object({
   "transactions": zod.array(zod.object({
   "id": zod.string(),
   "amountCents": zod.int(),
+  "amountSats": zod.int().optional(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "status": zod.enum(['simulation_complete']),
-  "balanceAfterCents": zod.int()
+  "balanceAfterCents": zod.int(),
+  "direction": zod.enum(['out', 'in']).optional(),
+  "checkout": zod.object({
+  "id": zod.string(),
+  "reference": zod.string(),
+  "amountSats": zod.int().optional()
+}).optional()
 })),
   "reviews": zod.array(zod.object({
   "id": zod.string(),
   "amountCents": zod.int(),
+  "amountSats": zod.int().optional(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "expiresAt": zod.string(),
   "status": zod.enum(['pending', 'complete']),
-  "receiptId": zod.string().nullable()
+  "receiptId": zod.string().nullable(),
+  "checkout": zod.object({
+  "id": zod.string(),
+  "reference": zod.string(),
+  "amountSats": zod.int().optional()
+}).optional()
 }))
 })
 
@@ -576,11 +675,17 @@ export const ReviewSandboxPaymentBody = zod.object({
 export const ReviewSandboxPaymentResponse = zod.object({
   "id": zod.string(),
   "amountCents": zod.int(),
+  "amountSats": zod.int().optional(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "expiresAt": zod.string(),
   "status": zod.enum(['pending', 'complete']),
-  "receiptId": zod.string().nullable()
+  "receiptId": zod.string().nullable(),
+  "checkout": zod.object({
+  "id": zod.string(),
+  "reference": zod.string(),
+  "amountSats": zod.int().optional()
+}).optional()
 })
 
 
@@ -596,10 +701,17 @@ export const ExecuteSandboxPaymentBody = zod.object({
 export const ExecuteSandboxPaymentResponse = zod.object({
   "id": zod.string(),
   "amountCents": zod.int(),
+  "amountSats": zod.int().optional(),
   "destination": zod.string(),
   "createdAt": zod.string(),
   "status": zod.enum(['simulation_complete']),
-  "balanceAfterCents": zod.int()
+  "balanceAfterCents": zod.int(),
+  "direction": zod.enum(['out', 'in']).optional(),
+  "checkout": zod.object({
+  "id": zod.string(),
+  "reference": zod.string(),
+  "amountSats": zod.int().optional()
+}).optional()
 })
 
 
