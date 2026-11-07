@@ -98,3 +98,17 @@ mtime_ms = 1793057140679
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/1236a7bd-b20f-4b76-bbea-a361c8e8b95a/070570ba-bdd7-497a-aad4-69aef0e50fe6"
 storage_version_token = "1793057171311371"
 content_type = "text/plain"
+
+[[outputs]]
+id = "BpHgTAKdWragdVP5Zb3D_"
+uri = "file://screenshots/admin-page.jpg"
+type = "image"
+title = "Admin page screenshot"
+description = "Current preview at 1440 × 1000. Shows the sign-in screen because administrator sign-in is not configured on this server."
+logical_id = "f5cd1ce0-6026-4a39-b0bb-ac1c1f791de1"
+content_hash = "sha256:24cc59db95225ed1f22025c6b4da451dc54b17bbcd3f5731ebf97e73443d16ec"
+size = 30374
+mtime_ms = 1794072369017
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:3d04aec5-a209-45f3-a7a3-2d8cf14cfd84/f5cd1ce0-6026-4a39-b0bb-ac1c1f791de1/a065fa08-2aec-468b-b1d6-92996cf0ce00"
+storage_version_token = "1794072377142587"
+content_type = "image/jpeg"
