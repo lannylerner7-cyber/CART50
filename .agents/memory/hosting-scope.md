@@ -35,10 +35,12 @@ root disk rather than replacing it with an encrypted root copy.
 creating mainnet wallets. Explicitly bind wallet data and signer state to this
 storage; default Docker named volumes on the unencrypted root are not sufficient.
 
-The user wants the project pushed to GitHub before Coolify hosting, and wants
-deployment variables managed in Coolify for this personal project.
+Coolify deploys the website from a Git repository. The user wants the project
+pushed to GitHub before Coolify hosting, with deployment variables managed in
+Coolify for this personal project.
 
-**Why:** The user explicitly stated this deployment order and configuration goal.
+**Why:** The user explicitly stated this deployment order and configuration goal,
+and confirmed that the live website uses a Git repository as its Coolify source.
 
 **How to apply:** Keep source publication separate from runtime secret installation.
 
