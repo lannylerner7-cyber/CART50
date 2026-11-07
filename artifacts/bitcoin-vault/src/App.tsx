@@ -19,7 +19,7 @@ const Explorer = lazy(() => import('@/pages/explorer'));
 const Market = lazy(() => import('@/pages/market'));
 const SettingsPage = lazy(() => import('@/pages/settings'));
 const SandboxRouter = lazy(() => import('@/pages/sandbox'));
-const AdminPage = lazy(() => import('@/pages/admin'));
+const PlatformAdmin = lazy(() => import('@/pages/platform-admin'));
 const HostedCheckoutPage = lazy(() => import('@/pages/hosted-checkout'));
 const DevelopersApp = lazy(() => import('@/pages/developers'));
 const WalletFoundationPage = lazy(() => import('@/pages/developers/wallet-foundation'));
@@ -60,7 +60,6 @@ function Router() {
         <Route path="/explorer" component={Explorer} />
         <Route path="/market" component={Market} />
         <Route path="/settings" component={SettingsPage} />
-        <Route path="/admin" component={AdminPage} />
         <Route component={NotFound} />
       </Switch>
       </Suspense>
@@ -73,7 +72,7 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
   return <ErrorBoundary resetKey={location}>{children}</ErrorBoundary>;
 }
 
-function Gate({ platformAdmin = false }: { platformAdmin?: boolean }) {
+function Gate() {
   const [location] = useLocation();
   const s = useGetVaultSession({ query: { queryKey: SESSION_KEY, refetchInterval: 30000, refetchOnWindowFocus: true, refetchOnReconnect: true } });
   const session = s.data;
@@ -125,11 +124,7 @@ function Gate({ platformAdmin = false }: { platformAdmin?: boolean }) {
 
   return (
     <SessionProvider session={session}>
-      {platformAdmin ? (
-        <RoutedErrorBoundary>
-          <Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading platform admin…</p>}><AdminPage /></Suspense>
-        </RoutedErrorBoundary>
-      ) : location === '/sandbox' || location.startsWith('/sandbox/') ? (
+      {location === '/sandbox' || location.startsWith('/sandbox/') ? (
         <SandboxShell>
           <RoutedErrorBoundary>
             <Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading sandbox…</p>}><SandboxRouter /></Suspense>
@@ -145,7 +140,7 @@ function Entry() {
   const [location] = useLocation();
   const legacyOwner = legacyOwnerRedirect(location);
   if (legacyOwner) return <Redirect to={legacyOwner} replace />;
-  if (location === PLATFORM_ADMIN_PATH || location === `${PLATFORM_ADMIN_PATH}/`) return <Gate platformAdmin />;
+  if (location === PLATFORM_ADMIN_PATH || location === `${PLATFORM_ADMIN_PATH}/`) return <Suspense fallback={<p className="p-6">Loading administrator sign-in…</p>}><PlatformAdmin /></Suspense>;
   if (location === '/admin' || location === `${OWNER_BASE}/admin`) return <Redirect to={PLATFORM_ADMIN_PATH} replace />;
   if (location.startsWith('/checkout/')) {
     return <Suspense fallback={<div className="grid min-h-[100dvh] place-items-center bg-sidebar"><VaultMark className="h-12 w-12" /></div>}><Route path="/checkout/:token">{(p) => <HostedCheckoutPage token={p.token} />}</Route></Suspense>;

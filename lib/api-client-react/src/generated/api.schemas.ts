@@ -4,6 +4,27 @@
  * Api
  * OpenAPI spec version: 0.1.0
  */
+export interface PlatformAdminCredentials {
+  /** @maxLength 254 */
+  email: string;
+  /**
+     * @minLength 1
+     * @maxLength 256
+     */
+  password: string;
+}
+
+export interface PlatformAdminSession {
+  authenticated: boolean;
+  configured: boolean;
+  /** @nullable */
+  csrfToken: string | null;
+  /** @nullable */
+  expiresAt: string | null;
+  /** @nullable */
+  authenticatedAt: number | null;
+}
+
 export type DeveloperWalletKeyRequestScopesItem = typeof DeveloperWalletKeyRequestScopesItem[keyof typeof DeveloperWalletKeyRequestScopesItem];
 
 
@@ -749,11 +770,9 @@ export interface WebAuthnInput {
 }
 
 export type GetWalletFoundationViewParams = {
-kind: GetWalletFoundationViewKind;
-/**
- * @minimum 0
- */
-after?: number;
+  kind: GetWalletFoundationViewKind;
+  /** @minimum 0 */
+  after?: number;
 };
 
 export type GetWalletFoundationViewKind = typeof GetWalletFoundationViewKind[keyof typeof GetWalletFoundationViewKind];
@@ -773,30 +792,30 @@ export const GetWalletFoundationViewKind = {
 } as const;
 
 export type GetDeveloperAdminParams = {
-after?: string;
+  after?: string;
 };
 
 export type GetDeveloperSandboxAddressParams = {
-destination: string;
+  destination: string;
 };
 
 export type GetRecipientParams = {
-/**
- * @minLength 14
- * @maxLength 90
- */
-address: string;
+  /**
+   * @minLength 14
+   * @maxLength 90
+   */
+  address: string;
 };
 
 export type GetSandboxAddressParams = {
-/**
- * @minLength 1
- * @maxLength 128
- */
-destination: string;
+  /**
+   * @minLength 1
+   * @maxLength 128
+   */
+  destination: string;
 };
 
 export type ExploreVaultParams = {
-query: string;
+  query: string;
 };
 

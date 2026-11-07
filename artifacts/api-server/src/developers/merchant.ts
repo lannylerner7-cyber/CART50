@@ -21,9 +21,9 @@ export function record(list:AdminAudit[],action:string,reason:string,actor:strin
 // Write-ahead security history is outside the tenant JSON and has no application
 // count cap. A crash can leave a truthful "requested" row, never a false success.
 // An "applied" event is written only after the account CAS update succeeds.
-export async function securityRecord(accountId:string,action:string,reason:string){
+export async function securityRecord(accountId:string,action:string,reason:string,actor="owner"){
   await initializeMetadata();
-  const event:AdminAudit={at:new Date().toISOString(),actor:"owner",action,reason};
+  const event:AdminAudit={at:new Date().toISOString(),actor,action,reason};
   await query("INSERT INTO developer_security_audit(id,account_id,created_at,data) VALUES(?,?,?,?)",
     [randomUUID(),accountId,event.at,JSON.stringify(event)]);
 }

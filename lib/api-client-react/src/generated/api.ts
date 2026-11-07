@@ -58,6 +58,8 @@ import type {
   PaymentApproval,
   PaymentInput,
   PaymentReview,
+  PlatformAdminCredentials,
+  PlatformAdminSession,
   RecipientObservation,
   RotationInput,
   SandboxAddressInfo,
@@ -105,6 +107,227 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetPlatformAdminSessionUrl = () => {
+
+
+
+
+  return `/api/platform-admin/session`
+}
+
+export const getPlatformAdminSession = async ( options?: Parameters<typeof customFetch>[1]): Promise<PlatformAdminSession> => {
+
+  return customFetch<PlatformAdminSession>(getGetPlatformAdminSessionUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPlatformAdminSessionQueryKey = () => {
+    return [
+    `/api/platform-admin/session`
+    ] as const;
+    }
+
+
+export const getGetPlatformAdminSessionQueryOptions = <TData = Awaited<ReturnType<typeof getPlatformAdminSession>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPlatformAdminSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPlatformAdminSessionQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPlatformAdminSession>>> = ({ signal }) => getPlatformAdminSession({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPlatformAdminSession>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPlatformAdminSessionQueryResult = NonNullable<Awaited<ReturnType<typeof getPlatformAdminSession>>>
+export type GetPlatformAdminSessionQueryError = ErrorType<unknown>
+
+
+
+export function useGetPlatformAdminSession<TData = Awaited<ReturnType<typeof getPlatformAdminSession>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPlatformAdminSession>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPlatformAdminSessionQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getLoginPlatformAdminUrl = () => {
+
+
+
+
+  return `/api/platform-admin/login`
+}
+
+export const loginPlatformAdmin = async (platformAdminCredentials: PlatformAdminCredentials, options?: Parameters<typeof customFetch>[1]): Promise<PlatformAdminSession> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<PlatformAdminSession>(getLoginPlatformAdminUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(platformAdminCredentials)
+  }
+);}
+
+
+
+
+
+export const getLoginPlatformAdminMutationKey = () => ['loginPlatformAdmin'] as const;
+
+export const getLoginPlatformAdminMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginPlatformAdmin>>, TError,LoginPlatformAdminMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof loginPlatformAdmin>>, TError,LoginPlatformAdminMutationVariables, TContext> => {
+
+const mutationKey = getLoginPlatformAdminMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof loginPlatformAdmin>>, LoginPlatformAdminMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  loginPlatformAdmin(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoginPlatformAdminMutationResult = NonNullable<Awaited<ReturnType<typeof loginPlatformAdmin>>>
+    export type LoginPlatformAdminMutationBody = BodyType<PlatformAdminCredentials>
+    export type LoginPlatformAdminMutationError = ErrorType<unknown>
+    export type LoginPlatformAdminMutationVariables = {data: BodyType<PlatformAdminCredentials>}
+
+    export const useLoginPlatformAdmin = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof loginPlatformAdmin>>, TError,LoginPlatformAdminMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof loginPlatformAdmin>>,
+        TError,
+        LoginPlatformAdminMutationVariables,
+        TContext
+      > => {
+      return useMutation(getLoginPlatformAdminMutationOptions(options));
+    }
+
+export const getLogoutPlatformAdminUrl = () => {
+
+
+
+
+  return `/api/platform-admin/logout`
+}
+
+export const logoutPlatformAdmin = async ( options?: Parameters<typeof customFetch>[1]): Promise<Ok> => {
+
+  return customFetch<Ok>(getLogoutPlatformAdminUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getLogoutPlatformAdminMutationKey = () => ['logoutPlatformAdmin'] as const;
+
+export const getLogoutPlatformAdminMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logoutPlatformAdmin>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof logoutPlatformAdmin>>, TError,void, TContext> => {
+
+const mutationKey = getLogoutPlatformAdminMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof logoutPlatformAdmin>>, void> = () => {
+
+
+          return  logoutPlatformAdmin(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LogoutPlatformAdminMutationResult = NonNullable<Awaited<ReturnType<typeof logoutPlatformAdmin>>>
+
+    export type LogoutPlatformAdminMutationError = ErrorType<unknown>
+
+
+    export const useLogoutPlatformAdmin = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logoutPlatformAdmin>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof logoutPlatformAdmin>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getLogoutPlatformAdminMutationOptions(options));
+    }
 
 export const getRotateDeveloperWalletKeyUrl = () => {
 

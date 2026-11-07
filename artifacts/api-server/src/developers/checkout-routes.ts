@@ -9,6 +9,7 @@ import {attemptDelivery,httpsUrl,seal} from "./webhooks";
 import {sharedBudget} from "./limits";
 import {archivedCheckout} from "./archive";
 import { checkoutCommand as command, checkoutInput } from "./input-schemas";
+import { requireAdministrator } from "../platform-admin/auth";
 function fresh(at:number|undefined){if(!at||Date.now()-at>300000)throw new HttpError(403,"Confirm your passkey within five minutes before this action");}
 function reason(value:string|undefined){if(!value)throw new HttpError(400,"A reason is required");return value;}
 function revoke(a:Account){const m=merchant(a);delete m.apiKeyHash;delete m.apiKeyPrefix;delete m.apiKeyExpires;}
@@ -66,22 +67,23 @@ checkoutRouter.post("/developer-console/:action",verifyOrigin,async(req,res)=>{
   });
   res.json(result);
 });
-checkoutRouter.get("/admin/developers",requireOwner,async(req,res)=>{
+checkoutRouter.get("/admin/developers",requireAdministrator,async(req,res)=>{
   const after=z.string().uuid().optional().parse(req.query.after);
   const c=await controls();const page=await accountPage(after);
   const security=await recentSecurityAudit();
   res.json({paused:c.paused,audit:c.audit.slice(-100),nextCursor:page.nextCursor,signet:"paused",liveEnabled:false,stepUpRequired:!res.locals.session.passkeyAt||Date.now()-res.locals.session.passkeyAt>300000,
     accounts:page.accounts.map(a=>({...a,audit:[...a.audit,...(security.get(String(a.id))??[])].sort((a,b)=>a.at.localeCompare(b.at))}))});
 });
-checkoutRouter.post("/admin/developers/:action",verifyOrigin,requireOwner,async(req,res)=>{
-  fresh(res.locals.session.passkeyAt);
-  const b=command.parse(req.body),why=reason(b.reason),action=req.params.action,actor="owner";
+checkoutRouter.post("/admin/developers/:action",verifyOrigin,requireAdministrator,async(req,res)=>{
+  if (!res.locals.session.passkeyAt || Date.now()-res.locals.session.passkeyAt > 300000)
+    throw new HttpError(403, "Confirm your administrator identity again before this action");
+  const b=command.parse(req.body),why=reason(b.reason),action=req.params.action,actor=res.locals.adminActor ?? "owner";
   if(action==="pause"){if(typeof b.paused!=="boolean")throw new HttpError(400,"Select pause state");await setPaused(b.paused,why,actor);res.json({ok:true});return;}
   if(!b.accountId)throw new HttpError(400,"Select a developer");
   const emergency=action==="suspend"||action==="revoke";
   if(emergency){
     if(!await accountBy("id",b.accountId))throw new HttpError(404,"Developer not found");
-    await securityRecord(b.accountId,String(action)+":requested",why);
+    await securityRecord(b.accountId,String(action)+":requested",why,actor);
   }
   await updateAccount(b.accountId,a=>{
     const m=merchant(a);
@@ -112,7 +114,7 @@ checkoutRouter.post("/admin/developers/:action",verifyOrigin,requireOwner,async(
     if(!emergency)record(m.audit,String(action)+(action==="adjust"?":"+b.amountSats:""),why,actor);
     if(action==="adjust")Object.assign(m.audit[m.audit.length-1],{requestId:b.requestId,fingerprint});
   });
-  if(emergency)await securityRecord(b.accountId,String(action)+":applied",why);
+  if(emergency)await securityRecord(b.accountId,String(action)+":applied",why,actor);
   res.json({ok:true,message:"Recorded. Live custody remains disabled."});
 });
 checkoutRouter.post("/v1/checkout/sessions",async(req,res)=>{

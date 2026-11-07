@@ -9,7 +9,7 @@ if (process.env.VAULT_UI_FIXTURE !== "1") throw new Error("Local fixture require
 const mockEnabled = process.env.VAULT_UI_MOCK_SIGNER === "1";
 const receiptFixture = process.env.VAULT_UI_RECEIPT_FIXTURE === "1";
 for (const key of Object.keys(process.env)) {
-  if (/^(CF_|VAULT_|MAINNET_|SANDBOX_|MARKET_|SMTP_)/.test(key)) delete process.env[key];
+  if (/^(CF_|VAULT_|MAINNET_|SANDBOX_|MARKET_|SMTP_|PLATFORM_ADMIN_)/.test(key)) delete process.env[key];
 }
 const directory = mkdtempSync(join(tmpdir(), "vault-ui-isolated-"));
 const credential = randomBytes(64);

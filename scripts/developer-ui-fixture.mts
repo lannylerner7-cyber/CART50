@@ -11,9 +11,10 @@ const require = createRequire(new URL("../artifacts/api-server/package.json",imp
 const express = require("express");
 if(process.env.VAULT_UI_FIXTURE!=="1")throw new Error("Requires VAULT_UI_FIXTURE=1");
 const tls=process.env.VAULT_UI_FIXTURE_HTTPS==="1";
+const adminFixture=process.env.VAULT_UI_ADMIN_FIXTURE==="1";
 const staticDir=process.env.VAULT_UI_FIXTURE_STATIC_DIR;
 const origin=tls?"https://localhost:4443":"http://localhost:4400";
-for(const key of Object.keys(process.env))if(/^(CF_|VAULT_|MAINNET_|SANDBOX_|MARKET_|SMTP_|DEVELOPER_)/.test(key))delete process.env[key];
+for(const key of Object.keys(process.env))if(/^(CF_|VAULT_|MAINNET_|SANDBOX_|MARKET_|SMTP_|DEVELOPER_|PLATFORM_ADMIN_)/.test(key))delete process.env[key];
 const dir=mkdtempSync(join(tmpdir(),"developer-ui-isolated-"));
 const secret=randomBytes(64);
 // Display the Live mainnet boundary only: all engine/monitor credentials were removed above.
@@ -24,6 +25,11 @@ Object.assign(process.env,{NODE_ENV:"development",BITCOIN_NETWORK:"main",ALLOW_M
   VAULT_OWNER_VERIFIER:createHash("sha256").update(secret).digest("hex"),
   VAULT_STATIC_DIR:staticDir??fileURLToPath(new URL("../artifacts/bitcoin-vault/dist/public",import.meta.url))});
 writeFileSync(join(dir,"disposable-owner.txt"),secret.toString("base64url"),{mode:0o600});
+if(adminFixture){
+  process.env.PLATFORM_ADMIN_EMAIL="admin@example.test";
+  process.env.PLATFORM_ADMIN_PASSWORD=randomBytes(32).toString("base64url");
+  writeFileSync(join(dir,"disposable-admin.json"),JSON.stringify({email:process.env.PLATFORM_ADMIN_EMAIL,password:process.env.PLATFORM_ADMIN_PASSWORD}),{mode:0o600});
+}
 const {developerRouter}=await import("../artifacts/api-server/src/developers/routes.ts");
 const {default:main}=await import("../artifacts/api-server/src/app.ts");
 const {accountBy,updateAccount}=await import("../artifacts/api-server/src/developers/store.ts");

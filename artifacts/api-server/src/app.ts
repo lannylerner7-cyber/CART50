@@ -13,6 +13,7 @@ import { developerRouter } from "./developers/routes";
 import { checkoutRouter } from "./developers/checkout-routes";
 import {developerLimits} from "./developers/limits";
 import {requestBody, requestBodyErrors} from "./middlewares/request-body";
+import { platformAdminRouter } from "./platform-admin/auth";
 
 const app: Express = express();
 configuredNetwork();
@@ -26,7 +27,7 @@ app.use(
         return {
           id: req.id,
           method: req.method,
-          url: /^(\/api\/(vault|developers|developer-console|admin|checkout|v1)(\/|$)|\/checkout\/)/.test(req.url ?? "") ? "/[private]" : req.url?.split("?")[0],
+          url: /^(\/api\/(vault|platform-admin|developers|developer-console|admin|checkout|v1)(\/|$)|\/checkout\/)/.test(req.url ?? "") ? "/[private]" : req.url?.split("?")[0],
         };
       },
       res(res) {
@@ -47,6 +48,7 @@ app.use("/api/vault", admission());
 app.use(["/api/developers", "/api/developer-console", "/api/checkout", "/api/v1", "/api/developer-wallet"], admission());
 app.use(requestBody);
 app.use(requestBodyErrors);
+app.use("/api/platform-admin", admission(), platformAdminRouter);
 
 app.use("/api/vault", vault);
 app.use("/api", developerLimits);

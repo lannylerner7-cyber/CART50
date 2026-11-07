@@ -10,6 +10,9 @@
     }
   ],
   "paths": {
+    "/platform-admin/session":{"get":{"operationId":"getPlatformAdminSession","responses":{"200":{"description":"Independent platform session","content":{"application/json":{"schema":{"$ref":"#/components/schemas/PlatformAdminSession"}}}}}}},
+    "/platform-admin/login":{"post":{"operationId":"loginPlatformAdmin","requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/PlatformAdminCredentials"}}}},"responses":{"200":{"description":"Authenticated administrator","content":{"application/json":{"schema":{"$ref":"#/components/schemas/PlatformAdminSession"}}}}}}},
+    "/platform-admin/logout":{"post":{"operationId":"logoutPlatformAdmin","responses":{"200":{"description":"Session revoked","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Ok"}}}}}}},
     "/developer-wallet/key":{"post":{"operationId":"rotateDeveloperWalletKey","requestBody":{"required":true,"content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeveloperWalletKeyRequest"}}}},"responses":{"200":{"description":"Independent runtime only; developer session, CSRF and fresh passkey required. One-time secret never stored plaintext.","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DeveloperWalletKeyResult"}}}}}}},
     "/wallet-foundation/session":{"get":{"operationId":"getWalletFoundationSession","responses":{"200":{"description":"Local profile availability only, not authentication","content":{"application/json":{"schema":{"$ref":"#/components/schemas/FoundationSession"}}}}}}},
     "/wallet-foundation/view":{"get":{"operationId":"getWalletFoundationView","parameters":[{"name":"kind","in":"query","required":true,"schema":{"type":"string","enum":["customer","wallet","assignment","deposit","withdrawal","transfer","event","fee","audit","usage"]}},{"name":"after","in":"query","schema":{"type":"integer","minimum":0}}],"responses":{"200":{"description":"Authenticated tenant-scoped keyset page; bearer local-profile credential required","content":{"application/json":{"schema":{"$ref":"#/components/schemas/FoundationPage"}}}}}}},
@@ -1866,6 +1869,8 @@
   },
   "components": {
     "schemas": {
+      "PlatformAdminCredentials":{"type":"object","required":["email","password"],"properties":{"email":{"type":"string","format":"email","maxLength":254},"password":{"type":"string","minLength":1,"maxLength":256}}},
+      "PlatformAdminSession":{"type":"object","required":["authenticated","configured","csrfToken","expiresAt","authenticatedAt"],"properties":{"authenticated":{"type":"boolean"},"configured":{"type":"boolean"},"csrfToken":{"type":["string","null"]},"expiresAt":{"type":["string","null"]},"authenticatedAt":{"type":["number","null"]}}},
       "DeveloperWalletKeyRequest":{"type":"object","required":["scopes"],"properties":{"scopes":{"type":"array","items":{"type":"string","enum":["wallet:read","wallet:write","wallet:fees","wallet:simulate"]},"minItems":1,"maxItems":4},"revoke":{"type":"boolean"}}},
       "DeveloperWalletKeyResult":{"type":"object","required":["key","revoked"],"properties":{"key":{"type":["string","null"]},"revoked":{"type":"boolean"}}},
       "FoundationSession":{"type":"object","required":["enabled","environment","liveEnabled"],"properties":{"enabled":{"type":"boolean"},"environment":{"type":"string"},"liveEnabled":{"type":"boolean"}}},

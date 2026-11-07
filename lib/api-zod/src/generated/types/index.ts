@@ -64,6 +64,8 @@ export * from './paymentApproval';
 export * from './paymentInput';
 export * from './paymentInputWalletId';
 export * from './paymentReview';
+export * from './platformAdminCredentials';
+export * from './platformAdminSession';
 export * from './recipientObservation';
 export * from './recipientObservationNetwork';
 export * from './recipientObservationProvider';

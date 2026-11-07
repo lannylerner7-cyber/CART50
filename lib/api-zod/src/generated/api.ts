@@ -7,6 +7,41 @@
 import * as zod from 'zod';
 
 
+export const GetPlatformAdminSessionResponse = zod.object({
+  "authenticated": zod.boolean(),
+  "configured": zod.boolean(),
+  "csrfToken": zod.string().nullable(),
+  "expiresAt": zod.string().nullable(),
+  "authenticatedAt": zod.number().nullable()
+})
+
+
+export const loginPlatformAdminBodyEmailMax = 254;
+
+export const loginPlatformAdminBodyPasswordMax = 256;
+
+
+
+export const LoginPlatformAdminBody = zod.object({
+  "email": zod.email().max(loginPlatformAdminBodyEmailMax),
+  "password": zod.string().min(1).max(loginPlatformAdminBodyPasswordMax)
+})
+
+export const LoginPlatformAdminResponse = zod.object({
+  "authenticated": zod.boolean(),
+  "configured": zod.boolean(),
+  "csrfToken": zod.string().nullable(),
+  "expiresAt": zod.string().nullable(),
+  "authenticatedAt": zod.number().nullable()
+})
+
+
+export const LogoutPlatformAdminResponse = zod.object({
+  "ok": zod.boolean(),
+  "message": zod.string()
+})
+
+
 export const rotateDeveloperWalletKeyBodyScopesMax = 4;
 
 

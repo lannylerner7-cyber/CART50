@@ -70,6 +70,15 @@ not a separate admin hostname. Personal vault navigation stays separate.
 **How to apply:** Keep this route protected; "public admin" means administration
 of the public developer service, not anonymous access or developer authorization.
 
+The owner requested email/password access for the platform console, separate from
+personal-vault authentication; configure the password securely, never in source.
+
+**Why:** Platform administration must not require sharing the personal owner key
+or grant an alternative way to unlock personal custody.
+
+**How to apply:** Keep independent sessions and permissions. Do not interpret
+this single-administrator login as authorization for Live custody or staff RBAC.
+
 **Why:** The owner explicitly prioritizes protecting personal and customer funds.
 
 Stage developer ledger work in a disposable independent local process before

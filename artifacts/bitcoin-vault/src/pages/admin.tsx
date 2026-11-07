@@ -4,7 +4,7 @@ import { startAuthentication } from '@simplewebauthn/browser';
 import { ChevronLeft, ChevronRight, FileClock, Fingerprint, PauseCircle, PlayCircle, Search, ScrollText, ShieldAlert, Users } from 'lucide-react';
 import {
   developerAdminAction, getGetDeveloperAdminQueryKey, getGetVaultSessionQueryKey, passkeyLoginOptions, passkeyLoginVerify,
-  setCsrfToken, useGetDeveloperAdmin, useLockVault, type AdminDeveloper, type CheckoutAudit, type Session,
+  setCsrfToken, useGetDeveloperAdmin, useLockVault, type AdminDeveloper, type CheckoutAudit, type Session, type PlatformAdminSession,
 } from '@workspace/api-client-react';
 import { Empty, ErrorPanel, Panel, Pill, SkelRows, statusTone } from '@/components/kit';
 import { AdminShell, type AdminSection } from '@/components/admin-shell';
@@ -42,13 +42,13 @@ function Audit({ rows, testId }: { rows: CheckoutAudit[]; testId: string }) {
   );
 }
 
-export default function AdminPage() {
+export default function AdminPage({adminSession, onAuthenticate, onLogout}: {adminSession?: PlatformAdminSession; onAuthenticate?:()=>void; onLogout?:()=>void} = {}) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [pages,setPages]=useState<string[]>(['']);
   const cursor=pages[pages.length-1];
-  const q = useGetDeveloperAdmin({after:cursor||undefined},{ query: { queryKey: [...KEY,cursor], refetchInterval: 15000 } });
-  const [freshAt, setFreshAt] = useState(0);
+  const q = useGetDeveloperAdmin({after:cursor||undefined},{ query: { queryKey: [...KEY,cursor], refetchInterval: 15000 }, request: adminSession ? {headers:{'x-platform-admin':'1'}} : undefined });
+  const [freshAt, setFreshAt] = useState(adminSession?.authenticatedAt ?? 0);
   const [now, setNow] = useState(Date.now());
   const [pkBusy, setPkBusy] = useState(false);
   const [pkErr, setPkErr] = useState<string | null>(null);
@@ -71,6 +71,7 @@ export default function AdminPage() {
   const needsStep = !!d?.stepUpRequired || freshLeft <= 0;
 
   const stepUp = async () => {
+    if (onAuthenticate) { onAuthenticate(); return; }
     setPkErr(null); setPkBusy(true);
     try {
       const options = await passkeyLoginOptions();
@@ -97,7 +98,7 @@ export default function AdminPage() {
   const submit = async () => {
     if (!pending || !canSubmit) return;
     setBusy(true); setActErr(null);
-    const token = qc.getQueryData<Session>(getGetVaultSessionQueryKey())?.csrfToken ?? '';
+    const token = adminSession?.csrfToken ?? qc.getQueryData<Session>(getGetVaultSessionQueryKey())?.csrfToken ?? '';
     // Adjust: one requestId per exact intent; reused on retry after a lost response, dropped on success or changed intent.
     let requestId: string | undefined;
     if (pending.action === 'adjust') {
@@ -111,14 +112,14 @@ export default function AdminPage() {
         ...(pending.action === 'pause' ? { paused: !!pending.paused } : {}),
         ...(pending.action === 'adjust' ? { amountSats: Math.trunc(amt), requestId } : {}),
         ...(pending.action === 'retry-webhook' ? { checkoutId: checkoutId.trim() } : {}),
-      }, { headers: { 'x-csrf-token': token } });
+      }, { headers: { 'x-csrf-token': token, ...(adminSession?{'x-platform-admin':'1'}:{}) } });
       toast({ title: `${pending.action} recorded`, description: r.message ?? 'Audit entry written.' });
       if (pending.action === 'adjust') setAdjReq(null);
       setPending(null);
     } catch (e) {
       const st = errStatus(e);
       if (st === 401 || st === 403) setFreshAt(0);
-      setActErr(st === 401 || st === 403 ? 'Owner passkey confirmation required or expired. Confirm again, then retry.' : errMsg(e));
+      setActErr(st === 401 || st === 403 ? 'Administrator confirmation required or expired. Confirm again, then retry.' : errMsg(e));
     } finally {
       setBusy(false);
       void qc.invalidateQueries({ queryKey: KEY });
@@ -139,6 +140,7 @@ export default function AdminPage() {
   const countBy = (k: (a: AdminDeveloper) => string) => accounts.reduce<Record<string, number>>((m, a) => { m[k(a)] = (m[k(a)] ?? 0) + 1; return m; }, {});
   const lock = useLockVault(useCsrf());
   const logout = () => {
+    if (onLogout) { onLogout(); return; }
     if (lock.isPending) return;
     lock.mutate(undefined, {
       onSuccess: () => lockClient(qc),
@@ -149,7 +151,7 @@ export default function AdminPage() {
     });
   };
 
-  const stepPill = <Pill tone={needsStep ? 'warn' : 'ok'} testId="status-stepup">{needsStep ? 'passkey required' : `fresh ${Math.floor(freshLeft / 60)}:${String(freshLeft % 60).padStart(2, '0')}`}</Pill>;
+  const stepPill = <Pill tone={needsStep ? 'warn' : 'ok'} testId="status-stepup">{needsStep ? 'confirmation required' : `fresh ${Math.floor(freshLeft / 60)}:${String(freshLeft % 60).padStart(2, '0')}`}</Pill>;
   const titles: Record<AdminSection, [string, string]> = {
     overview: ['Overview', 'Checkout simulation state and a summary of the accounts loaded on this page.'],
     accounts: ['Developer accounts', 'Status, keys and simulated balances. Filters apply to the current page only.'],
@@ -260,8 +262,8 @@ export default function AdminPage() {
         </div>
       </header>
       <div className="mb-6 flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3"><Fingerprint className="h-5 w-5 shrink-0 text-accent" /><p className="text-[13px] text-muted-foreground">Reading needs no confirmation. Every write needs a reason and an owner passkey from the last five minutes.</p></div>
-        <div className="flex shrink-0 items-center gap-2">{stepPill}<Button onClick={stepUp} disabled={pkBusy} size="sm" className="rounded-full" data-testid="button-admin-passkey"><Fingerprint className="h-4 w-4" /> {pkBusy ? 'Waiting for passkey' : 'Confirm passkey'}</Button></div>
+        <div className="flex items-center gap-3"><Fingerprint className="h-5 w-5 shrink-0 text-accent" /><p className="text-[13px] text-muted-foreground">Every write needs a reason and administrator confirmation from the last five minutes.</p></div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">{stepPill}<Button onClick={stepUp} disabled={pkBusy} size="sm" className="rounded-full" data-testid="button-admin-passkey"><Fingerprint className="h-4 w-4" /> {pkBusy ? 'Waiting for confirmation' : 'Confirm identity'}</Button></div>
       </div>
       {pkErr && <p className="-mt-3 mb-5 text-[13px] text-destructive" data-testid="text-passkey-error">{pkErr}</p>}
       <div key={section} className="rise motion-reduce:animate-none">{content()}</div>
@@ -282,11 +284,11 @@ export default function AdminPage() {
             {pending?.action === 'adjust' && adjReq && <p className="font-mono text-[11.5px] text-muted-foreground" data-testid="text-adjust-request">request {adjReq.id.slice(0, 8)} (reused if retried unchanged)</p>}
             <div className="grid gap-1.5"><Label htmlFor="reason">Reason (required)</Label><Textarea id="reason" value={reason} onChange={(e) => setReason(e.target.value)} maxLength={500} data-testid="input-admin-reason" /></div>
             {strong && <div className="grid gap-1.5"><Label htmlFor="typed">Type <span className="font-mono">{confirmWord}</span> to confirm</Label><Input id="typed" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" data-testid="input-admin-confirm" /></div>}
-            {needsStep && <p className="text-[13px] text-warn" data-testid="text-needs-stepup">Confirm with your owner passkey first.</p>}
+            {needsStep && <p className="text-[13px] text-warn" data-testid="text-needs-stepup">Confirm your administrator identity first.</p>}
             {actErr && <p className="text-[13px] text-destructive" data-testid="text-admin-error">{actErr}</p>}
           </div>
           <DialogFooter className="gap-2">
-            {needsStep && <Button variant="outline" onClick={stepUp} disabled={pkBusy} data-testid="button-dialog-passkey"><Fingerprint className="h-4 w-4" /> Passkey</Button>}
+            {needsStep && <Button variant="outline" onClick={stepUp} disabled={pkBusy} data-testid="button-dialog-passkey"><Fingerprint className="h-4 w-4" /> Confirm identity</Button>}
             <Button variant={strong ? 'destructive' : 'default'} onClick={submit} disabled={!canSubmit} data-testid="button-admin-submit">{busy ? 'Saving' : 'Confirm'}</Button>
           </DialogFooter>
         </DialogContent>

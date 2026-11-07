@@ -11,6 +11,25 @@ output:
 
 # Read this first
 
+## Independent platform-admin login — 2026-11-07
+
+- Added email/password login at the platform-admin route with a distinct host
+  cookie, isolated frontend cache, CSRF/origin checks, 30-minute sessions,
+  five-minute password re-confirmation and server-side logout.
+- Platform credentials never authorize personal-vault APIs; existing owner
+  admin API compatibility remains. Admin audit actor attribution distinguishes
+  platform sessions. No Live custody, deployment or storage changes authorized.
+- Full typecheck, frontend build, platform-auth and existing checkout/admin
+  regression tests passed. Disposable browser acceptance passed bad-password
+  rejection, login, identity re-confirmation/cancel, personal-vault isolation,
+  phone/desktop overflow checks, logout and locked reload.
+- Disposable fixture stopped and deleted. Actual preview login renders, but
+  its server reports `configured:false`; a usable runtime secret configuration
+  still needs confirmation. Do not count disposable credentials as proof the
+  operator's configured password works. No hosted validation.
+- See `docs/platform-admin.md` for runtime configuration and process-local
+  session/rate-limit limitations. Staff RBAC and MFA are not implemented.
+
 ## Platform admin route and dashboard — 2026-11-07
 
 - Canonical platform console: `/mainvaultwallet/vault-admin/admin`. Personal vault
