@@ -85,7 +85,7 @@ than silently deleting payment evidence. Receipts remain simulation disclosures.
 | Owner API | `/api/vault/*` | Existing owner session and CSRF |
 | Sandbox merchant API | `/api/v1/checkout/sessions` | Hashed checkout-only tenant API keys; no live transfers |
 | Simulated checkout | `/checkout/:token` | Opaque public status; explicit authenticated simulation only |
-| Admin decisions | `/admin` | Existing owner authentication, recent passkey and audit; no custody enablement |
+| Admin decisions | `/mainvaultwallet/vault-admin/admin` | Standalone platform dashboard; existing owner authentication, recent passkey and audit; no custody enablement |
 
 The personal-vault prefix is `/mainvaultwallet/personal/admin`, not a secret.
 The former concatenated 1–256 link and the shared 1–250 variant redirect to it,

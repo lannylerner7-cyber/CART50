@@ -26,7 +26,7 @@ const WalletFoundationPage = lazy(() => import('@/pages/developers/wallet-founda
 import { SandboxShell } from '@/components/sandbox-shell';
 import { lockClient, LOCK_EVENT } from '@/lib/session-lock';
 import { retryRead, readRetryDelay, transientReadError } from '@/lib/request-recovery';
-import { DEVELOPER_HOMEPAGE, isOwnerLocation, legacyOwnerRedirect, OWNER_BASE } from '@/lib/owner-location';
+import { DEVELOPER_HOMEPAGE, isOwnerLocation, legacyOwnerRedirect, OWNER_BASE, PLATFORM_ADMIN_PATH } from '@/lib/owner-location';
 
 const SESSION_KEY = getGetVaultSessionQueryKey();
 const on401 = (e: unknown) => {
@@ -73,7 +73,7 @@ function RoutedErrorBoundary({ children }: { children: ReactNode }) {
   return <ErrorBoundary resetKey={location}>{children}</ErrorBoundary>;
 }
 
-function Gate() {
+function Gate({ platformAdmin = false }: { platformAdmin?: boolean }) {
   const [location] = useLocation();
   const s = useGetVaultSession({ query: { queryKey: SESSION_KEY, refetchInterval: 30000, refetchOnWindowFocus: true, refetchOnReconnect: true } });
   const session = s.data;
@@ -125,7 +125,11 @@ function Gate() {
 
   return (
     <SessionProvider session={session}>
-      {location === '/sandbox' || location.startsWith('/sandbox/') ? (
+      {platformAdmin ? (
+        <RoutedErrorBoundary>
+          <Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading platform admin…</p>}><AdminPage /></Suspense>
+        </RoutedErrorBoundary>
+      ) : location === '/sandbox' || location.startsWith('/sandbox/') ? (
         <SandboxShell>
           <RoutedErrorBoundary>
             <Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading sandbox…</p>}><SandboxRouter /></Suspense>
@@ -141,6 +145,8 @@ function Entry() {
   const [location] = useLocation();
   const legacyOwner = legacyOwnerRedirect(location);
   if (legacyOwner) return <Redirect to={legacyOwner} replace />;
+  if (location === PLATFORM_ADMIN_PATH || location === `${PLATFORM_ADMIN_PATH}/`) return <Gate platformAdmin />;
+  if (location === '/admin' || location === `${OWNER_BASE}/admin`) return <Redirect to={PLATFORM_ADMIN_PATH} replace />;
   if (location.startsWith('/checkout/')) {
     return <Suspense fallback={<div className="grid min-h-[100dvh] place-items-center bg-sidebar"><VaultMark className="h-12 w-12" /></div>}><Route path="/checkout/:token">{(p) => <HostedCheckoutPage token={p.token} />}</Route></Suspense>;
   }

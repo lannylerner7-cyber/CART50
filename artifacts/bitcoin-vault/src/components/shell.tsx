@@ -91,10 +91,10 @@ export function Shell({ children }: { children: ReactNode }) {
         className="flex w-full items-center justify-center gap-2 rounded-full border border-warn/40 px-3 py-2.5 text-[13px] font-bold text-warn transition-colors hover:bg-warn/10">
         <FlaskConical className="h-4 w-4" /> Switch to Sandbox
       </Link>
-      <Link href="/admin" onClick={() => setOpen(false)} data-testid="link-owner-admin"
+      <a href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/mainvaultwallet/vault-admin/admin`} onClick={() => setOpen(false)} data-testid="link-owner-admin"
         className="flex w-full items-center justify-center gap-2 rounded-full border border-border px-3 py-2.5 text-[13px] font-bold text-foreground transition-colors hover:bg-muted">
         <ShieldCheck className="h-4 w-4" /> Developer admin
-      </Link>
+      </a>
       <button
         onClick={doLock}
         disabled={lock.isPending}

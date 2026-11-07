@@ -11,6 +11,25 @@ output:
 
 # Read this first
 
+## Platform admin route and dashboard — 2026-11-07
+
+- Canonical platform console: `/mainvaultwallet/vault-admin/admin`. Personal vault
+  remains `/mainvaultwallet/personal/admin`; former admin entry points redirect.
+- Standalone responsive Overview, Accounts, Applications and Audit views reuse
+  existing owner-authenticated APIs. This is not independent staff authentication.
+  Page summaries/search are scoped to loaded accounts, not global metrics.
+- Existing passkey step-up, reasons, typed confirmation, adjustment idempotency
+  and server-side logout retained. No Live activation or custody changes.
+- Frontend typecheck and production build passed. Disposable local browser checks
+  passed route protection, section/empty-state navigation, disabled mutation
+  confirmation without passkey, personal navigation, old-route redirect and
+  logout persistence after reload. Tablet 820x1180 and desktop 1440x900 passed.
+  Initial phone overflow was fixed; focused 390x844 recheck measured document
+  width 375/375 with only contained navigation scrolling.
+- Populated account actions and successful passkey-authorized mutations were not
+  exercised in this pass. No hosted acceptance or deployment claimed. Disposable
+  process stopped and credential/database directory deleted.
+
 ### Bundled Sandbox agreement — 2026-11-06
 
 - Owner-authorized separation: public agreement/version ship in source, not

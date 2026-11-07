@@ -1,6 +1,7 @@
 // Owner-requested route prefix. This is NOT a secret or authorization boundary.
 // API endpoints and Bitcoin storage are deliberately unaffected.
 export const OWNER_BASE = '/mainvaultwallet/personal/admin';
+export const PLATFORM_ADMIN_PATH = '/mainvaultwallet/vault-admin/admin';
 // Preserve both the original link and the shortened numeric link shared by the owner.
 const LEGACY_OWNER_BASES = [256, 250].map(count =>
   `/${Array.from({ length: count }, (_, i) => i + 1).join('')}/mainvaultwallet`);

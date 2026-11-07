@@ -62,6 +62,14 @@ oversight must not imply shared signing authority or pooled personal funds.
 They want a separate Live developer-management/admin surface and stronger
 storage separation rather than relying on one D1 database for everything.
 
+The owner chose `/mainvaultwallet/vault-admin/admin` for platform administration,
+not a separate admin hostname. Personal vault navigation stays separate.
+
+**Why:** The owner explicitly rejected the hostname proposal and supplied this path.
+
+**How to apply:** Keep this route protected; "public admin" means administration
+of the public developer service, not anonymous access or developer authorization.
+
 **Why:** The owner explicitly prioritizes protecting personal and customer funds.
 
 Stage developer ledger work in a disposable independent local process before
