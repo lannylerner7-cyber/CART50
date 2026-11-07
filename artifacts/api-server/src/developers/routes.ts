@@ -22,7 +22,9 @@ export function developerRouter(deps: DeveloperDependencies = {}) {
   const router=Router();
   const limits=new Map<string,{count:number,until:number}>();
   const terms=developerTerms;
-  router.use((_req,res,next)=>{res.set("Cache-Control","no-store");next();});
+  // This router is also mounted outside app.ts by independent runtimes.
+  // The crawlable anonymous session/terms response must remain non-indexable.
+  router.use((_req,res,next)=>{res.set("Cache-Control","no-store");res.set("X-Robots-Tag","noindex, nofollow, noarchive");next();});
   router.use(verifyOrigin);
   router.use((req,_res,next)=>{
     if(req.method==="POST") {

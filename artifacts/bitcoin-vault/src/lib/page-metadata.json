@@ -1,0 +1,13 @@
+{
+  "/": {"title":"Bitcoin checkout API for developers","description":"Create hosted Bitcoin checkout sessions, test Sandbox wallet payments and reconcile orders with signed webhooks or server-side status checks.","canonical":"/"},
+  "/developers": {"title":"Bitcoin checkout API for developers","description":"Create hosted Bitcoin checkout sessions, test Sandbox wallet payments and reconcile orders with signed webhooks or server-side status checks.","canonical":"/"},
+  "/developers/about": {"title":"About MainVault","description":"Learn how MainVault developer checkout works, from Sandbox testing to operator review, and what remains unavailable before Live activation.","canonical":"/developers/about"},
+  "/developers/apply": {"title":"Apply for developer access","description":"Apply for MainVault developer access, verify your email, enroll a passkey and set up your Sandbox workspace before issuing a server test key.","canonical":"/developers/apply"},
+  "/developers/resources": {"title":"Developer resources","description":"Explore MainVault terms, privacy, Sandbox policy, API documentation and integration guides for hosted checkout, receipts and signed webhooks.","canonical":"/developers/resources"},
+  "/developers/resources/terms": {"title":"Developer terms","description":"Read the current MainVault developer terms, approval status and conditions governing access to the Sandbox checkout API.","canonical":"/developers/resources/terms"},
+  "/developers/resources/privacy": {"title":"Privacy","description":"Review the draft MainVault Sandbox privacy summary, developer account data, passkey authentication and credential protection.","canonical":"/developers/resources/privacy"},
+  "/developers/resources/policy": {"title":"About the Sandbox","description":"Understand MainVault Sandbox policy, simulated balances, test-order restrictions and operator controls before testing an integration.","canonical":"/developers/resources/policy"},
+  "/developers/resources/documentation": {"title":"API documentation","description":"Integrate MainVault checkout: create sessions, pay from a Sandbox wallet, automate tests, verify webhooks and reconcile returns securely.","canonical":"/developers/resources/documentation"},
+  "/developers/resources/integration": {"title":"Integration guide","description":"Connect MainVault hosted checkout to your backend using server API keys, exact return URLs, Sandbox settlement and verified order updates.","canonical":"/developers/resources/integration"},
+  "/developers/resources/contact": {"title":"Contact","description":"Start a MainVault developer access application or find the documentation and integration guidance for your Sandbox checkout project.","canonical":"/developers/resources/contact"}
+}

@@ -35,7 +35,7 @@ const FLOW = [
   { n: '01', t: 'Create', b: 'Your backend calls POST /api/v1/checkout/sessions with a Bearer sk_test key.', code: 'Authorization: Bearer sk_test_…\nIdempotency-Key: order-123-v1' },
   { n: '02', t: 'Redirect', b: 'Send the shopper to the returned url. Sessions expire after 30 minutes.', code: '302 → session.url' },
   { n: '03', t: 'Pay', b: 'The shopper pays the session from a Sandbox wallet. The exact amount settles once; duplicates never credit twice.', code: 'status: pending → simulation_paid' },
-  { n: '04', t: 'Verify', b: 'Fulfil from the verified webhook, not from the return redirect.', code: 'checkout.simulation_paid\nverify v1 · dedupe by id' },
+  { n: '04', t: 'Verify', b: 'Complete the test order from a verified webhook or server-side status lookup, never from the return redirect.', code: 'checkout.simulation_paid\nverify v1 · dedupe by id' },
 ];
 
 export function Landing({ prefix = '' }: { prefix?: string }) {

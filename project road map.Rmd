@@ -11,6 +11,30 @@ output:
 
 # Read this first
 
+## Public documentation, crawl readiness and favicon compatibility — 2026-11-07
+
+- Updated the homepage-linked guide to match implemented wallet settlement,
+  review expiry, self-payment, exact satoshis/demoUSD display, manual test API,
+  completion fields, conditional webhook creation, return validation and
+  server-side reconciliation. Corrected the nested checkout-console link and
+  distinguished five-second hosted polling from the merchant polling example.
+- Resource URLs now render their own section and an H1. Public metadata is
+  shared between the client and initial server HTML; sitemap remains canonical
+  and public-only. Robots permits required intro media, icons and the anonymous
+  session/terms rendering dependency without removing API noindex or auth.
+- Preserved the brand SVG and generated PNG, ICO, Apple-touch, Safari-mask and
+  manifest variants with a reproducible script and tests. Added exact Search
+  Console setup and path guidance in `docs/search-console.md`.
+- Read-only live checks found the previous deny-all/noindex build still served
+  by mainvaultwallet.com, with sitemap and ICO returning 404. Local readiness
+  is not live indexing or verified Search Console ownership. No deployment,
+  DNS change, hosting change, real transfer or Git push was made.
+- Chromium verified public navigation, anchors, unique section content,
+  mobile overflow, metadata, all favicon file decodes and rendering with robots
+  rules enforced on subrequests. Firefox/WebKit and native tab/home-screen
+  surfaces were unavailable. A standalone-router noindex-header omission found
+  by this pass is now guarded in the developer router and its regression test.
+
 ## Funded Sandbox checkout settlement, search indexing allowlist — 2026-11-07
 
 - Hosted checkout now prints a `checkout:<token>` Sandbox destination. A
@@ -1422,12 +1446,12 @@ to publish: review repository assets before release.
 
 <!-- ROADMAP-INVENTORY:START -->
 
-596 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
+612 files. Sizes are bytes; the roadmap size/hash excludes this generated section.
 
 | File | Bytes | SHA-256 | Responsibility |
 |---|---:|---|---|
 | `.agents/agent_assets_metadata.toml` | 5315 | `fd850ae61e0519307dc1d3f37b35a89f9e863893f7329e0235d5c53916dde4c8` | Workspace asset metadata; not application logic. |
-| `.agents/memory/MEMORY.md` | 3307 | `ca884fde91397d0bfc24a57ee37a88f79b7c7261ec1171002361da89fc7ed236` | Durable project decision/lesson: MEMORY. |
+| `.agents/memory/MEMORY.md` | 3297 | `d3a757932557649363c26b7d4abe3a5cb540c103eca1c620d02dabff33ecc6eb` | Durable project decision/lesson: MEMORY. |
 | `.agents/memory/checkout-settlement.md` | 1595 | `d46fda5b371157ae114b69435c2e0de0812391e3553c0e67c90e4229010e46b9` | Durable project decision/lesson: checkout-settlement. |
 | `.agents/memory/container-verification.md` | 1622 | `2ad5582f7b12b1108d3657dfbc1ab66edf3fad91e83a8c267e0c1f374e0543b7` | Durable project decision/lesson: container-verification. |
 | `.agents/memory/coolify-mount-parsing.md` | 1347 | `8d1376f11c06a12bdcb909c16965e5e60c83827a88dc11e258448ec274db3edc` | Durable project decision/lesson: coolify-mount-parsing. |
@@ -1444,7 +1468,7 @@ to publish: review repository assets before release.
 | `.agents/memory/qr-verification.md` | 664 | `d33954d52db2f10659a65870510d5b76a6c88c72fab228a3c7d282d52caf4c79` | Durable project decision/lesson: qr-verification. |
 | `.agents/memory/request-recovery.md` | 799 | `b846c19420be7142cbc24bae022a1dd8c9f207f1dcb4fc21d855d1dfe7ffd876` | Durable project decision/lesson: request-recovery. |
 | `.agents/memory/schema-evolution.md` | 828 | `103fdc6b2118e431650e2bed193e5284ab99f3263a29b5f9c71dda8dfb2a31cd` | Durable project decision/lesson: schema-evolution. |
-| `.agents/memory/search-indexing.md` | 1121 | `383a2ee3f163fbb3765ff6ea5994c027540c7ebdb5880e96eb5e76590d3f5c28` | Durable project decision/lesson: search-indexing. |
+| `.agents/memory/search-indexing.md` | 1440 | `a6f7f11373f29323926c3b464d4b8c6db9ac10e3d55b5f0813220a5f673a96cd` | Durable project decision/lesson: search-indexing. |
 | `.agents/memory/shared-limiter-choice.md` | 530 | `0d9d5950f4df3870f297d0fec014d87a43517a2f628f7170f8504510ffad95c0` | Durable project decision/lesson: shared-limiter-choice. |
 | `.agents/memory/signet-setup.md` | 830 | `6a23537e298cca65e6c7fc07b5011c3955b02ccb3f171f056f538508dbc3652b` | Durable project decision/lesson: signet-setup. |
 | `.agents/memory/temporary-wallet-destruction.md` | 2255 | `308fab6c2e98bb62dc6f2cdc25c5f5716eb296a98b7f81af7c4e57bca7a4c538` | Durable project decision/lesson: temporary-wallet-destruction. |
@@ -1466,7 +1490,7 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/developers/backup-recovery.test.ts` | 1864 | `5bd4f2c5160000a6dfd398bceb6b3d1e64ad3115ce9bd4e8645e4fb8e2913472` | Regression tests for backup-recovery; local checks, not hosted evidence. |
 | `artifacts/api-server/src/developers/checkout-routes.ts` | 10440 | `55262704758b7d2416ccc792aaa3bd5dc2409dea7df51d87e239ded8bd7c77b3` | checkout-routes.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/checkout.test.ts` | 11441 | `236fef39eeb10d82909ab7614c4a82b64b1065a2514307233f7114487b8e93ce` | Regression tests for checkout; local checks, not hosted evidence. |
-| `artifacts/api-server/src/developers/developers.test.ts` | 9641 | `ec005622e25d82809e1e34bf04ffe41e5f9f5121114a47bf1150afb19c5b56c8` | Regression tests for developers; local checks, not hosted evidence. |
+| `artifacts/api-server/src/developers/developers.test.ts` | 9909 | `463e7af52221c8eddec256cace1a2e7f75163ff7fbd7184b6530bd7d76739db6` | Regression tests for developers; local checks, not hosted evidence. |
 | `artifacts/api-server/src/developers/input-schemas.test.ts` | 3883 | `e281153dc72f6c6880f6cd76a741b28ea0b61917998cd3d6a2bc352a7de00b1c` | Regression tests for input-schemas; local checks, not hosted evidence. |
 | `artifacts/api-server/src/developers/input-schemas.ts` | 900 | `e848ce80ab99541e902a18f78b8b4b4417d0ba70f4cd40e82eeae1fc58c8bb56` | input-schemas.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/ledger.test.ts` | 1942 | `72754fbe712db507c296194587ef29de3d153c11152edcd44b1cf25a157167c4` | Regression tests for ledger; local checks, not hosted evidence. |
@@ -1479,7 +1503,7 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/developers/merchant.ts` | 11716 | `5e30ae94a83fde4bb23ac8f9c966aea3fe1afad4d401332da875bf4d1cb399f0` | merchant.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/outbox-scan.test.ts` | 2076 | `a48c9db97fe49962892af3cb7592b532417eb2d0f79d2891870adc21ed764d8f` | Regression tests for outbox-scan; local checks, not hosted evidence. |
 | `artifacts/api-server/src/developers/passkeys.ts` | 5207 | `7ac37c2abaa2bc925fc5b5db6d8a4b7ebc24a461bea8678c2d3db1f2fa92368d` | passkeys.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
-| `artifacts/api-server/src/developers/routes.ts` | 13450 | `8c6d6d3b24db5f43cdc8c3cb4714b4ae8050dc4f4a9e24663bf07efed698951b` | routes.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
+| `artifacts/api-server/src/developers/routes.ts` | 13657 | `f5b6bbc59cc6af517e1c12096b61a69ddbbb8952cd9905562ab10b7d4111abd8` | routes.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/settlement.test.ts` | 12458 | `5bc48458a4cd49e0ae9814280c2bd930eeaedbc5e381dbcd40010f444934f0ea` | Regression tests for settlement; local checks, not hosted evidence. |
 | `artifacts/api-server/src/developers/settlement.ts` | 9180 | `3c08230af5ad1e3aeb5c8b57c5beb064d19e36f0532601a475ef7e87c48cf91d` | settlement.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
 | `artifacts/api-server/src/developers/storage.ts` | 984 | `bd5a03f5d02f09c328668fed25a170ee7ed2be09e5ea7520caca783da2fff385` | storage.ts module in artifacts/api-server/src/developers; see the owning subsystem above. |
@@ -1503,8 +1527,9 @@ to publish: review repository assets before release.
 | `artifacts/api-server/src/routes/sandbox.ts` | 2753 | `372c1c31e79a21bd84e31173ce709a4837873b6b8021eab3ef0f0b3ae84b4a5c` | sandbox.ts module in artifacts/api-server/src/routes; see the owning subsystem above. |
 | `artifacts/api-server/src/routes/vault.ts` | 9882 | `cf8f6db428f862d67f648a0149ff231eca27a433d65996409bfdffb2a9dd47c4` | Owner-gated vault API endpoints and contract validation. |
 | `artifacts/api-server/src/smtp-check.ts` | 2672 | `2181f6e32c377c4ff424a7fff89b78655b5ca61d3b975a191b07702fc490d2fc` | smtp-check.ts module in artifacts/api-server/src; see the owning subsystem above. |
-| `artifacts/api-server/src/static.test.ts` | 5100 | `d49e2f56375cc96667bb48f3c87cf2b84060a57a625f658759f6c0ebf4220526` | Regression tests for static; local checks, not hosted evidence. |
-| `artifacts/api-server/src/static.ts` | 4182 | `b9f6171718bba8211f58c2be9febfdde02a290cfb0558de3cc4b36654230a9a0` | static.ts module in artifacts/api-server/src; see the owning subsystem above. |
+| `artifacts/api-server/src/static-seo.ts` | 2138 | `ac7b19a8fe862b7c24dd95449a5a30176acdc4494e427cc45cee45faaaba5e72` | static-seo.ts module in artifacts/api-server/src; see the owning subsystem above. |
+| `artifacts/api-server/src/static.test.ts` | 7634 | `9abdee1a89e38bc93872ee84fe9a474695c6679722d6a3ed53b9c0c32bcad102` | Regression tests for static; local checks, not hosted evidence. |
+| `artifacts/api-server/src/static.ts` | 5259 | `700b22390b982719b9cb7ca790c27231e4b59a8870de1040b519ef5e6f2bbfc9` | static.ts module in artifacts/api-server/src; see the owning subsystem above. |
 | `artifacts/api-server/src/vault/access.test.ts` | 6837 | `bb0a19f80249c165158aa00bd8c2f0e7027a84b62c9bda6b6a15a626a1865052` | Regression tests for access; local checks, not hosted evidence. |
 | `artifacts/api-server/src/vault/auth.ts` | 3035 | `39d175b6cb7beb4bb6df453459516aa6f1e28125e336ca505f64591f442649cb` | Owner-key verification, session authentication and request protections. |
 | `artifacts/api-server/src/vault/burst.test.ts` | 2353 | `f3e520a039e6803da77f02911aade92559648b200b64d9af2adc92a4f42a07ff` | Regression tests for burst; local checks, not hosted evidence. |
@@ -1551,8 +1576,9 @@ to publish: review repository assets before release.
 | `artifacts/api-server/tsconfig.json` | 335 | `aa300909ccd1d4282761b5d6549a174717b663bb56cb0f59d107d4b3d96cb009` | TypeScript compilation/project-reference configuration. |
 | `artifacts/bitcoin-vault/.replit-artifact/artifact.toml` | 770 | `8ffc0ab0be434d79fa9639b72cde3be4bf299f71dd6692b49640f13852b9195d` | Managed artifact service/routing configuration; update through artifact tooling. |
 | `artifacts/bitcoin-vault/components.json` | 434 | `3a5d5af62f05e6e3de6c5085f31ed4f49273d57cfeae4d69d00a2568c91f54f9` | UI component tooling and import/style configuration. |
-| `artifacts/bitcoin-vault/index.html` | 1764 | `88ddca8ebbbffbd560be55fa8406bc945eaa612437ee39caeedf335945f42398` | Browser HTML shell and asset entry. |
+| `artifacts/bitcoin-vault/index.html` | 2372 | `055aad3d05537a997e0d0fbcd437302623d9a3c137b83e6aa9910ec86933115c` | Browser HTML shell and asset entry. |
 | `artifacts/bitcoin-vault/package.json` | 2806 | `4a84b1dfeaa7395952b5ea45d6daba75d975e911ac5d1f50eaa8a08680a47548` | Package identity, dependencies and runnable scripts. |
+| `artifacts/bitcoin-vault/public/apple-touch-icon.png` | 2441 | `45995ce3b629667eb0a350e826419dd065e342b8063eaa7f939113b8aa3190fb` | Public static asset/tool: apple-touch-icon.png; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/assets/strongroom/brand/main-vault-mark.svg` | 399 | `8872fc6a3412e0b331335fe2573c22eabc4d1349aefc7d650f4ad4687becd17a` | Public static asset/tool: main-vault-mark.svg; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/assets/strongroom/developer/bonus.jpg` | 28501 | `2a5a23235a1b302499eb68bee5f953e5ae1a6e25c76458a9848e8dd2e43ad45a` | Public static asset/tool: bonus.jpg; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/assets/strongroom/developer/orb.jpg` | 39770 | `3d7f62ecb4ac3cf1a2923de8fa26b4bd5165ffbf0c6d056951d707640cdf9603` | Public static asset/tool: orb.jpg; never place generated secrets here. |
@@ -1566,10 +1592,19 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/public/developer-intro.jpg` | 26623 | `54a23c70afac8d50e2565ee1adfc1d84f1dae8ec415a224c0d3cb92c6042a194` | Public static asset/tool: developer-intro.jpg; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/developer-intro.mp4` | 623327 | `6eedf0a7ae201378dca65960af6da0ff106f8c5172be9bdfe43663bb7c030c45` | Public static asset/tool: developer-intro.mp4; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/developer-intro.webm` | 674213 | `4bf67c753b3886ce69a274ca39cbdbeeac2249578419ddaf86b254c86ab62411` | Public static asset/tool: developer-intro.webm; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/favicon-16.png` | 374 | `0c020318b10170c09a86ec6df8162fc6676e32f24db8849522e575fd7b6b274d` | Public static asset/tool: favicon-16.png; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/favicon-192.png` | 2610 | `8e7abc778d80595a066127765928ed40f6494c943f6540f3053700a5a404c7e6` | Public static asset/tool: favicon-192.png; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/favicon-32.png` | 553 | `8f41bdffc337f686b058ff1a0d141218128addbabef08661469a0c39469dade3` | Public static asset/tool: favicon-32.png; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/favicon-48.png` | 741 | `d425338810f5ed1353866fa7a48306fbebb920476f17f5fe623c42644885e70c` | Public static asset/tool: favicon-48.png; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/favicon-512.png` | 8929 | `a8c554b1b76d7b5cbf95093257f979fa08a81a3fdd007ac0ef28557859736f1c` | Public static asset/tool: favicon-512.png; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/favicon-96.png` | 1296 | `45740bd29e7778f2ac2307225d3bb54115b9448aa7ef9cd92de297602f002017` | Public static asset/tool: favicon-96.png; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/favicon.ico` | 15086 | `c02109bbdf4f458dd496d5156c137fa55ba67af559396e776aab29ede4bab60b` | Public static asset/tool: favicon.ico; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/favicon.svg` | 391 | `b43e8fb32c99818ce0dbb5a76f806615a88e81f01dde8146e5e4a22ee3af5ed2` | Public static asset/tool: favicon.svg; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/offline-keygen.html` | 3706 | `1102ffcdc57e9ed88ed53a7ea10f9e1b5acf5cee09c85cf466ed2e4ff5289c09` | Public static asset/tool: offline-keygen.html; never place generated secrets here. |
-| `artifacts/bitcoin-vault/public/robots.txt` | 592 | `258d5a2e92e48f2c72ca070d78c5cbb7c267ac2a4bf1ba5f5a61fda3c3e496bf` | Public static asset/tool: robots.txt; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/robots.txt` | 1307 | `c7345ea0ab0bc03a80be3d8703ed2e5c8bfc0a8254662dd3e2be6f058310cade` | Public static asset/tool: robots.txt; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/safari-pinned-tab.svg` | 216 | `2afe533c2e925424cdd0f8caa305f238bc0ee21fdedff8b2f0dffd42ee9fa6d1` | Public static asset/tool: safari-pinned-tab.svg; never place generated secrets here. |
 | `artifacts/bitcoin-vault/public/signet-setup.html` | 66997 | `41f76188e4442f023c632c16cad297819724ea1d1b913b2d5e0097d08544bb0e` | Public static asset/tool: signet-setup.html; never place generated secrets here. |
+| `artifacts/bitcoin-vault/public/site.webmanifest` | 381 | `a72abc799267e8f7d800a1b7de7e3348c70e105fe58bdebc0d01147cc28c627b` | Public static asset/tool: site.webmanifest; never place generated secrets here. |
 | `artifacts/bitcoin-vault/src/App.tsx` | 8558 | `5bb0b9ffe54965157b7f98f6ed8092972300d1dbca67a2ecbb9785991b1d0921` | Application routing/providers and access boundary. |
 | `artifacts/bitcoin-vault/src/components/admin-shell.tsx` | 4283 | `ebc57691a213060e72a52107d4ddf1625761e97ef348557335e415ed0902f8e1` | admin-shell.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/components/branded-qr.tsx` | 1059 | `161d2024c73f0a763a4be93dd92cddcca03c6f1f46818689cef1de1ed6d17ea4` | branded-qr.tsx module in artifacts/bitcoin-vault/src/components; see the owning subsystem above. |
@@ -1658,6 +1693,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.test.ts` | 823 | `6054ccce2ec59ee582f9784efb7f8f746470b352ade82ee1affc9497f0137194` | Regression tests for ledger-keys; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/ledger-keys.ts` | 920 | `0ef19efdd008050bd8c98e9aea32d0fd97d163e08a6f02dfa44651b36a4352d3` | ledger-keys.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/owner-location.ts` | 984 | `21c48ec1471b9ca77ffc218ffb175fcf100f92988232f107a9f5612f27591af8` | owner-location.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/page-metadata.json` | 2759 | `3de62c9ef959a101ec73c7436ad640f5c1eb805e5de8afaf3c1c02a67e65b1e6` | page-metadata.json module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/print.ts` | 699 | `88344fb2ff7853218999ae4e8da0b44fda9a39764a20e7cf100b90c2d0f3cdc4` | print.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/receipt-terminal.test.ts` | 8093 | `c894ef8351eb61bc23a405fb2e4d8ff0b06a3df33e8f31dd0be10411839581c7` | Regression tests for receipt-terminal; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/receipt-terminal.ts` | 22151 | `5fde04aa7e1a0461f2029ac71cbe5a777581829d37c9bc884ed6b30aaba84ccf` | receipt-terminal.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
@@ -1666,7 +1702,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/lib/sandbox-adapter.tsx` | 3587 | `e08bc4a551aaade8da4d0f399b33bbab4a13a4dd938966ad7400b472c9aaa075` | sandbox-adapter.tsx module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/sandbox.ts` | 1088 | `ae71e4015961856727e1ac86738c7d3656cf517802edf15a2c0c7dd61e37c081` | sandbox.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/seo.test.ts` | 3184 | `31932a2972f04a2fcf99800bf0242d3708fbcd471669d699395c790c3456a063` | Regression tests for seo; local checks, not hosted evidence. |
-| `artifacts/bitcoin-vault/src/lib/seo.ts` | 4731 | `8e705d9e5ca30eb5050b3a289ff8ed3aea68e0718dda5d41e98b099cfdff1202` | seo.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
+| `artifacts/bitcoin-vault/src/lib/seo.ts` | 2770 | `839fa5ff0c30b031c4ea62f56c8d72af948aa7508246427b3f8ec9e3827c5f79` | seo.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.test.ts` | 1648 | `86e951698a47a5037b3e43156cad26fc0ccb79f49fd1e723efd3d5fbd9d99eb0` | Regression tests for session-lock; local checks, not hosted evidence. |
 | `artifacts/bitcoin-vault/src/lib/session-lock.ts` | 1115 | `5962a8ac11ca1035e7024c1463f78897f2d93d42a22fa39f57cc770aa775ee39` | Client lock, protected cache clearing and cross-tab session notification. |
 | `artifacts/bitcoin-vault/src/lib/starter-archive.ts` | 9185 | `15224ca22ea331d1cecf724c729aa2645fb863540fdfcd3bad227957d6ef7615` | starter-archive.ts module in artifacts/bitcoin-vault/src/lib; see the owning subsystem above. |
@@ -1685,16 +1721,17 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/pages/admin.tsx` | 24533 | `b21aa61212a9accc95b124fcac3129211344e17236db52d473bb84c1193471eb` | admin wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/about.tsx` | 5799 | `79cffd6091caa8ec15bd112326d8e088a79dcf9cc94e2d022baba3c3d8f5dacf` | about wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/access.tsx` | 11942 | `db80913af94528b28cccb486a9455102ada9a42017fb73915ea3ef650ddc6b89` | access wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/api-guide.tsx` | 19581 | `4dd605b8dd4c669f811b2edf1435a3118e43db6f3320ccef097e5ef76934e2f7` | api guide wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/api-guide.tsx` | 16486 | `b3087cd2bdc59d411a009477b9f73e480de31786f9aaccd37860366b6471af4c` | api guide wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/apply.tsx` | 8062 | `56ff5a96b9bf293dac8dfcbb82691b839923458981528aa6ed3e3faca13b139d` | apply wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/checkout-flow-guide.tsx` | 6181 | `769412268abb169a611797c38dacede8630226dc493bb3aa53017aeaf9affad3` | checkout flow guide wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/checkout.tsx` | 24320 | `108e0076d3d4745699fdd7c40dc9eb4f26d63a53625ef0235fe6d10a80f5c90e` | checkout wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/hero-billboard.css` | 2017 | `8ed7919128bedc126f23de9d26740a078fdd0994cdf93b9055be1381482a9952` | hero billboard.css wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/hero-billboard.tsx` | 3081 | `75591f4ee11202605b184c017dde9ab5a98f0caafb3073a1d42b1034e78ad4c7` | hero billboard wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/index.tsx` | 7827 | `9b1657aef0a11f9120b2502089795087f5c94b761fb20ad47eb7119c4c5c5bb8` | index wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/landing.css` | 6118 | `f7e7fab3b8a72b3d516c24c4261967f6daa6a34f67b9c4e95173404fea980eb4` | landing.css wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/landing.tsx` | 13613 | `f359acda52821fa333c0e7b3021c28219184f436be799b626bae8c21a67474fe` | landing wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/landing.css` | 6430 | `013cbede8f6d7302400279b6d40d198e9b8c0b50fbef71e4aaac6d4d69380a7d` | landing.css wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/landing.tsx` | 13659 | `38db02b6537695138853dbc2648a35dcc070b61cd496d86f8d3cfbb92a40cb4a` | landing wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/onboarding.tsx` | 14255 | `179327f6a86dfbc7d702915e64e0de126f54fc0bea15ac702df8b55e7af88b55` | onboarding wallet screen. |
-| `artifacts/bitcoin-vault/src/pages/developers/resources.tsx` | 6026 | `bd86814d2af9295d9ae4c906959b20e8c319a66a9e6d4a745898fa9659539701` | resources wallet screen. |
+| `artifacts/bitcoin-vault/src/pages/developers/resources.tsx` | 7048 | `e2e26f3a04ebb65c5b9c3bad70fd01cf33e142f0324ca641a821f34519b4141c` | resources wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/developers/wallet-foundation.tsx` | 31104 | `0957056faba7ef1417a92003b834eba5d84d70258ad9abcdeb44301cad7bfc9a` | wallet foundation wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/explorer.tsx` | 4055 | `7d91e60eeba560738e2e1b925c5e2b9804f2f0e8b439aade2826542105bed57b` | explorer wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/hosted-checkout.tsx` | 10555 | `c3e88200a1ea39747ae702479a82102a43feb115ede89690e0ce5b4df3740e51` | hosted checkout wallet screen. |
@@ -1711,7 +1748,7 @@ to publish: review repository assets before release.
 | `artifacts/bitcoin-vault/src/pages/wallet-detail.tsx` | 13418 | `464bb873398e6dfbd5db25c7bf5db5f514392ab539e0e80d70bdb0f840afd604` | wallet detail wallet screen. |
 | `artifacts/bitcoin-vault/src/pages/wallets.tsx` | 9598 | `ccdcf0a80728ec23bc9a147c2394e8d919a9c9c14d2714b1b7f7ba98f0f12284` | wallets wallet screen. |
 | `artifacts/bitcoin-vault/tsconfig.json` | 520 | `e0a2fd8a7f3bfc860ccab5623b1881e754eb02336612708ff8b59215e8c256c9` | TypeScript compilation/project-reference configuration. |
-| `artifacts/bitcoin-vault/vite.config.ts` | 1803 | `4f7c94d802c4f2d5f5c92e051ac99f5701d62d518a8cb412b9ae094879e0a4f7` | Vite host, bundling, aliases and artifact base-path configuration. |
+| `artifacts/bitcoin-vault/vite.config.ts` | 2055 | `bd4c22a1e8a1953ca5bb942077cdfcdb7224163bcf5575508d75dd4089339aac` | Vite host, bundling, aliases and artifact base-path configuration. |
 | `artifacts/mockup-sandbox/.replit-artifact/artifact.toml` | 327 | `e259a07aa72cd0a1d06c141f4aa00c16aa6942443ddf17b7cb59e88a9882f4f9` | Managed artifact service/routing configuration; update through artifact tooling. |
 | `artifacts/mockup-sandbox/components.json` | 426 | `aa1b56411ed0e8fc2ac14315f211c7059406e03d68666e1921f640186b8c096f` | UI component tooling and import/style configuration. |
 | `artifacts/mockup-sandbox/index.html` | 4325 | `fa4111c44a19ea399d44d7c6486387ffd49d9f21459ac87906ded4dd5c2bcb6c` | Browser HTML shell and asset entry. |
@@ -1824,6 +1861,7 @@ to publish: review repository assets before release.
 | `docs/receive-readiness.md` | 2926 | `ed851ccc6e98853b4468a3e82ef5c363fc1fcfc5205118aeea128b6606350b8d` | Detailed receive readiness runbook/status reference; respect dated evidence. |
 | `docs/request-recovery.md` | 2568 | `842926f8da879ba667c434e0c5dd0305c4312cf61ac500611ce36aa3bba2e207` | Detailed request recovery runbook/status reference; respect dated evidence. |
 | `docs/sandbox-checkout.md` | 13733 | `64e562028123b53442a6175bf1118a2241c6f04c1b3b9ff06eb225dc39a0f884` | Detailed sandbox checkout runbook/status reference; respect dated evidence. |
+| `docs/search-console.md` | 6381 | `d9661a0f16c407440d5e27134e9c8b82c748cbd451d86abd996213632ca694d7` | Detailed search console runbook/status reference; respect dated evidence. |
 | `docs/self-hosted-checkout-starter.md` | 4889 | `07a963a77634ac4bec1d903e85a4c8a34c8132106400645e9e4458446b0e943a` | Detailed self hosted checkout starter runbook/status reference; respect dated evidence. |
 | `docs/server-held-custody.md` | 4265 | `d9785925e1ccf930279868dbcd503e7ce0b69391870463504e8c2f3421ce3f4a` | Detailed server held custody runbook/status reference; respect dated evidence. |
 | `docs/strongroom-complete-figma-design-brief.txt` | 0 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Detailed strongroom complete figma design brief.txt runbook/status reference; respect dated evidence. |
@@ -1967,15 +2005,17 @@ to publish: review repository assets before release.
 | `lib/vault-cloudflare/tsconfig.json` | 206 | `71f61c1494eae268125f8cb1af3530c1d205b784f0b4b1f04fc8e30c4799dd28` | TypeScript compilation/project-reference configuration. |
 | `lib/vault-cloudflare/wrangler.jsonc` | 734 | `5999164a4e53708fa087e3353560a56bf1435c8ae971ca4d6c0570a91d74550d` | wrangler.jsonc module in lib/vault-cloudflare; see the owning subsystem above. |
 | `package.json` | 649 | `0eee75b762d97c72cbe42fafdb2229dcfccb8bd11f4b4cdd01803eb8b52e9686` | Package identity, dependencies and runnable scripts. |
-| `pnpm-lock.yaml` | 220498 | `a8ddbdc1fa3c77030c71ecd3e37072e2077d52c0f09abe6d319fc9f74335cc37` | Pinned workspace dependency resolution. |
+| `pnpm-lock.yaml` | 220571 | `620a5814f5669e564e6fcae124cb6aced74255e5348724ece96933a9cd78a4c5` | Pinned workspace dependency resolution. |
 | `pnpm-workspace.yaml` | 4727 | `c2648e54a1cba7fd233f0cbf74f37514c2dc7dd4ee8a48384a954806b502afbf` | Workspace membership, dependency catalogs and package policy. |
-| `project road map.Rmd` | 87004 | `11154d8dfe876a0cd3f1e42d1b162a646ea07f916c254ad161ab416e1f7a744e` | Living architecture, readiness, roadmap and complete source inventory. |
-| `replit.md` | 4495 | `4ba9e48c35ce1ec0f9884bdd8f3881e35ed84621bb304ef1d8f62add19159ae6` | Collaborator instructions, operating constraints and documentation maintenance contract. |
+| `project road map.Rmd` | 88684 | `c1c1938e05d1cb38745578f568c7fc0bfcdd56e6405e1ca57c14cbf107fd34c3` | Living architecture, readiness, roadmap and complete source inventory. |
+| `replit.md` | 4744 | `1c9479469773dc45905cf9a2beeef2bffc70977f66bafb08c4196f9dbf5a852b` | Collaborator instructions, operating constraints and documentation maintenance contract. |
+| `scripts/build-favicons.mjs` | 2371 | `72ca9ff538a8d6b0328059288fbb643e7d533c5041957dc13d5e832b0e4f839f` | Operator/build utility: build-favicons.mjs; inspect flags before invoking. |
 | `scripts/build-signet-generator.mjs` | 895 | `e405d95e92d0995b7a85ef45fb5d71d0851319d8ea6378fa5f63d19a834a3e57` | Operator/build utility: build-signet-generator.mjs; inspect flags before invoking. |
 | `scripts/developer-capacity-check.mts` | 2050 | `ea82c34dfd141ec3f6b675df74e518473f356529d2c996e0c288ac9ca6de8527` | Operator/build utility: developer-capacity-check.mts; inspect flags before invoking. |
 | `scripts/developer-ui-fixture.mts` | 7077 | `908139a75c2ee77b78b0a63a3269595e009edd4bf921b29fbb05105f60c254a6` | Operator/build utility: developer-ui-fixture.mts; inspect flags before invoking. |
+| `scripts/favicon-assets.test.mjs` | 1581 | `0710f0399e984b754a653b6439e09b4273731849bca4817b240cbe1ff7b3f395` | Regression tests for favicon-assets; local checks, not hosted evidence. |
 | `scripts/mockup-discovery.test.mjs` | 1060 | `1bab14f1982be77a9fdeb334dbce7caa6eba71c9856357e20e0bad3b4a485dc6` | Regression tests for mockup-discovery; local checks, not hosted evidence. |
-| `scripts/package.json` | 544 | `95987aed4abb27e80558a5f05a9ef80e5e25cb266c70598176503ee2be106d10` | Package identity, dependencies and runnable scripts. |
+| `scripts/package.json` | 576 | `5b49b0d0df99c7f62baea2b655b11506363415c87c125c06fe5c1a7217cdac4c` | Package identity, dependencies and runnable scripts. |
 | `scripts/post-merge.sh` | 72 | `b9e43e43dcbacd4bd26b84d68dd616270a6aacbd51ab25a2f6b1b81484eadc37` | Operator/build utility: post-merge.sh; inspect flags before invoking. |
 | `scripts/protected-admin.config.mjs` | 776 | `be82ad285e21b355ffceab0190d2dbf4cf2d86652b77c1accbd44b0c36567ded` | Operator/build utility: protected-admin.config.mjs; inspect flags before invoking. |
 | `scripts/protected-admin/admin.spec.mjs` | 7876 | `c277f32d7d05daf6336bc1da6920482e82931f1dee73f8fde986eb5bdd531c9e` | Operator/build utility: admin.spec.mjs; inspect flags before invoking. |

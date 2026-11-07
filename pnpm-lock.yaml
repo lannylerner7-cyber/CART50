@@ -680,6 +680,9 @@ importers:
       '@playwright/test':
         specifier: ^1.65.0
         version: 1.65.0
+      '@resvg/resvg-js':
+        specifier: 2.6.2
+        version: 2.6.2
       '@scure/bip32':
         specifier: 2.4.0
         version: 2.4.0

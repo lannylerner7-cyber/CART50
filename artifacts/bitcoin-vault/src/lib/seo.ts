@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import pages from './page-metadata.json';
 
 /**
  * Route-level document metadata. Only the public developer pages are indexable;
@@ -7,31 +8,17 @@ import { useEffect } from 'react';
  * Keep the public list in step with the API server's PUBLIC_PAGES (static.ts).
  */
 export const SITE_NAME = 'MainVault';
-const DEFAULT_DESCRIPTION = 'Bitcoin checkout API for developers: create hosted checkout sessions from your server, test the full flow in an isolated Sandbox and confirm orders with signed webhooks.';
 
 export type PageMeta = { title: string; description: string; canonical: string };
 
-export const RESOURCE_SECTION_META: Record<string, { title: string; description: string }> = {
-  terms: { title: 'Developer terms', description: 'Terms that govern developer access to the MainVault Sandbox and checkout API.' },
-  privacy: { title: 'Privacy', description: 'What MainVault stores for developer accounts, how credentials are protected and what is never collected.' },
-  policy: { title: 'About the Sandbox', description: 'Sandbox policy: simulated balances only, how test checkouts settle, limits and operator controls.' },
-  documentation: { title: 'API documentation', description: 'Create checkout sessions, redirect shoppers, settle test payments from a Sandbox wallet and verify signed webhooks.' },
-  integration: { title: 'Integration guide', description: 'Return URLs, API keys, hosted checkout, Sandbox settlement and webhook verification for a MainVault integration.' },
-  contact: { title: 'Contact', description: 'How to reach MainVault and apply for developer access.' },
-};
-
-const PUBLIC: Record<string, PageMeta> = {
-  '/': { title: 'Bitcoin checkout API for developers', description: DEFAULT_DESCRIPTION, canonical: '/' },
-  '/developers': { title: 'Bitcoin checkout API for developers', description: DEFAULT_DESCRIPTION, canonical: '/' },
-  '/developers/about': { title: 'About MainVault', description: 'What MainVault is, how the Sandbox, review and Live model works, and what the Sandbox does and does not do.', canonical: '/developers/about' },
-  '/developers/apply': { title: 'Apply for developer access', description: 'Apply with a name and email, verify, enrol a passkey and issue a Sandbox test key.', canonical: '/developers/apply' },
-  '/developers/resources': { title: 'Developer resources', description: 'Terms, privacy, Sandbox policy, API documentation, integration guide and contact for MainVault developers.', canonical: '/developers/resources' },
-  ...Object.fromEntries(Object.entries(RESOURCE_SECTION_META).map(([s, m]) => [`/developers/resources/${s}`, { ...m, canonical: `/developers/resources/${s}` }])),
-};
+const PUBLIC: Record<string, PageMeta> = pages;
+export const RESOURCE_SECTION_META = Object.fromEntries(
+  Object.entries(PUBLIC).filter(([p]) => p.startsWith('/developers/resources/')).map(([p, m]) => [p.split('/').pop()!, m]),
+);
 
 export function publicMeta(pathname: string): PageMeta | null {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
-  return PUBLIC[p] ?? null;
+  return Object.hasOwn(PUBLIC, p) ? PUBLIC[p] : null;
 }
 
 function upsert(selector: string, create: () => HTMLElement, valueAttr: 'content' | 'href', value: string | null) {

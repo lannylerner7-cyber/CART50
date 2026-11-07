@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.65.0",
+    "@resvg/resvg-js": "2.6.2",
     "@scure/bip32": "2.4.0",
     "@types/node": "catalog:",
     "esbuild": "0.25.12",

@@ -59,11 +59,15 @@ separate administration domain a prerequisite; encrypted SSH access is an option
 
 ## Gotchas
 
-- Search indexing is an allowlist. Public pages are listed twice and must stay in
-  step: `artifacts/api-server/src/static.ts` (`PUBLIC_PAGES`, serves `/robots.txt`
-  and `/sitemap.xml`, strips `X-Robots-Tag` only for those paths) and
-  `artifacts/bitcoin-vault/src/lib/seo.ts` (per-route title/description/canonical,
-  noindex meta for everything else). `index.html` must not carry a global robots meta.
+- Search indexing is an allowlist. Keep `artifacts/api-server/src/static.ts`
+  (`PUBLIC_PAGES`, robots and sitemap) in step with
+  `artifacts/bitcoin-vault/src/lib/page-metadata.json` (shared server/client
+  title, description and canonical). Public HTML receives metadata before JS;
+  `index.html` must not carry a global robots meta. Crawlers need the exact
+  anonymous `/api/developers/session` dependency to render public pages; this API
+  keeps noindex and normal authentication. See `docs/search-console.md`.
+- Regenerate browser/search icons from the existing `public/favicon.svg` using
+  `node scripts/build-favicons.mjs`; verify with `--check`.
 - A hosted checkout settles when a developer Sandbox wallet pays its
   `checkout:<token>` destination (`developers/settlement.ts`, three-phase CAS across
   payer and merchant rows). The console's manual "Mark paid manually" is a fallback

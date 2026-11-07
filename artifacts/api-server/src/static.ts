@@ -1,6 +1,7 @@
 import express, { type Express, type Request } from "express";
 import path from "node:path";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { escapeHtml, loadPageMetadata, publicPageHtml } from "./static-seo";
 
 /**
  * Pages a search engine may index. Everything else served from this origin
@@ -18,7 +19,12 @@ export const PUBLIC_PAGES: readonly string[] = [
   ...RESOURCE_SECTIONS.map(s => `/developers/resources/${s}`),
 ];
 /** Crawlers must fetch these to render the public pages; they are not indexed as documents. */
-const PUBLIC_RESOURCES = ["/assets/", "/favicon.svg", "/developer-intro.jpg"];
+export const PUBLIC_RESOURCES = [
+  "/assets/", "/favicon.svg", "/favicon.ico",
+  ...[16, 32, 48, 96, 192, 512].map(size => `/favicon-${size}.png`),
+  "/apple-touch-icon.png", "/safari-pinned-tab.svg", "/site.webmanifest",
+  "/developer-intro.jpg", "/developer-intro.mp4", "/developer-intro.webm",
+];
 
 export function isPublicPage(pathname: string) {
   const p = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
@@ -34,19 +40,18 @@ export function siteOrigin(req: Request) {
 }
 export function robotsTxt(origin: string) {
   const allow = [
-    "Allow: /$",
-    "Allow: /developers$",
-    "Allow: /developers/about$",
-    "Allow: /developers/apply$",
-    "Allow: /developers/resources$",
-    ...RESOURCE_SECTIONS.map(s => `Allow: /developers/resources/${s}$`),
-    ...PUBLIC_RESOURCES.map(r => `Allow: ${r}`),
+    ...PUBLIC_PAGES.flatMap(p => [`Allow: ${p}$`, ...(p === "/" ? [] : [`Allow: ${p}/$`])]),
+    ...PUBLIC_RESOURCES.map(r => `Allow: ${r}${r.endsWith("/") ? "" : "$"}`),
+    "Allow: /sitemap.xml$",
+    // Google must fetch the anonymous session response (public terms) to render
+    // the SPA. The endpoint keeps noindex and all existing authentication checks.
+    "Allow: /api/developers/session$",
   ];
   return ["User-agent: *", ...allow, "Disallow: /", "", `Sitemap: ${origin}/sitemap.xml`, ""].join("\n");
 }
 export function sitemapXml(origin: string) {
   // The developer homepage and / render the same page; / is the canonical copy.
-  const urls = PUBLIC_PAGES.filter(p => p !== "/developers").map(p => `  <url><loc>${origin}${p === "/" ? "/" : p}</loc></url>`);
+  const urls = PUBLIC_PAGES.filter(p => p !== "/developers").map(p => `  <url><loc>${escapeHtml(origin + p)}</loc></url>`);
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
 }
 
@@ -59,15 +64,22 @@ export function mountDashboard(app: Express, directory?: string) {
   const root = path.resolve(directory);
   const index = path.join(root, "index.html");
   if (!existsSync(index)) throw new Error("Built dashboard index.html is missing");
-  app.get("/robots.txt", (req, res) => { res.type("text/plain").send(robotsTxt(siteOrigin(req))); });
-  app.get("/sitemap.xml", (req, res) => { res.type("application/xml").send(sitemapXml(siteOrigin(req))); });
+  const shell = readFileSync(index, "utf8");
+  const metadata = loadPageMetadata(root, PUBLIC_PAGES);
+  const discovery = (res: express.Response) => {
+    res.removeHeader("X-Robots-Tag");
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+  };
+  app.get("/robots.txt", (req, res) => { discovery(res); res.type("text/plain").send(robotsTxt(siteOrigin(req))); });
+  app.get("/sitemap.xml", (req, res) => { discovery(res); res.type("application/xml").send(sitemapXml(siteOrigin(req))); });
   app.use((req, res, next) => {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Content-Type-Options", "nosniff");
     let decodedPath: string;
     try { decodedPath = path.posix.normalize(decodeURIComponent(req.path)); }
     catch { res.sendStatus(400); return; }
-    if (isPublicPage(decodedPath) || isPublicResource(decodedPath)) res.removeHeader("X-Robots-Tag");
+    if (isPublicPage(req.path) || isPublicResource(req.path)) res.removeHeader("X-Robots-Tag");
     else res.setHeader("X-Robots-Tag", "noindex, nofollow, noarchive");
     if (process.env.NODE_ENV === "production" && ["/offline-keygen.html", "/signet-setup.html"].includes(decodedPath)) {
       res.sendStatus(404);
@@ -82,6 +94,14 @@ export function mountDashboard(app: Express, directory?: string) {
     if ((req.path.includes(".") && !checkoutRoute) || !req.accepts("html")) {
       res.sendStatus(404);
       return;
+    }
+    const pathname = req.path.length > 1 ? req.path.replace(/\/+$/, "") : req.path;
+    if (isPublicPage(pathname)) {
+      res.type("html").send(publicPageHtml(shell, metadata[pathname], siteOrigin(req)));
+      return;
+    }
+    if (pathname.startsWith("/developers/resources/")) {
+      res.status(404);
     }
     res.sendFile(index, { cacheControl: false });
   });

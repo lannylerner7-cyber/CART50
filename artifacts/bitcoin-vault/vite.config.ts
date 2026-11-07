@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
+import pageMetadata from './src/lib/page-metadata.json';
 
 const rawPort = process.env.PORT;
 
@@ -30,6 +31,12 @@ if (!basePath) {
 export default defineConfig({
   base: basePath,
   plugins: [
+    {
+      name: 'public-page-metadata',
+      generateBundle() {
+        this.emitFile({ type: 'asset', fileName: 'page-metadata.json', source: JSON.stringify(pageMetadata) });
+      },
+    },
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),

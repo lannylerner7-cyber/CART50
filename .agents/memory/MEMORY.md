@@ -19,4 +19,4 @@
 - [Fixture browser boundary](fixture-browser-boundary.md) — verify actual browser origin/API target before independent-runtime acceptance; API seeds are not UI evidence.
 - [Verification mail privacy](verification-mail-privacy.md) — diagnostics must not become a separate long-lived email history or claim inbox delivery.
 - [Hosted checkout settlement](checkout-settlement.md) — payer is a developer Sandbox account; three-phase durable settlement; keep the manual fallback and the anti-spoofing docs.
-- [Search indexing allowlist](search-indexing.md) — public developer pages only; allowlist duplicated in static.ts and lib/seo.ts must change together; / is canonical.
+- [Search indexing allowlist](search-indexing.md) — public-only search, crawlable rendering dependencies, and why robots blocking is not proof of deindexing.

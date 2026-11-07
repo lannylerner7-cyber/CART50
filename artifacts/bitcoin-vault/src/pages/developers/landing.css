@@ -53,9 +53,14 @@
 
 .dl-prose h2 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 1.7rem; letter-spacing: -.03em; }
 .dl-prose h3 { font-weight: 650; font-size: 1.05rem; margin-top: 1.25rem; }
+.dl-prose h4 { font-weight: 650; margin-top: 1.25rem; }
+.dl-prose ol { list-style: decimal; padding-left: 1.4rem; }
+.dl-prose :is(h3, h4) { scroll-margin-top: 1.5rem; }
+.dl-prose td { vertical-align: top; border-top: 1px solid hsl(var(--line)); }
 .dl-prose p, .dl-prose li { color: hsl(var(--ash)); font-size: 15px; line-height: 1.7; margin-top: .6rem; }
 .dl-prose ul { list-style: disc; padding-left: 1.2rem; }
 .dl-prose code { font-family: 'JetBrains Mono', monospace; font-size: .88em; color: hsl(140 14% 92%); background: hsl(200 16% 4%); padding: .05rem .35rem; border-radius: 6px; }
+.dl-prose p code, .dl-prose li code { overflow-wrap: anywhere; }
 .dl-prose section { scroll-margin-top: 1.5rem; }
 
 @media (prefers-reduced-motion: reduce) {

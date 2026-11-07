@@ -46,6 +46,10 @@ test("isolated developer lifecycle, email safety, provisioning and payment idemp
     return c;
   }
   try {
+    const anonymousSession = await fetch(url + "/session");
+    assert.equal(anonymousSession.status, 200);
+    assert.match(anonymousSession.headers.get("x-robots-tag") ?? "", /noindex/);
+    assert.equal((await anonymousSession.json() as any).authenticated, false);
     const registration = {name:"Disposable", email:"blocked@example.invalid", accepted:true, termsVersion:DEVELOPER_TERMS_VERSION};
     assert.equal((await call(client(),"/register",{...registration,accepted:false})).status,400);
     assert.equal((await call(client(),"/register",{...registration,termsVersion:"preview-draft-1"})).status,400);
