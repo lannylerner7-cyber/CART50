@@ -30,6 +30,46 @@ only merchant audit arrays would incorrectly report missing security history.
 
 ## Repeat setup
 
+### Automated regression suite
+
+```sh
+pnpm --filter @workspace/scripts test:protected-admin
+```
+
+This command builds the current UI and runs the committed Playwright suite in
+`scripts/protected-admin/`. It needs Node, pnpm, OpenSSL, and Chromium.
+Replit's installed Chromium is detected automatically; elsewhere install the
+matching browser with `pnpm --filter @workspace/scripts exec playwright install chromium`.
+No credentials or server URL are required or accepted.
+
+The suite owns a fresh loopback HTTPS admin fixture on port 4443 and refuses
+to attach to an existing listener. It checks the browser origin and per-run
+fingerprint before uploading the generated owner keyfile, enrolls a real
+CTAP2 virtual authenticator, and exercises all scenarios in the Results table.
+Server expiry is an actual 403; client expiry advances only browser time.
+The lost-response test asserts the committed balance before retry, both
+request IDs, and exactly one adjustment audit entry afterward.
+
+Browser requests outside the fixture origin are blocked. The fixture receives
+only an allowlisted environment and preloads a non-loopback socket guard.
+There is no hosted access, node, signer, mail provider, or real credential use.
+Credentials, database, certificates, and private request evidence stay inside
+a parent-owned temporary directory. Teardown stops the child process group,
+removes that directory even on assertion/startup failures, and checks that the
+listener is closed. As with any process, uncatchable OS termination (SIGKILL
+or host loss) cannot execute teardown; remove abandoned
+`protected-admin-suite-*` directories from the system temporary directory
+before reusing that machine.
+
+Traces, video, screenshots, and saved authentication state are disabled.
+Playwright's non-credential test output is under ignored
+`generated-artifacts/protected-admin/`. Failures exit nonzero; there are no
+automatic retries hiding a failed run. The separate platform-principal
+post-merge session check below is historical evidence, not part of this
+owner-console suite.
+
+### Manual fixture setup
+
 ```sh
 PORT=5173 BASE_PATH=/ NODE_ENV=production pnpm --filter @workspace/bitcoin-vault build
 VAULT_UI_FIXTURE=1 VAULT_UI_FIXTURE_HTTPS=1 VAULT_UI_FIXTURE_ADMIN=1 \

@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:protected-admin": "PORT=5173 BASE_PATH=/ NODE_ENV=production pnpm --filter @workspace/bitcoin-vault build && playwright test --config protected-admin.config.mjs",
     "hello": "tsx ./src/hello.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@scure/bip32": "2.4.0",
     "@types/node": "catalog:",
     "esbuild": "0.25.12",
